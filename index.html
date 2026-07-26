@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tech Tatva: Escape The Room - Hack The Hacker | Chandigarh University</title>
+  <meta name="description" content="Official event portal and teaser game for Tech Tatva Presents: Escape The Room - Hack The Hacker Before Time Runs Out at Chandigarh University.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ==================== NAVIGATION BAR ==================== -->
+  <nav class="navbar">
+    <a href="#" class="nav-brand">
+      <span class="nav-logo-icon">🧭</span>
+      <div>
+        <span class="nav-brand-text">TECH TATVA</span>
+        <span class="nav-brand-sub">CHANDIGARH UNIVERSITY</span>
+      </div>
+    </a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#hero" class="active">Home</a></li>
+      <li><a href="#highlights">Pillars</a></li>
+      <li><a href="#activities">Activities</a></li>
+      <li><a href="#teaser">Teaser Game</a></li>
+      <li><a href="#schedule">Schedule</a></li>
+      <li><a href="#register" class="btn-nav-reg">Register</a></li>
+    </ul>
+    <div class="nav-actions">
+      <button class="btn-audio" id="btnAudioToggle" title="Mute/Unmute Audio" onclick="window.soundSystem && window.soundSystem.toggleMute()">🔊</button>
+      <div class="hamburger" id="hamburgerBtn">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ==================== HERO SECTION (PARCHMENT BANNER) ==================== -->
+  <header class="hero" id="hero">
+    <div class="hero-bg-compass"></div>
+    <div class="parchment-banner">
+      <div class="presenter-badge">Apex Institute of Technology <span>•</span> Tech Tatva Presents</div>
+      <h1 class="hero-title">Escape The Room</h1>
+      <div class="hero-subtitle"><span>Hack The Hacker</span> Before Time Runs Out</div>
+      
+      <!-- Countdown Box -->
+      <div class="countdown-box">
+        <div class="timer-grid">
+          <div class="timer-item">
+            <span class="timer-val" id="timerDays">00</span>
+            <span class="timer-label">Days</span>
+          </div>
+          <div class="timer-item">
+            <span class="timer-val" id="timerHours">00</span>
+            <span class="timer-label">Hours</span>
+          </div>
+          <div class="timer-item">
+            <span class="timer-val" id="timerMins">00</span>
+            <span class="timer-label">Minutes</span>
+          </div>
+          <div class="timer-item">
+            <span class="timer-val" id="timerSecs">00</span>
+            <span class="timer-label">Seconds</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-actions">
+        <a href="#register" class="btn-primary">📜 Register For Event</a>
+        <a href="#teaser" class="btn-secondary">💻 Try Teaser Challenge</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== THE 4 PILLARS (EVENT HIGHLIGHTS) ==================== -->
+  <section class="section-padding" id="highlights">
+    <div class="section-header">
+      <h2 class="section-title">The 4 Event Pillars</h2>
+      <p class="section-subtitle">Experience the ultimate fusion of physical treasure hunting and cybersecurity hacking.</p>
+    </div>
+    <div class="pillars-grid">
+      <div class="pillar-card">
+        <div class="pillar-icon">🧩</div>
+        <h3 class="pillar-title">Puzzle Solving</h3>
+        <p class="pillar-desc">Unravel cryptic ciphers, mechanical enigmas, and logical labyrinths designed to test your lateral thinking under pressure.</p>
+      </div>
+      <div class="pillar-card">
+        <div class="pillar-icon">📜</div>
+        <h3 class="pillar-title">Treasure Hunt</h3>
+        <p class="pillar-desc">Navigate hidden physical clues across the campus and digital maps to uncover the Master Hacker's secret vault.</p>
+      </div>
+      <div class="pillar-card">
+        <div class="pillar-icon">💻</div>
+        <h3 class="pillar-title">Tech Challenges</h3>
+        <p class="pillar-desc">Breach simulated firewalls, decode encrypted transmissions, and execute command-line overrides before time expires.</p>
+      </div>
+      <div class="pillar-card">
+        <div class="pillar-icon">🏆</div>
+        <h3 class="pillar-title">Exciting Rewards</h3>
+        <p class="pillar-desc">Win exclusive Tech Tatva trophies, official recognition certificates, cash prizes, and bragging rights as campus champions!</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 4 ACTIVITY PAGE SLOTS ==================== -->
+  <section class="section-padding activities-section" id="activities">
+    <div class="section-header">
+      <h2 class="section-title">Flagship Activity Slots</h2>
+      <p class="section-subtitle">Explore our 4 core event activities. Each slot links to a dedicated page ready for future challenge integration!</p>
+    </div>
+    <div class="activities-grid">
+      
+      <!-- Activity Slot 1 -->
+      <div class="activity-slot-card">
+        <div>
+          <span class="slot-badge">Slot 01 • Logic & Ciphers</span>
+          <h3 class="slot-title"><span>🔐</span> The Cryptic Cipher</h3>
+          <p class="slot-desc">A deep-dive cryptographic challenge where teams must decode ancient symbols blended with ASCII binary encodings.</p>
+          <div class="slot-status">⚡ Page Slot Ready for Dev</div>
+        </div>
+        <a href="activity1.html" class="btn-slot-launch">Launch Activity 1 Slot ➔</a>
+      </div>
+
+      <!-- Activity Slot 2 -->
+      <div class="activity-slot-card">
+        <div>
+          <span class="slot-badge">Slot 02 • Exploration</span>
+          <h3 class="slot-title"><span>🗺️</span> Digital Treasure Map</h3>
+          <p class="slot-desc">An interactive coordinate-tracking challenge combining real-world campus landmarks with digital geolocation clues.</p>
+          <div class="slot-status">⚡ Page Slot Ready for Dev</div>
+        </div>
+        <a href="activity2.html" class="btn-slot-launch">Launch Activity 2 Slot ➔</a>
+      </div>
+
+      <!-- Activity Slot 3 -->
+      <div class="activity-slot-card">
+        <div>
+          <span class="slot-badge">Slot 03 • Cybersecurity</span>
+          <h3 class="slot-title"><span>⚡</span> Cyber Firewall Breach</h3>
+          <p class="slot-desc">A simulated command-line hacker console where participants must override security protocols and patch vulnerabilities.</p>
+          <div class="slot-status">⚡ Page Slot Ready for Dev</div>
+        </div>
+        <a href="activity3.html" class="btn-slot-launch">Launch Activity 3 Slot ➔</a>
+      </div>
+
+      <!-- Activity Slot 4 -->
+      <div class="activity-slot-card">
+        <div>
+          <span class="slot-badge">Slot 04 • Grand Finale</span>
+          <h3 class="slot-title"><span>🗝️</span> Master Vault Escape</h3>
+          <p class="slot-desc">The ultimate high-stakes escape challenge combining all retrieved physical keys, digital passcodes, and team coordination.</p>
+          <div class="slot-status">⚡ Page Slot Ready for Dev</div>
+        </div>
+        <a href="activity4.html" class="btn-slot-launch">Launch Activity 4 Slot ➔</a>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ==================== INTERACTIVE TEASER GAME ("THE HACKER'S TREASURE VAULT") ==================== -->
+  <section class="teaser-game-section" id="teaser">
+    <div class="section-header">
+      <h2 class="section-title">The Hacker's Teaser Vault</h2>
+      <p class="section-subtitle">Can you solve this 3-stage interactive teaser challenge right now? Hack the vault to earn an exclusive bonus code for the live event!</p>
+    </div>
+
+    <div class="teaser-container">
+      <div class="teaser-header">
+        <div class="teaser-title"><span>🔒</span> VAULT OS v2.6</div>
+        <div class="teaser-progress">
+          <div class="step-indicator active">1</div>
+          <div class="step-indicator">2</div>
+          <div class="step-indicator">3</div>
+        </div>
+      </div>
+
+      <div class="teaser-body">
+        
+        <!-- STAGE 1: COMPASS LOCK -->
+        <div class="stage-panel active" id="stagePanel1">
+          <h3 style="font-family: var(--font-title); font-size: 1.6rem; color: var(--wood-dark); margin-bottom: 10px;">Stage 1: The Ancient Compass Lock</h3>
+          <p style="color: var(--sepia-text); margin-bottom: 20px;">Click the compass to rotate it. Align it with the Hacker's directional trail!</p>
+          
+          <div class="clue-box">
+            📜 <strong>Hacker Clue #1:</strong> "My journey began pointing <strong>North (⬆)</strong>, turned to the rising sun in the <strong>East (➡)</strong>, dropped south to the desert <strong>South (⬇)</strong>, drifted to the sunset in the <strong>West (⬅)</strong>, and returned home <strong>North (⬆)</strong>."
+          </div>
+
+          <div class="compass-dial" id="compassDial" title="Click to rotate 90°"></div>
+          <p id="compassStatus" style="font-family: var(--font-code); font-weight: 700; color: var(--wood-dark);">Sequence: North -> East -> South -> West -> North</p>
+        </div>
+
+        <!-- STAGE 2: HACKER TERMINAL -->
+        <div class="stage-panel" id="stagePanel2">
+          <h3 style="font-family: var(--font-title); font-size: 1.6rem; color: var(--wood-dark); margin-bottom: 10px;">Stage 2: Cyber Security Override</h3>
+          <p style="color: var(--sepia-text); margin-bottom: 20px;">The compass unlocked the terminal! Type commands below to find the passkey and override the firewall.</p>
+          
+          <div class="hacker-terminal">
+            <div class="terminal-header">
+              <span>TERMINAL // AIT-CU-SERVER</span>
+              <span>STATUS: FIREWALL ACTIVE</span>
+            </div>
+            <div class="terminal-output" id="terminalOutput">CU CYBER-OS v3.14 [FIREWALL ACTIVE]
+Type 'help' for instructions.
+</div>
+            <div class="terminal-input-row">
+              <span class="terminal-prompt">hacker@ait:~ $</span>
+              <input type="text" class="terminal-input" id="terminalInput" placeholder="Type command (e.g. 'help', 'scan', 'cat logs.txt')..." autocomplete="off">
+            </div>
+          </div>
+          <p style="font-size: 0.85rem; color: #555;">Tip: Press <strong>ENTER</strong> after typing your command.</p>
+        </div>
+
+        <!-- STAGE 3: TREASURE CHEST -->
+        <div class="stage-panel" id="stagePanel3">
+          <h3 style="font-family: var(--font-title); font-size: 1.8rem; color: var(--wood-dark); margin-bottom: 10px;">Stage 3: The Master Chest</h3>
+          <p style="color: var(--sepia-text); margin-bottom: 20px;">You broke through the firewall! Click the locked chest below to claim your reward.</p>
+          
+          <div class="treasure-chest-box">
+            <span class="chest-icon" id="chestIcon" title="Click to Unlock!">📦</span>
+            <p id="chestStatusText" style="font-family: var(--font-title); font-weight: 700; font-size: 1.2rem; color: var(--wood-dark); margin-top: 15px;">Click the chest to open!</p>
+          </div>
+
+          <div class="reward-code-box" id="rewardCodeBox">
+            <span style="font-family: var(--font-title); font-size: 0.9rem; text-transform: uppercase; color: var(--parchment-base);">✨ Your Exclusive Event Bonus Code ✨</span>
+            <span class="reward-code">CU-HACKER-VIP-2026</span>
+            <p style="font-size: 0.9rem; color: #aaa; margin-top: 10px;">Save this code! Show it at the registration desk on August 4, 2026 for bonus starter clues and priority access!</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== EVENT SCHEDULE & DETAILS ==================== -->
+  <section class="section-padding" id="schedule">
+    <div class="section-header">
+      <h2 class="section-title">Event Roadmap & Venue</h2>
+      <p class="section-subtitle">Prepare for 7 hours of non-stop adrenaline, puzzles, and cybersecurity action.</p>
+    </div>
+    <div class="schedule-grid">
+      <div class="info-card">
+        <div class="info-icon">📅</div>
+        <h3 class="info-title">Date & Time</h3>
+        <p class="info-text"><strong>4 August 2026</strong><br>9:30 AM to 4:30 PM<br>Reporting Time: 9:00 AM</p>
+      </div>
+      <div class="info-card">
+        <div class="info-icon">🏛️</div>
+        <h3 class="info-title">Venue</h3>
+        <p class="info-text"><strong>Apex Institute of Technology</strong><br>Chandigarh University<br>Gharuan, Mohali, Punjab</p>
+      </div>
+      <div class="info-card">
+        <div class="info-icon">⏱️</div>
+        <h3 class="info-title">Format</h3>
+        <p class="info-text"><strong>Team Challenge</strong><br>2 to 4 Members per team<br>3 Progressive Elimination Rounds</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== REGISTRATION & QR CODE SECTION ==================== -->
+  <section class="register-section" id="register">
+    <div class="section-header">
+      <h2 class="section-title">Secure Your Spot</h2>
+      <p class="section-subtitle">Register your team today before slots run out. Scan the QR code or fill out the form below!</p>
+    </div>
+
+    <div class="register-grid">
+      
+      <!-- QR Code Frame (Matching Poster Scroll) -->
+      <div class="qr-scroll-frame">
+        <h3 class="qr-title">REGISTER NOW</h3>
+        <div class="qr-code-box">
+          <!-- Stylized QR Code Representation -->
+          <div class="qr-code-img">
+            <div>
+              <div style="font-size: 28px; margin-bottom: 5px;">📲</div>
+              <div>SCAN TO REGISTER</div>
+              <div style="font-size: 0.65rem; margin-top: 4px; color: var(--cyber-green);">TECH TATVA 2026</div>
+            </div>
+          </div>
+        </div>
+        <div class="qr-subtext">Scan with Phone Camera</div>
+        <p style="font-size: 0.85rem; margin-top: 15px; color: var(--sepia-text);">Or complete the instant web pass form on the right ➔</p>
+      </div>
+
+      <!-- Registration Form Card -->
+      <div class="reg-form-card">
+        <h3 style="font-family: var(--font-title); font-size: 1.5rem; color: #fff; margin-bottom: 25px; border-bottom: 1px solid var(--gold-primary); padding-bottom: 10px;">⚡ Generate Team Pass</h3>
+        
+        <form id="regForm">
+          <div class="form-group">
+            <label class="form-label" for="teamName">Team Name *</label>
+            <input type="text" class="form-input" id="teamName" placeholder="e.g. Cyber Explorers" required>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label" for="captainName">Team Captain Name *</label>
+            <input type="text" class="form-input" id="captainName" placeholder="Full Name" required>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label" for="uidBranch">UID & Branch / Semester *</label>
+            <input type="text" class="form-input" id="uidBranch" placeholder="e.g. 23BCS1024 - CSE (6th Sem)" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="contactPhone">Contact Phone Number *</label>
+            <input type="tel" class="form-input" id="contactPhone" placeholder="+91 98765 43210" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="partCategory">Competition Category</label>
+            <select class="form-select" id="partCategory">
+              <option value="Senior Track (Years 3-4)">Senior Track (Years 3-4)</option>
+              <option value="Junior Track (Years 1-2)">Junior Track (Years 1-2)</option>
+              <option value="Open Inter-College">Open Inter-College Track</option>
+            </select>
+          </div>
+
+          <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 15px;">
+            ✨ Generate Official Treasure Pass
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ==================== TREASURE PASS MODAL ==================== -->
+  <div class="modal-overlay" id="passModal">
+    <div class="modal-content">
+      <button class="modal-close" id="closeModalBtn" title="Close Modal">✕</button>
+      <span class="pass-badge">TECH TATVA 2026 • OFFICIAL PASS</span>
+      <h3 class="pass-title">Treasure Pass Confirmed!</h3>
+      <p>Your team has been officially registered for <strong>Escape The Room: Hack The Hacker</strong>.</p>
+      
+      <div class="pass-details">
+        <p><strong>PASS ID:</strong> <span id="passIdDisplay" style="color: #8b0000; font-weight: 700;">CU-TT26-884920</span></p>
+        <p><strong>TEAM NAME:</strong> <span id="passTeamDisplay">-</span></p>
+        <p><strong>CAPTAIN:</strong> <span id="passCaptainDisplay">-</span></p>
+        <p><strong>UID/BRANCH:</strong> <span id="passUidDisplay">-</span></p>
+        <p><strong>TRACK:</strong> <span id="passCategoryDisplay">-</span></p>
+        <p><strong>DATE/TIME:</strong> 4 AUG 2026 • 09:30 AM</p>
+        <p><strong>VENUE:</strong> Apex Institute of Technology, CU</p>
+      </div>
+
+      <p style="font-size: 0.85rem; color: #555; margin-bottom: 20px;">Please take a screenshot or download this pass and present it at the check-in desk on the day of the event.</p>
+      
+      <button class="btn-primary" id="printPassBtn" style="width: 100%; justify-content: center;">
+        🖨️ Print / Download Pass
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="footer">
+    <div class="footer-logo">TECH TATVA • CHANDIGARH UNIVERSITY</div>
+    <div class="footer-sub">Apex Institute of Technology | Flagship Cybersecurity & Treasure Hunt Event</div>
+    <div class="footer-copy">
+      &copy; 2026 Chandigarh University. Built for Tech Tatva: Escape The Room ("Hack The Hacker"). All rights reserved.
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="js/audio.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
