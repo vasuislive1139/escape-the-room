@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escape The Room — Online Tech Portal</title>
+    <meta name="description" content="Choose your challenge in the Escape The Room tech event. Unlock stages sequentially and top the leaderboard.">
+    <!-- Google Fonts for Cinematic & Premium Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@500;700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="home-body">
+    <!-- Floating Embers and Atmosphere Canvas -->
+    <canvas id="embersCanvas"></canvas>
+    <div class="atmosphere-overlay"></div>
+
+    <!-- GAME MASTER LIVE FROSTED FREEZE OVERLAY (Hidden until Admin freezes team) -->
+    <div id="gmFreezeOverlay" class="gm-freeze-overlay hidden" role="alert">
+        <div class="freeze-box">
+            <span class="freeze-icon">❄️</span>
+            <h2 class="freeze-title">PROGRESS FROZEN BY GAME MASTER</h2>
+            <p class="freeze-desc">
+                Your team account has been temporarily placed on lockdown by event judges. Please await instructions from the Game Master Command Center.
+            </p>
+            <div class="freeze-pulse">🔒 ACCOUNT LOCKED</div>
+        </div>
+    </div>
+
+    <!-- GAME MASTER LIVE BROADCAST / ANNOUNCEMENT MODAL -->
+    <div id="gmBroadcastModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="gmBroadcastTitle">
+        <div class="modal-content gm-broadcast-content">
+            <button type="button" class="modal-close-btn" onclick="closeGmBroadcast()">✕</button>
+            <div class="gm-badge-wrapper">
+                <span class="gm-badge">⚡ LIVE GAME MASTER TRANSMISSION</span>
+            </div>
+            <h3 id="gmBroadcastTitle" class="modal-title">ANNOUNCEMENT</h3>
+            <div class="gm-message-box">
+                <p id="gmBroadcastMsg">Check your hints!</p>
+            </div>
+            <button type="button" class="ornate-btn" onclick="closeGmBroadcast()" style="margin-top:16px;">
+                <span>ACKNOWLEDGE & RESUME ➔</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Top Ornate Navigation Bar -->
+    <nav class="top-navbar">
+        <div class="nav-logo-box">
+            <span class="nav-logo-text">ESCAPE <small>— THE ROOM —</small></span>
+        </div>
+        
+        <ul class="nav-links">
+            <li><a href="#hero" class="nav-link active">HOME</a></li>
+            <li><a href="#activities" class="nav-link">ACTIVITIES</a></li>
+            <li><a href="#leaderboard" class="nav-link" onclick="showNotification('Leaderboard is monitored live in Admin Nexus!')">LEADERBOARD</a></li>
+            <li><a href="admin.html" class="nav-link" title="Open Game Master Command Center" target="_blank" style="color: #50e3c2;">⚡ ADMIN NEXUS</a></li>
+        </ul>
+
+        <div class="nav-user-controls">
+            <!-- Background Audio Controls -->
+            <div class="audio-control-container" style="margin-right: 12px;">
+                <button id="audioToggleBtn" class="audio-btn" aria-label="Toggle Ambient Sound" title="Toggle Ambient Escape Room Sound">
+                    <svg id="soundOnIcon" class="sound-icon hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                    </svg>
+                    <svg id="soundOffIcon" class="sound-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                        <line x1="23" y1="9" x2="17" y2="15"></line>
+                        <line x1="17" y1="9" x2="23" y2="15"></line>
+                    </svg>
+                    <span class="audio-label">Ambient Sound</span>
+                </button>
+            </div>
+            <div class="user-badge" id="userBadge">
+                <span class="status-dot" id="playerStatusDot"></span>
+                <span id="navTeamId">TEAM-ALPHA</span>
+                <svg class="user-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+            </div>
+            <button type="button" class="logout-btn" id="logoutBtn" title="Logout to authentication page">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="logout-svg">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Banner Section -->
+    <header class="hero-section" id="hero">
+        <div class="hero-content">
+            <!-- Top Plaque Banner -->
+            <div class="hero-plaque-wrapper">
+                <svg class="plaque-compass" viewBox="0 0 40 40" fill="none">
+                    <circle cx="20" cy="20" r="18" stroke="var(--gold-primary)" stroke-width="1.5"/>
+                    <path d="M20 4 L20 36 M4 20 L36 20 M9 9 L31 31 M31 9 L9 31" stroke="var(--gold-dark)" stroke-width="1"/>
+                    <polygon points="20,8 23,17 32,20 23,23 20,32 17,23 8,20 17,17" fill="var(--gold-bright)"/>
+                </svg>
+                <div class="plaque-banner">
+                    <span class="plaque-diamond">❖</span>
+                    <span class="plaque-text">TECH TATVA PRESENTS</span>
+                    <span class="plaque-diamond">❖</span>
+                </div>
+            </div>
+
+            <!-- Main Title -->
+            <h1 class="hero-title">
+                <span class="hero-word">ESCAPE</span>
+                <span class="hero-subword">— THE ROOM —</span>
+            </h1>
+
+            <!-- Subtitle Tagline -->
+            <div class="hero-tagline-box">
+                <span class="tagline-diamond">✧</span>
+                <p class="hero-tagline">HACK THE HACKER BEFORE TIME RUNS OUT</p>
+                <span class="tagline-diamond">✧</span>
+            </div>
+
+            <!-- Main CTA Button -->
+            <a href="#activities" class="ornate-btn hero-cta" id="beginEscapeBtn">
+                <span class="btn-text">BEGIN YOUR ESCAPE</span>
+                <span class="btn-arrow">➔</span>
+                <div class="btn-shine"></div>
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Activities Section -->
+    <main class="activities-section" id="activities">
+        <div class="section-header-box">
+            <div class="section-line left-line"></div>
+            <div class="section-title-wrapper">
+                <span class="title-diamond">❖</span>
+                <h2 class="section-title">CHOOSE YOUR CHALLENGE</h2>
+                <span class="title-diamond">❖</span>
+            </div>
+            <div class="section-line right-line"></div>
+        </div>
+
+        <!-- Sequential Progress Indicator -->
+        <div class="progress-tracker-bar">
+            <span class="tracker-label">Stage Progression:</span>
+            <div class="tracker-steps" id="trackerSteps">
+                <div class="step active" data-stage="1">1. Puzzle Solving</div>
+                <div class="step-connector"></div>
+                <div class="step locked" data-stage="2">2. Treasure Hunt</div>
+                <div class="step-connector"></div>
+                <div class="step locked" data-stage="3">3. Tech Challenges</div>
+                <div class="step-connector"></div>
+                <div class="step locked" data-stage="4">4. Exciting Rewards</div>
+            </div>
+        </div>
+
+        <!-- 4 Activities Grid -->
+        <div class="activities-grid" id="activitiesGrid">
+            <!-- Activity Card 1 -->
+            <article class="activity-card unlocked" id="card-act-1" data-id="1">
+                <div class="card-aged-border">
+                    <div class="card-inner">
+                        <div class="medallion-wrapper">
+                            <div class="medallion">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M19.5 12.5a2.5 2.5 0 0 1 0 5H17v2.5a2.5 2.5 0 0 1-5 0V18h-2.5a2.5 2.5 0 0 1 0-5H12v-2.5a2.5 2.5 0 0 1 5 0V12h2.5z"></path>
+                                    <path d="M12 7V4.5a2.5 2.5 0 0 0-5 0V7H4.5a2.5 2.5 0 0 0 0 5H7v2.5a2.5 2.5 0 0 0 5 0V12h-2.5a2.5 2.5 0 0 0 0-5H12z"></path>
+                                </svg>
+                            </div>
+                            <span class="stage-badge">STAGE 01 — OPEN</span>
+                        </div>
+                        <h3 class="activity-title">PUZZLE SOLVING</h3>
+                        <p class="activity-desc">Crack codes, solve puzzles and unveil hidden secrets to open the vault door.</p>
+                        <div class="card-action">
+                            <button type="button" class="explore-btn unlocked-btn" onclick="openChallengeModal(1)">
+                                <span>EXPLORE</span>
+                                <span class="arrow">➔</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Activity Card 2 -->
+            <article class="activity-card locked" id="card-act-2" data-id="2">
+                <div class="card-aged-border">
+                    <div class="card-inner">
+                        <div class="medallion-wrapper">
+                            <div class="medallion">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
+                                    <line x1="8" y1="2" x2="8" y2="18"></line>
+                                    <line x1="16" y1="6" x2="16" y2="22"></line>
+                                </svg>
+                            </div>
+                            <span class="stage-badge locked-badge">🔒 STAGE 02 — LOCKED</span>
+                        </div>
+                        <h3 class="activity-title">TREASURE HUNT</h3>
+                        <p class="activity-desc">Follow cryptic clues, find hidden digital treasures and complete the quest.</p>
+                        <div class="card-action">
+                            <button type="button" class="explore-btn locked-btn" onclick="handleLockedClick(2)">
+                                <span class="lock-icon">🔒</span>
+                                <span class="btn-label">EXPLORE</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Activity Card 3 -->
+            <article class="activity-card locked" id="card-act-3" data-id="3">
+                <div class="card-aged-border">
+                    <div class="card-inner">
+                        <div class="medallion-wrapper">
+                            <div class="medallion">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="16 18 22 12 16 6"></polyline>
+                                    <polyline points="8 6 2 12 8 18"></polyline>
+                                    <line x1="12" y1="2" x2="12" y2="22"></line>
+                                </svg>
+                            </div>
+                            <span class="stage-badge locked-badge">🔒 STAGE 03 — LOCKED</span>
+                        </div>
+                        <h3 class="activity-title">TECH CHALLENGES</h3>
+                        <p class="activity-desc">Solve real-world tech challenges, breach security protocols and level up.</p>
+                        <div class="card-action">
+                            <button type="button" class="explore-btn locked-btn" onclick="handleLockedClick(3)">
+                                <span class="lock-icon">🔒</span>
+                                <span class="btn-label">EXPLORE</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Activity Card 4 -->
+            <article class="activity-card locked" id="card-act-4" data-id="4">
+                <div class="card-aged-border">
+                    <div class="card-inner">
+                        <div class="medallion-wrapper">
+                            <div class="medallion">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+                                    <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+                                    <path d="M4 22h16"></path>
+                                    <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path>
+                                    <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
+                                    <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
+                                </svg>
+                            </div>
+                            <span class="stage-badge locked-badge">🔒 STAGE 04 — LOCKED</span>
+                        </div>
+                        <h3 class="activity-title">EXCITING REWARDS</h3>
+                        <p class="activity-desc">Earn points, unlock grand rewards and top the official club leaderboard.</p>
+                        <div class="card-action">
+                            <button type="button" class="explore-btn locked-btn" onclick="handleLockedClick(4)">
+                                <span class="lock-icon">🔒</span>
+                                <span class="btn-label">EXPLORE</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </div>
+
+        <!-- Organizer / Judge Testing Toolbar -->
+        <footer class="organizer-toolbar">
+            <div class="toolbar-header">
+                <span class="toolbar-icon">⚙️</span>
+                <strong>Player Demonstration Bar:</strong>
+                <span class="toolbar-subtitle">(Or open <a href="admin.html" target="_blank" style="color:#50e3c2;">⚡ Admin Command Nexus</a> to control from Game Master desk)</span>
+            </div>
+            <div class="toolbar-buttons">
+                <button type="button" class="tool-btn" onclick="resetProgress()">🔄 Reset to Stage 1 Only</button>
+                <button type="button" class="tool-btn" onclick="unlockUpToStage(2)">🔓 Unlock Stage 2</button>
+                <button type="button" class="tool-btn" onclick="unlockUpToStage(3)">🔓 Unlock Stage 3</button>
+                <button type="button" class="tool-btn" onclick="unlockUpToStage(4)">🏆 Unlock All 4 Stages</button>
+            </div>
+        </footer>
+    </main>
+
+    <!-- Interactive Challenge Gameplay Simulation Modal -->
+    <div id="challengeModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="challengeModalTitle">
+        <div class="modal-content challenge-modal-content">
+            <button type="button" class="modal-close-btn" onclick="closeChallengeModal()">✕</button>
+            <div class="challenge-header">
+                <span class="stage-indicator" id="modalStageNum">STAGE 01</span>
+                <h3 id="challengeModalTitle" class="modal-title">PUZZLE SOLVING</h3>
+            </div>
+            <p id="challengeModalDesc" class="challenge-desc">
+                Decipher the ancient cryptographic sequence below to prove your intellect and unlock the next chamber!
+            </p>
+
+            <div class="puzzle-box" id="puzzleContainer">
+                <div class="puzzle-question">
+                    <span class="riddle-label">CRYPTOGRAPHIC RIDDLE:</span>
+                    <p id="riddleText">"I speak without a mouth and hear without ears. I have no body, but I come alive with wind. What am I?"</p>
+                </div>
+                <div class="puzzle-input-wrapper">
+                    <input type="text" id="puzzleAnswerInput" class="ornate-input" placeholder="Type your answer (Hint: ECHO or ESCAPE)" autocomplete="off">
+                    <button type="button" class="ornate-btn puzzle-submit-btn" onclick="submitPuzzleAnswer()">
+                        <span>SUBMIT & CLEAR STAGE</span>
+                    </button>
+                </div>
+                <div id="puzzleFeedback" class="puzzle-feedback hidden"></div>
+            </div>
+
+            <div class="quick-clear-box">
+                <span class="quick-clear-label">⚡ Judge / Organizer Fast-Pass:</span>
+                <button type="button" class="fast-clear-btn" onclick="instantClearCurrentStage()">
+                    ✓ Instant Clear Stage & Unlock Next Activity
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Celebration / Unlocked Notification Toast -->
+    <div id="toastNotification" class="toast-popup hidden">
+        <div class="toast-content">
+            <span class="toast-icon" id="toastIcon">🏆</span>
+            <div class="toast-text">
+                <strong id="toastTitle">Challenge Cleared!</strong>
+                <p id="toastMsg">Activity 2: Treasure Hunt is now UNLOCKED!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Web Audio & Logic Script -->
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,704 @@
+/**
+ * ESCAPE THE ROOM — GAME MASTER COMMAND NEXUS ENGINE
+ * Handles team credential creation, live analytics charts, real-time player roster,
+ * stage chamber matrix pills, countdown timers, and instant interventions across browser tabs.
+ */
+
+const ADMIN_GM_CHANNEL = 'escape_gm_channel';
+let adminBroadcastChannel = null;
+try {
+    adminBroadcastChannel = new BroadcastChannel(ADMIN_GM_CHANNEL);
+} catch (e) {
+    console.warn("BroadcastChannel not supported in this browser.");
+}
+
+let roundTimerInterval = null;
+let roundSecondsRemaining = 1800; // Default 30 mins
+
+document.addEventListener('DOMContentLoaded', () => {
+    initEmbersCanvas();
+    initAdminClock();
+    initAdminAudio();
+    initAdminAuth();
+    initCredentialGenerator();
+    initCommandCenter();
+});
+
+/* ==========================================================================
+   1. EMBERS & PARTICLE BACKGROUND
+   ========================================================================== */
+function initEmbersCanvas() {
+    const canvas = document.getElementById('embersCanvas');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    let width, height;
+    let particles = [];
+
+    function resize() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    class Particle {
+        constructor() { this.reset(); this.y = Math.random() * height; }
+        reset() {
+            this.x = Math.random() * width;
+            this.y = height + 10;
+            this.size = Math.random() * 2 + 0.5;
+            this.speedY = Math.random() * 0.7 + 0.2;
+            this.speedX = (Math.random() - 0.5) * 0.4;
+            this.opacity = Math.random() * 0.6 + 0.2;
+            this.color = Math.random() > 0.5 ? 'rgba(80, 227, 194, ' : 'rgba(255, 232, 179, ';
+        }
+        update() {
+            this.y -= this.speedY;
+            this.x += this.speedX;
+            if (this.y < -10 || this.x < -10 || this.x > width + 10) this.reset();
+        }
+        draw() {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fillStyle = this.color + this.opacity + ')';
+            ctx.fill();
+        }
+    }
+    for (let i = 0; i < 40; i++) particles.push(new Particle());
+
+    function animate() {
+        ctx.clearRect(0, 0, width, height);
+        particles.forEach(p => { p.update(); p.draw(); });
+        requestAnimationFrame(animate);
+    }
+    animate();
+}
+
+/* ==========================================================================
+   2. SYSTEM CLOCK & ROUND COUNTDOWN TIMER & STANDALONE AUDIO
+   ========================================================================== */
+function initAdminClock() {
+    const clockEl = document.getElementById('liveClock');
+    if (!clockEl) return;
+    setInterval(() => {
+        clockEl.textContent = new Date().toLocaleTimeString('en-US', { hour12: false });
+    }, 1000);
+}
+
+function initAdminAudio() {
+    const audioBtn = document.getElementById('audioToggleBtn');
+    if (!audioBtn) return;
+    let audioCtx = null;
+    let isMuted = true;
+    audioBtn.addEventListener('click', () => {
+        if (!audioCtx) {
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContextClass();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(60, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            isMuted = false;
+        } else {
+            isMuted = !isMuted;
+            if (isMuted) audioCtx.suspend();
+            else audioCtx.resume();
+        }
+        audioBtn.style.borderColor = isMuted ? '#8c6f36' : '#e6c887';
+        audioBtn.style.color = isMuted ? '#c5a059' : '#e6c887';
+    });
+}
+
+function startRoundTimer(minutes) {
+    if (roundTimerInterval) clearInterval(roundTimerInterval);
+    roundSecondsRemaining = minutes * 60;
+    updateTimerDisplay();
+
+    roundTimerInterval = setInterval(() => {
+        if (roundSecondsRemaining > 0) {
+            roundSecondsRemaining--;
+            updateTimerDisplay();
+            if (roundSecondsRemaining === 60) {
+                transmitGmCommand('ALL', 'WARNING', "🚨 1 MINUTE REMAINING IN THE ESCAPE ROOM ROUND! Finalize your cipher codes now!");
+            }
+        } else {
+            clearInterval(roundTimerInterval);
+            roundTimerInterval = null;
+            transmitGmCommand('ALL', 'WARNING', "⏹️ TIME IS UP! The vault doors are locking down. Event judges are calculating final scores.");
+            alert("⏰ Event Round Timer has ended!");
+        }
+    }, 1000);
+    showAdminToast("⏱️ Timer Started", `${minutes} minute round clock initiated.`);
+}
+
+function stopRoundTimer() {
+    if (roundTimerInterval) {
+        clearInterval(roundTimerInterval);
+        roundTimerInterval = null;
+        showAdminToast("⏹️ Timer Paused", "Round clock paused by Game Master.");
+    } else {
+        roundSecondsRemaining = 1800;
+        updateTimerDisplay();
+        showAdminToast("🔄 Timer Reset", "Clock reset to 30:00.");
+    }
+}
+
+function updateTimerDisplay() {
+    const el = document.getElementById('roundTimerDisplay');
+    if (!el) return;
+    const m = Math.floor(roundSecondsRemaining / 60);
+    const s = roundSecondsRemaining % 60;
+    el.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+}
+
+/* ==========================================================================
+   3. GAME MASTER AUTHENTICATION (ADMIN LOGIN MODAL)
+   ========================================================================== */
+function initAdminAuth() {
+    const modal = document.getElementById('adminLoginModal');
+    const dashboard = document.getElementById('adminDashboard');
+    const logoutBtn = document.getElementById('adminLogoutBtn');
+    const loginBtn = document.getElementById('adminLoginBtn');
+    const uInput = document.getElementById('adminUsername');
+    const pInput = document.getElementById('adminPassword');
+
+    if (sessionStorage.getItem('escape_gm_authenticated') === 'true') {
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.style.setProperty('display', 'none', 'important');
+        }
+        if (dashboard) {
+            dashboard.classList.remove('hidden');
+            dashboard.style.setProperty('display', 'flex', 'important');
+        }
+    }
+
+    if (loginBtn) {
+        loginBtn.addEventListener('click', unlockGameMasterNexus);
+    }
+
+    [uInput, pInput].forEach(inp => {
+        if (!inp) return;
+        inp.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                unlockGameMasterNexus();
+            }
+        });
+    });
+
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            sessionStorage.removeItem('escape_gm_authenticated');
+            window.location.reload();
+        });
+    }
+}
+
+function unlockGameMasterNexus(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    try {
+        sessionStorage.setItem('escape_gm_authenticated', 'true');
+    } catch(err) {}
+
+    const modal = document.getElementById('adminLoginModal');
+    const dashboard = document.getElementById('adminDashboard');
+
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.style.setProperty('display', 'none', 'important');
+    }
+    if (dashboard) {
+        dashboard.classList.remove('hidden');
+        dashboard.style.setProperty('display', 'flex', 'important');
+    }
+
+    if (typeof showAdminToast === 'function') {
+        showAdminToast("⚡ NEXUS UNLOCKED", "Welcome to Game Master Command Center.");
+    }
+    return false;
+}
+window.unlockGameMasterNexus = unlockGameMasterNexus;
+window.handleAdminLoginSubmit = unlockGameMasterNexus;
+
+/* ==========================================================================
+   4. CREDENTIAL GENERATOR & TEAM DATABASE MANAGEMENT
+   ========================================================================== */
+function getTeamsDb() {
+    const raw = localStorage.getItem('escape_teams_db');
+    if (!raw) {
+        const defaultDb = {
+            'TEAM-ALPHA': { password: 'ESCAPE2026', stage: 1, status: 'active', warnings: 0 },
+            'MYSTERY-007': { password: 'UNLOCKME', stage: 2, status: 'active', warnings: 0 },
+            'CYBER-SQUAD': { password: 'ENIGMA99', stage: 3, status: 'active', warnings: 0 },
+            'SHERLOCK': { password: 'BAKER221', stage: 4, status: 'active', warnings: 0 }
+        };
+        localStorage.setItem('escape_teams_db', JSON.stringify(defaultDb));
+        return defaultDb;
+    }
+    try {
+        return JSON.parse(raw);
+    } catch(e) { return {}; }
+}
+
+function saveTeamsDb(db) {
+    localStorage.setItem('escape_teams_db', JSON.stringify(db));
+    renderAnalyticsAndRoster();
+}
+
+function initCredentialGenerator() {
+    const form = document.getElementById('createTeamForm');
+    const genBtn = document.getElementById('generatePassBtn');
+    const passInput = document.getElementById('newTeamPassword');
+
+    if (genBtn && passInput) {
+        genBtn.addEventListener('click', () => {
+            const words = ['CYBER', 'VAULT', 'TATVA', 'ENIGMA', 'SOLVE', 'HACK', 'QUEST', 'GOLD'];
+            const randomWord = words[Math.floor(Math.random() * words.length)];
+            const randomNum = Math.floor(1000 + Math.random() * 9000);
+            passInput.value = `${randomWord}${randomNum}`;
+        });
+    }
+
+    if (form) {
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const nameEl = document.getElementById('newTeamName');
+            const passEl = document.getElementById('newTeamPassword');
+            const stageEl = document.getElementById('startingStage');
+
+            const teamName = nameEl.value.trim().toUpperCase();
+            const teamPass = passEl.value.trim();
+            const stageNum = parseInt(stageEl.value, 10) || 1;
+
+            if (!teamName || !teamPass) return;
+
+            const db = getTeamsDb();
+            db[teamName] = { password: teamPass, stage: stageNum, status: 'active', warnings: 0 };
+            saveTeamsDb(db);
+
+            nameEl.value = '';
+            passEl.value = '';
+            showAdminToast("🎟️ Credential Created", `Team ${teamName} registered at Stage 0${stageNum}!`);
+            addLogItem(`Created credentials for [${teamName}] — Pass: ${teamPass}, Stage: ${stageNum}`, 'system');
+        });
+    }
+
+    renderAnalyticsAndRoster();
+
+    // Listen for live database changes or player stage completions
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'escape_teams_db' || e.key === 'escape_unlocked_level') {
+            renderAnalyticsAndRoster();
+        }
+    });
+
+    if (adminBroadcastChannel) {
+        adminBroadcastChannel.onmessage = (event) => {
+            if (event.data && event.data.type === 'PLAYER_UPDATE') {
+                const { teamId, stage } = event.data;
+                const db = getTeamsDb();
+                if (db[teamId] && db[teamId].stage !== stage) {
+                    db[teamId].stage = stage;
+                    saveTeamsDb(db);
+                }
+            }
+        };
+    }
+}
+
+function injectDemoTeams() {
+    const db = {
+        'TEAM-ALPHA': { password: 'ESCAPE2026', stage: 1, status: 'active', warnings: 0 },
+        'CYBER KNIGHTS': { password: 'TATVAPASS1', stage: 2, status: 'active', warnings: 0 },
+        'PHOENIX-007': { password: 'UNLOCKME', stage: 3, status: 'active', warnings: 0 },
+        'SHERLOCK HOMIES': { password: 'BAKER221', stage: 4, status: 'active', warnings: 0 }
+    };
+    saveTeamsDb(db);
+    showAdminToast("📥 Demo Teams Injected", "Loaded 4 starter teams across all stages.");
+    addLogItem("Injected 4 demo teams into Game Master database.", 'system');
+}
+
+function clearAllTeams() {
+    if (confirm("Are you sure you want to delete all registered team credentials from the database?")) {
+        localStorage.setItem('escape_teams_db', '{}');
+        renderAnalyticsAndRoster();
+        showAdminToast("🗑️ Database Cleared", "All team records removed.");
+        addLogItem("Cleared all team records from database.", 'alert');
+    }
+}
+
+/* ==========================================================================
+   5. LIVE ANALYTICS, MATRIX PILLS & ROSTER TABLE
+   ========================================================================== */
+function renderAnalyticsAndRoster() {
+    const db = getTeamsDb();
+    const teamNames = Object.keys(db);
+    const totalCount = teamNames.length;
+
+    const totalEl = document.getElementById('totalTeamsCount');
+    const activeEl = document.getElementById('activePlayersCount');
+    if (totalEl) totalEl.textContent = totalCount;
+
+    let activeCount = 0;
+    const stageCounts = { 1: 0, 2: 0, 3: 0, 4: 0 };
+    const stageTeams = { 1: [], 2: [], 3: [], 4: [] };
+
+    teamNames.forEach(name => {
+        const t = db[name];
+        const s = Math.min(4, Math.max(1, t.stage || 1));
+        stageCounts[s]++;
+        stageTeams[s].push({ name, status: t.status, stage: s });
+        if (t.status === 'active') activeCount++;
+    });
+
+    if (activeEl) activeEl.textContent = activeCount;
+
+    for (let i = 1; i <= 4; i++) {
+        const countEl = document.getElementById(`countStage${i}`);
+        const barEl = document.getElementById(`barStage${i}`);
+        const pillsEl = document.getElementById(`pillsStage${i}`);
+
+        const count = stageCounts[i];
+        const pct = totalCount > 0 ? Math.round((count / totalCount) * 100) : 0;
+
+        if (countEl) countEl.textContent = `${count} Teams (${pct}%)`;
+        if (barEl) barEl.style.width = `${pct}%`;
+
+        if (pillsEl) {
+            pillsEl.innerHTML = '';
+            if (stageTeams[i].length === 0) {
+                pillsEl.innerHTML = `<span class="empty-pill">No teams currently inside Chamber 0${i}</span>`;
+            } else {
+                stageTeams[i].forEach(team => {
+                    const pill = document.createElement('span');
+                    let pillClass = 'team-pill';
+                    if (team.status === 'frozen') pillClass += ' frozen';
+                    if (team.stage === 4) pillClass += ' vip';
+                    pill.className = pillClass;
+                    pill.innerHTML = `${team.status === 'frozen' ? '❄️' : (team.stage === 4 ? '★' : '🎯')} ${team.name}`;
+                    pillsEl.appendChild(pill);
+                });
+            }
+        }
+    }
+
+    renderRosterTable(db, teamNames);
+    populateTargetSelector(teamNames);
+}
+
+function renderRosterTable(db, teamNames) {
+    const tbody = document.getElementById('teamsRosterBody');
+    if (!tbody) return;
+
+    if (teamNames.length === 0) {
+        tbody.innerHTML = `<tr class="empty-row"><td colspan="6">No teams registered yet. Use form above to create credentials!</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = '';
+    teamNames.forEach(name => {
+        const t = db[name];
+        const stageNum = t.stage || 1;
+        const statusStr = t.status === 'frozen' ? '<span class="status-badge frozen">❄️ FROZEN</span>' : '<span class="status-badge active">🟢 ACTIVE</span>';
+        const warnCount = t.warnings || 0;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><strong style="color:#ffffff; font-size:0.95rem;">${name}</strong></td>
+            <td><code class="pass-code">${t.password}</code></td>
+            <td style="text-align:center;">
+                <div class="stage-control-group" style="gap:3px; flex-wrap:wrap; justify-content:center;">
+                    <button type="button" class="stage-btn demote" onclick="quickAction('${name}', 'demote')" title="Demote -1">⏪</button>
+                    <button type="button" class="stage-btn ${stageNum===1?'active-stage':''}" onclick="setStageDirectly('${name}', 1)" style="${stageNum===1?'background:#50e3c2;color:#000;font-weight:900;':''}" title="Directly set to Stage 1">S1</button>
+                    <button type="button" class="stage-btn ${stageNum===2?'active-stage':''}" onclick="setStageDirectly('${name}', 2)" style="${stageNum===2?'background:#50e3c2;color:#000;font-weight:900;':''}" title="Directly set to Stage 2">S2</button>
+                    <button type="button" class="stage-btn ${stageNum===3?'active-stage':''}" onclick="setStageDirectly('${name}', 3)" style="${stageNum===3?'background:#50e3c2;color:#000;font-weight:900;':''}" title="Directly set to Stage 3">S3</button>
+                    <button type="button" class="stage-btn vip ${stageNum===4?'active-stage':''}" onclick="setStageDirectly('${name}', 4)" style="${stageNum===4?'background:#ffe8b3;color:#000;font-weight:900;':''}" title="Directly set to Stage 4 (VIP)">★ S4</button>
+                    <button type="button" class="stage-btn promote" onclick="quickAction('${name}', 'promote')" title="Promote +1">⏩</button>
+                </div>
+            </td>
+            <td>${statusStr}</td>
+            <td style="text-align:center;">
+                <button type="button" class="stage-btn" style="padding:2px 6px;" onclick="quickAction('${name}', 'warn_minus')">-</button>
+                <span class="warn-badge" style="margin:0 6px;">⚠️ ${warnCount}</span>
+                <button type="button" class="stage-btn" style="padding:2px 6px;" onclick="quickAction('${name}', 'warn_plus')">+</button>
+            </td>
+            <td style="text-align:right;">
+                <button type="button" class="row-btn" onclick="quickAction('${name}', 'warn')" title="Issue Warning Pop-up">⚠️ Warn</button>
+                <button type="button" class="row-btn" onclick="quickAction('${name}', 'freeze')" title="Toggle Freeze">❄️ Freeze</button>
+                <button type="button" class="row-btn danger" onclick="quickAction('${name}', 'delete')" title="Delete Credential">🗑️</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function populateTargetSelector(teamNames) {
+    const select = document.getElementById('targetTeamSelect');
+    if (!select) return;
+    const currentVal = select.value;
+    select.innerHTML = `<option value="ALL">🌐 BROADCAST TO ALL ACTIVE TEAMS</option>`;
+    teamNames.forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = `🎯 Team: ${name}`;
+        select.appendChild(opt);
+    });
+    if (teamNames.includes(currentVal)) select.value = currentVal;
+}
+
+/* ==========================================================================
+   6. REAL-TIME GAME MASTER INTERVENTIONS & BROADCAST TRANSMISSIONS
+   ========================================================================== */
+function transmitGmCommand(targetTeam, commandType, messageContent, extraType = 'info') {
+    const payload = {
+        id: 'gm_cmd_' + Date.now() + '_' + Math.floor(Math.random()*1000),
+        target: targetTeam,
+        type: commandType,
+        message: messageContent,
+        category: extraType,
+        timestamp: new Date().toLocaleTimeString()
+    };
+
+    if (adminBroadcastChannel) {
+        adminBroadcastChannel.postMessage(payload);
+    }
+    localStorage.setItem('escape_gm_live_cmd', JSON.stringify(payload));
+}
+
+function initCommandCenter() {
+    renderAnalyticsAndRoster();
+}
+
+function sendLiveBroadcast() {
+    const targetEl = document.getElementById('targetTeamSelect');
+    const msgEl = document.getElementById('liveBroadcastMsg');
+    const typeEl = document.querySelector('input[name="msgType"]:checked');
+
+    const target = targetEl ? targetEl.value : 'ALL';
+    const msg = msgEl ? msgEl.value.trim() : '';
+    const type = typeEl ? typeEl.value : 'info';
+
+    if (!msg) {
+        alert("Please type a message to broadcast!");
+        return;
+    }
+
+    transmitGmCommand(target, 'BROADCAST', msg, type);
+    showAdminToast("📡 Broadcast Sent", `Message transmitted to ${target}.`);
+    addLogItem(`[BROADCAST to ${target}]: "${msg}" (${type})`, 'alert');
+    if (msgEl) msgEl.value = '';
+}
+
+function issueWarningToTarget() {
+    const target = document.getElementById('targetTeamSelect').value;
+    const msg = prompt(`Enter rule violation warning message for ${target}:`, "⚠️ RULE VIOLATION DETECTED: Do not share challenge answers with other teams!");
+    if (msg) {
+        transmitGmCommand(target, 'WARNING', msg);
+        showAdminToast("⚠️ Warning Sent", `Warning transmitted to ${target}.`);
+        addLogItem(`[WARNING to ${target}]: "${msg}"`, 'warn');
+        
+        if (target !== 'ALL') {
+            const db = getTeamsDb();
+            if (db[target]) {
+                db[target].warnings = (db[target].warnings || 0) + 1;
+                saveTeamsDb(db);
+            }
+        }
+    }
+}
+
+function toggleFreezeTarget(freezeState, overrideTarget = null) {
+    const target = overrideTarget || document.getElementById('targetTeamSelect').value;
+    const db = getTeamsDb();
+
+    if (target === 'ALL') {
+        Object.keys(db).forEach(name => {
+            db[name].status = freezeState ? 'frozen' : 'active';
+        });
+        saveTeamsDb(db);
+        transmitGmCommand('ALL', freezeState ? 'FREEZE' : 'UNFREEZE', freezeState ? "❄️ ALL TEAMS FROZEN BY GAME MASTER." : "🔥 ALL TEAMS UNFROZEN. RESUME GAMEPLAY.");
+        showAdminToast(freezeState ? "❄️ ALL TEAMS FROZEN" : "🔥 ALL TEAMS UNFROZEN", "Global lockdown state updated.");
+        addLogItem(freezeState ? "Global lockdown initiated for ALL teams." : "Global lockdown lifted for ALL teams.", 'freeze');
+    } else {
+        if (!db[target]) return;
+        db[target].status = freezeState ? 'frozen' : 'active';
+        saveTeamsDb(db);
+        transmitGmCommand(target, freezeState ? 'FREEZE' : 'UNFREEZE', freezeState ? "❄️ Your team account progress has been frozen by event judges." : "🔥 Gameplay restored by Game Master.");
+        showAdminToast(freezeState ? `❄️ Team ${target} Frozen` : `🔥 Team ${target} Unfrozen`, `Status updated in database.`);
+        addLogItem(`Set freeze status of [${target}] to ${freezeState ? 'FROZEN' : 'ACTIVE'}`, 'freeze');
+    }
+}
+
+function promoteTargetStage() {
+    const target = document.getElementById('targetTeamSelect').value;
+    if (target === 'ALL') {
+        const db = getTeamsDb();
+        Object.keys(db).forEach(name => {
+            if (db[name].stage < 4) db[name].stage++;
+        });
+        saveTeamsDb(db);
+        transmitGmCommand('ALL', 'PROMOTE', "⏩ GAME MASTER BONUS: All teams promoted +1 Stage!");
+        showAdminToast("⏩ Global Promotion", "All teams advanced +1 Stage.");
+        addLogItem("Promoted ALL teams by +1 Stage.", 'system');
+    } else {
+        quickAction(target, 'promote');
+    }
+}
+
+function demoteTargetStage() {
+    const target = document.getElementById('targetTeamSelect').value;
+    if (target === 'ALL') {
+        const db = getTeamsDb();
+        Object.keys(db).forEach(name => {
+            if (db[name].stage > 1) db[name].stage--;
+        });
+        saveTeamsDb(db);
+        transmitGmCommand('ALL', 'DEMOTE', "⏪ GAME MASTER PENALTY: All teams demoted -1 Stage!");
+        showAdminToast("⏪ Global Demotion", "All teams moved back -1 Stage.");
+        addLogItem("Demoted ALL teams by -1 Stage.", 'warn');
+    } else {
+        quickAction(target, 'demote');
+    }
+}
+
+function grantVipTargetStage() {
+    const target = document.getElementById('targetTeamSelect').value;
+    if (target === 'ALL') {
+        const db = getTeamsDb();
+        Object.keys(db).forEach(name => { db[name].stage = 4; });
+        saveTeamsDb(db);
+        transmitGmCommand('ALL', 'PROMOTE', "★ GAME MASTER VIP GRANT: All 4 chambers unlocked for all teams!");
+        showAdminToast("★ Global VIP Grant", "All 4 stages unlocked for all teams.");
+        addLogItem("Granted Stage 4 VIP All-Access to ALL teams.", 'system');
+    } else {
+        quickAction(target, 'vip');
+    }
+}
+
+function quickAction(teamName, actionType) {
+    const db = getTeamsDb();
+    if (!db[teamName]) return;
+
+    if (actionType === 'promote') {
+        const cur = db[teamName].stage || 1;
+        if (cur < 4) {
+            db[teamName].stage = cur + 1;
+            saveTeamsDb(db);
+            transmitGmCommand(teamName, 'PROMOTE', `⏩ Game Master promoted you to Stage 0${cur + 1}!`);
+            showAdminToast("⏩ Stage Promoted", `${teamName} advanced to Stage 0${cur + 1}.`);
+            addLogItem(`Promoted [${teamName}] to Stage 0${cur + 1}`, 'system');
+        } else {
+            showAdminToast("ℹ️ Already Max Stage", `${teamName} is already at Stage 04.`);
+        }
+    } else if (actionType === 'demote') {
+        const cur = db[teamName].stage || 1;
+        if (cur > 1) {
+            db[teamName].stage = cur - 1;
+            saveTeamsDb(db);
+            transmitGmCommand(teamName, 'DEMOTE', `⏪ Game Master moved you back to Stage 0${cur - 1}.`);
+            showAdminToast("⏪ Stage Demoted", `${teamName} demoted to Stage 0${cur - 1}.`);
+            addLogItem(`Demoted [${teamName}] to Stage 0${cur - 1}`, 'warn');
+        } else {
+            showAdminToast("ℹ️ Already Stage 1", `${teamName} is already at Stage 01.`);
+        }
+    } else if (actionType === 'vip') {
+        db[teamName].stage = 4;
+        saveTeamsDb(db);
+        transmitGmCommand(teamName, 'PROMOTE', `★ VIP ACCESS GRANTED: All 4 chambers unlocked by Game Master!`);
+        showAdminToast("★ VIP Granted", `${teamName} given Stage 4 All-Access.`);
+        addLogItem(`Granted VIP Stage 4 access to [${teamName}]`, 'system');
+    } else if (actionType === 'warn') {
+        transmitGmCommand(teamName, 'WARNING', `⚠️ RULE WARNING for ${teamName}: Please maintain decorum and do not attempt unauthorized code injection!`);
+        db[teamName].warnings = (db[teamName].warnings || 0) + 1;
+        saveTeamsDb(db);
+        showAdminToast("⚠️ Warning Sent", `Warning issued to ${teamName}.`);
+        addLogItem(`Issued warning to [${teamName}]`, 'warn');
+    } else if (actionType === 'warn_plus') {
+        db[teamName].warnings = (db[teamName].warnings || 0) + 1;
+        saveTeamsDb(db);
+    } else if (actionType === 'warn_minus') {
+        db[teamName].warnings = Math.max(0, (db[teamName].warnings || 0) - 1);
+        saveTeamsDb(db);
+    } else if (actionType === 'freeze') {
+        const isFrozen = db[teamName].status === 'frozen';
+        db[teamName].status = isFrozen ? 'active' : 'frozen';
+        saveTeamsDb(db);
+        transmitGmCommand(teamName, isFrozen ? 'UNFREEZE' : 'FREEZE', isFrozen ? '🔥 Gameplay restored.' : '❄️ Progress frozen by Game Master.');
+        showAdminToast(isFrozen ? `🔥 ${teamName} Unfrozen` : `❄️ ${teamName} Frozen`, `Account status updated.`);
+        addLogItem(`Toggled freeze state of [${teamName}] to ${isFrozen ? 'ACTIVE' : 'FROZEN'}`, 'freeze');
+    } else if (actionType === 'delete') {
+        if (confirm(`Are you sure you want to remove team "${teamName}" from the database?`)) {
+            delete db[teamName];
+            saveTeamsDb(db);
+            transmitGmCommand(teamName, 'LOGOUT', 'Your credentials have been revoked.');
+            showAdminToast("🗑️ Team Deleted", `${teamName} removed from database.`);
+            addLogItem(`Deleted team [${teamName}] from database.`, 'alert');
+        }
+    }
+}
+
+function setStageDirectly(teamName, targetStage) {
+    const db = getTeamsDb();
+    if (!db[teamName]) return;
+    const old = db[teamName].stage || 1;
+    if (old === targetStage) {
+        showAdminToast("ℹ️ Stage Unchanged", `${teamName} is already at Stage 0${targetStage}.`);
+        return;
+    }
+    db[teamName].stage = targetStage;
+    saveTeamsDb(db);
+    transmitGmCommand(teamName, targetStage > old ? 'PROMOTE' : 'DEMOTE', `⚡ Game Master set your access directly to Stage 0${targetStage}!`);
+    showAdminToast(`⚡ Stage 0${targetStage} Set`, `${teamName} is now at Stage 0${targetStage}.`);
+    addLogItem(`Directly set [${teamName}] to Stage 0${targetStage}`, 'system');
+}
+window.setStageDirectly = setStageDirectly;
+
+function sendPresetMsg(msg) {
+    const target = document.getElementById('targetTeamSelect').value || 'ALL';
+    transmitGmCommand(target, 'BROADCAST', msg, 'info');
+    showAdminToast("📡 Preset Broadcast Sent", `Sent to ${target}: "${msg}"`);
+    addLogItem(`[PRESET BROADCAST to ${target}]: "${msg}"`, 'alert');
+}
+window.sendPresetMsg = sendPresetMsg;
+
+/* ==========================================================================
+   7. LIVE COMMAND LOG & TOASTS
+   ========================================================================== */
+function addLogItem(text, type = 'system') {
+    const list = document.getElementById('commandLogList');
+    if (!list) return;
+    const timeStr = new Date().toLocaleTimeString();
+    const div = document.createElement('div');
+    div.className = `log-item ${type}`;
+    div.innerHTML = `<strong>[${timeStr}]</strong> ${text}`;
+    list.prepend(div);
+    if (list.children.length > 25) list.removeChild(list.lastElementChild);
+}
+
+function clearCommandLog() {
+    const list = document.getElementById('commandLogList');
+    if (list) list.innerHTML = `<div class="log-item system">⚡ Command log cleared.</div>`;
+}
+
+let adminToastTimeout = null;
+function showAdminToast(title, msg) {
+    const toast = document.getElementById('adminToast');
+    const titleEl = document.getElementById('adminToastTitle');
+    const msgEl = document.getElementById('adminToastMsg');
+    if (!toast) return;
+
+    if (titleEl) titleEl.textContent = title;
+    if (msgEl) msgEl.textContent = msg;
+
+    toast.classList.remove('hidden');
+    if (adminToastTimeout) clearTimeout(adminToastTimeout);
+    adminToastTimeout = setTimeout(() => {
+        toast.classList.add('hidden');
+    }, 3500);
+}

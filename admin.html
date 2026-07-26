@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escape The Room — Game Master Command Center</title>
+    <meta name="description" content="Master Control Panel for Escape The Room club event. Manage team credentials, view live analytics graphs, and broadcast live game effects.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@500;700;800&family=Outfit:wght@400;500;600;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="admin-style.css">
+</head>
+<body class="admin-body">
+    <!-- Background Embers Canvas -->
+    <canvas id="embersCanvas"></canvas>
+
+    <!-- GAME MASTER AUTHENTICATION OVERLAY -->
+    <div id="adminLoginModal" class="modal-overlay admin-auth-overlay" role="dialog" aria-modal="true" aria-labelledby="adminAuthTitle">
+        <div class="modal-content admin-auth-box">
+            <div class="header-ornament">
+                <svg class="compass-key-svg" viewBox="0 0 64 64" fill="none">
+                    <circle cx="32" cy="32" r="28" stroke="#50e3c2" stroke-width="2" stroke-dasharray="4 4"/>
+                    <polygon points="32,8 36,26 54,32 36,38 32,56 28,38 10,32 28,26" fill="var(--gold-bright)" stroke="#50e3c2" stroke-width="1.5"/>
+                    <circle cx="32" cy="32" r="6" fill="#120e0a" stroke="#50e3c2" stroke-width="2"/>
+                </svg>
+            </div>
+            <h2 id="adminAuthTitle" class="admin-auth-title">GAME MASTER NEXUS</h2>
+            <p class="admin-auth-subtitle">Restricted Access — Event Organizers & Judges Only</p>
+            
+            <div id="adminLoginBox" class="login-form">
+                <div id="adminErrorMsg" class="error-banner hidden" role="alert">
+                    <span>Invalid Game Master credentials!</span>
+                </div>
+                <div class="input-wrapper">
+                    <span class="input-icon">👤</span>
+                    <input type="text" id="adminUsername" class="ornate-input" placeholder="Admin Username (e.g. TatvaAdmin)" value="TatvaAdmin">
+                </div>
+                <div class="input-wrapper">
+                    <span class="input-icon">🔑</span>
+                    <input type="password" id="adminPassword" class="ornate-input" placeholder="Admin Password (e.g. Tatva2026!)" value="Tatva2026!">
+                </div>
+                <button type="button" id="adminLoginBtn" class="ornate-btn admin-submit-btn" onclick="unlockGameMasterNexus()">
+                    <span>ACCESS COMMAND CENTER ➔</span>
+                </button>
+            </div>
+            <div class="demo-hints" style="margin-top: 16px; text-align: center;">
+                <span style="font-size: 0.85rem; color: #68fedb;">💡 Default Credentials: <strong>TatvaAdmin</strong> / <strong>Tatva2026!</strong></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN ADMIN COMMAND CENTER DASHBOARD -->
+    <div id="adminDashboard" class="admin-dashboard-container hidden">
+        <!-- Top Command Header -->
+        <header class="admin-header">
+            <div class="admin-title-box">
+                <span class="nexus-tag">⚡ SYSTEM ONLINE — 300MS REAL-TIME SYNCHRONIZATION ACTIVE</span>
+                <h1 class="admin-main-title">GAME MASTER COMMAND CENTER</h1>
+            </div>
+            
+            <!-- Live Event Round Countdown Timer -->
+            <div class="timer-widget-box">
+                <div class="timer-display">
+                    <span class="timer-icon">⏱️</span>
+                    <span id="roundTimerDisplay" class="timer-clock mono">30:00</span>
+                </div>
+                <div class="timer-controls">
+                    <button type="button" class="timer-btn start" onclick="startRoundTimer(30)" title="Start 30m Round">30m</button>
+                    <button type="button" class="timer-btn start" onclick="startRoundTimer(15)" title="Start 15m Sprint">15m</button>
+                    <button type="button" class="timer-btn start" onclick="startRoundTimer(5)" title="Start 5m Blitz">5m</button>
+                    <button type="button" class="timer-btn stop" onclick="stopRoundTimer()" title="Pause/Reset">⏹️</button>
+                </div>
+            </div>
+
+            <div class="admin-header-stats">
+                <div class="audio-control-container" style="margin-right: 8px;">
+                    <button id="audioToggleBtn" class="audio-btn" style="padding: 6px 12px; font-size: 0.8rem;">
+                        <span class="audio-label">🔊 Audio</span>
+                    </button>
+                </div>
+                <div class="header-stat-badge">
+                    <span class="stat-label">LIVE CLOCK:</span>
+                    <span id="liveClock" class="stat-value mono">00:00:00</span>
+                </div>
+                <div class="header-stat-badge">
+                    <span class="stat-label">REGISTERED TEAMS:</span>
+                    <span id="totalTeamsCount" class="stat-value text-gold">0</span>
+                </div>
+                <div class="header-stat-badge">
+                    <span class="stat-label">ACTIVE PLAYERS:</span>
+                    <span id="activePlayersCount" class="stat-value text-cyan">0</span>
+                </div>
+                <button type="button" class="logout-btn admin-logout" id="adminLogoutBtn" title="Exit Command Center">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Dashboard Layout Grid -->
+        <main class="admin-main-grid">
+            
+            <!-- COLUMN 1: CREDENTIAL GENERATOR & TEAM REGISTRATION -->
+            <section class="admin-panel cred-generator-panel">
+                <div class="panel-header">
+                    <span class="panel-icon">🎟️</span>
+                    <h2 class="panel-title">CREATE TEAM & REWARD CREDENTIALS</h2>
+                </div>
+                <p class="panel-desc">
+                    When players complete offline ground activities, register their official Team Name and Reward Password here.
+                </p>
+
+                <form id="createTeamForm" class="cred-form">
+                    <div class="form-group">
+                        <label for="newTeamName" class="form-label">Team Name / ID</label>
+                        <input type="text" id="newTeamName" class="ornate-input bright-input" placeholder="e.g., Cyber Knights, Phoenix-007" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="newTeamPassword" class="form-label">Reward Password</label>
+                        <div class="password-gen-wrapper">
+                            <input type="text" id="newTeamPassword" class="ornate-input bright-input" placeholder="Enter password or generate random" required>
+                            <button type="button" class="gen-pass-btn" id="generatePassBtn" title="Generate Secure Random Password">
+                                🎲 Randomize
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="startingStage" class="form-label">Initial Access Stage</label>
+                        <select id="startingStage" class="ornate-select bright-input">
+                            <option value="1">Stage 1: Puzzle Solving (Standard Reward)</option>
+                            <option value="2">Stage 2: Treasure Hunt (VIP / Bonus Reward)</option>
+                            <option value="3">Stage 3: Tech Challenges (Advanced Starter)</option>
+                            <option value="4">Stage 4: All Unlocked (Exhibition Mode)</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="ornate-btn create-btn">
+                        <span>➕ CREATE & REGISTER TEAM</span>
+                    </button>
+                </form>
+
+                <!-- Quick Preset Injector for Testing -->
+                <div class="quick-preset-box">
+                    <span class="preset-label">⚡ Fast-Inject Demo Teams:</span>
+                    <div class="preset-btn-group">
+                        <button type="button" class="preset-btn" onclick="injectDemoTeams()">📥 Load 4 Starter Teams</button>
+                        <button type="button" class="preset-btn danger" onclick="clearAllTeams()">🗑️ Clear All Teams Database</button>
+                    </div>
+                </div>
+
+                <!-- Quick Global Emergency Box -->
+                <div class="quick-preset-box" style="margin-top: 14px;">
+                    <span class="preset-label" style="color:#ffca68;">🚨 Global Round Control:</span>
+                    <div class="preset-btn-group">
+                        <button type="button" class="preset-btn" style="border-color:#8bc8ff; color:#8bc8ff;" onclick="toggleFreezeTarget(true, 'ALL')">❄️ Lock All Teams</button>
+                        <button type="button" class="preset-btn" style="border-color:#68fedb; color:#68fedb;" onclick="toggleFreezeTarget(false, 'ALL')">🔥 Unfreeze All</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- COLUMN 2: LIVE ANALYTICS GRAPHS & COMPREHENSIVE MATRIX -->
+            <section class="admin-panel analytics-panel">
+                <div class="panel-header">
+                    <span class="panel-icon">📊</span>
+                    <h2 class="panel-title">LIVE ANALYTICS & CHAMBER MATRIX</h2>
+                </div>
+
+                <!-- Visual Chart Cards with Active Team Pills -->
+                <div class="analytics-cards-grid">
+                    <div class="analytics-card">
+                        <div class="card-header-row">
+                            <span class="chart-label">STAGE 1: PUZZLE SOLVING</span>
+                            <span id="countStage1" class="chart-count">0 Teams (0%)</span>
+                        </div>
+                        <div class="chart-bar-container">
+                            <div id="barStage1" class="chart-bar-fill gold" style="width: 0%;"></div>
+                        </div>
+                        <div class="chamber-roster-pills" id="pillsStage1">
+                            <span class="empty-pill">No teams inside</span>
+                        </div>
+                    </div>
+
+                    <div class="analytics-card">
+                        <div class="card-header-row">
+                            <span class="chart-label">STAGE 2: TREASURE HUNT</span>
+                            <span id="countStage2" class="chart-count">0 Teams (0%)</span>
+                        </div>
+                        <div class="chart-bar-container">
+                            <div id="barStage2" class="chart-bar-fill cyan" style="width: 0%;"></div>
+                        </div>
+                        <div class="chamber-roster-pills" id="pillsStage2">
+                            <span class="empty-pill">No teams inside</span>
+                        </div>
+                    </div>
+
+                    <div class="analytics-card">
+                        <div class="card-header-row">
+                            <span class="chart-label">STAGE 3: TECH CHALLENGES</span>
+                            <span id="countStage3" class="chart-count">0 Teams (0%)</span>
+                        </div>
+                        <div class="chart-bar-container">
+                            <div id="barStage3" class="chart-bar-fill purple" style="width: 0%;"></div>
+                        </div>
+                        <div class="chamber-roster-pills" id="pillsStage3">
+                            <span class="empty-pill">No teams inside</span>
+                        </div>
+                    </div>
+
+                    <div class="analytics-card">
+                        <div class="card-header-row">
+                            <span class="chart-label">STAGE 4: REWARDS & FINAL VAULT</span>
+                            <span id="countStage4" class="chart-count">0 Teams (0%)</span>
+                        </div>
+                        <div class="chart-bar-container">
+                            <div id="barStage4" class="chart-bar-fill bright-gold" style="width: 0%;"></div>
+                        </div>
+                        <div class="chamber-roster-pills" id="pillsStage4">
+                            <span class="empty-pill">No teams inside</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Registered Teams Roster Table -->
+                <div class="roster-container">
+                    <div class="roster-header">
+                        <h3>📋 REGISTERED TEAMS ROSTER & STAGE CONTROLS</h3>
+                        <span class="refresh-note">⚡ Real-time sync across all windows</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="roster-table">
+                            <thead>
+                                <tr>
+                                    <th>TEAM NAME / ID</th>
+                                    <th>PASSWORD</th>
+                                    <th style="text-align:center;">STAGE CONTROL (-1 / +1 / VIP)</th>
+                                    <th>STATUS</th>
+                                    <th style="text-align:center;">WARNINGS</th>
+                                    <th style="text-align:right;">QUICK ACTIONS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="teamsRosterBody">
+                                <!-- Populated dynamically by JS -->
+                                <tr class="empty-row"><td colspan="6">No teams registered yet. Create a team above!</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- COLUMN 3: GAME MASTER LIVE BROADCAST & ACTION CONTROLS -->
+            <section class="admin-panel actions-panel">
+                <div class="panel-header">
+                    <span class="panel-icon">🎮</span>
+                    <h2 class="panel-title">LIVE GAME MASTER CONTROL NEXUS</h2>
+                </div>
+                <p class="panel-desc">
+                    Send real-time pop-up announcements, issue warnings, or freeze player screens instantly across their active browser sessions.
+                </p>
+
+                <!-- Target Selector -->
+                <div class="form-group">
+                    <label for="targetTeamSelect" class="form-label">🎯 Select Target for Action:</label>
+                    <select id="targetTeamSelect" class="ornate-select target-select bright-input">
+                        <option value="ALL">🌐 BROADCAST TO ALL ACTIVE TEAMS</option>
+                        <!-- Populated with team names by JS -->
+                    </select>
+                </div>
+
+                <!-- Live Pop-up Announcement / Hint Sender -->
+                <div class="action-box">
+                    <h3 class="action-box-title">📢 Send Live On-Screen Pop-up / Hint</h3>
+                    <div class="preset-toolbar" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
+                        <button type="button" class="stage-btn" onclick="sendPresetMsg('💡 HINT: Look closely at the clues in Chamber 2!')" style="background:rgba(80,227,194,0.15); border-color:#50e3c2;">💡 Hint 2</button>
+                        <button type="button" class="stage-btn" onclick="sendPresetMsg('🚨 5 MINUTES REMAINING! Finalize your cipher codes now!')" style="background:rgba(255,107,107,0.15); border-color:#ff6b6b;">⏱️ 5m Alert</button>
+                        <button type="button" class="stage-btn" onclick="sendPresetMsg('🎉 BONUS: Free Stage Advancement unlocked for fast solvers!')" style="background:rgba(255,215,0,0.15); border-color:#ffe8b3;">🎉 Bonus</button>
+                        <button type="button" class="stage-btn" onclick="sendPresetMsg('⚠️ RULE REMINDER: Do not share challenge codes with other teams!')" style="background:rgba(255,180,67,0.15); border-color:#ffca68;">⚠️ Rules</button>
+                        <button type="button" class="stage-btn" onclick="sendPresetMsg('🔍 HINT: Check the first letter of each riddle words!')" style="background:rgba(109,176,255,0.15); border-color:#8bc8ff;">🔍 Cipher</button>
+                    </div>
+                    <textarea id="liveBroadcastMsg" class="ornate-textarea bright-input" rows="3" placeholder="Type message to pop up on player screens (e.g., '⚡ GAME MASTER HINT: Look closely at the lighting on Activity 2!')"></textarea>
+                    <div class="broadcast-type-options">
+                        <label class="radio-label"><input type="radio" name="msgType" value="info" checked> ℹ️ Hint / Announcement</label>
+                        <label class="radio-label"><input type="radio" name="msgType" value="alert"> 🚨 Emergency / Alert</label>
+                        <label class="radio-label"><input type="radio" name="msgType" value="celebrate"> 🎉 Celebration / Bonus</label>
+                    </div>
+                    <button type="button" class="ornate-btn action-btn broadcast-btn" onclick="sendLiveBroadcast()">
+                        <span>📡 BROADCAST LIVE POP-UP NOW</span>
+                    </button>
+                </div>
+
+                <!-- Game Master Intervention Buttons -->
+                <div class="action-box intervention-box">
+                    <h3 class="action-box-title">⚖️ Selected Target Controls</h3>
+                    <div class="intervention-grid">
+                        <button type="button" class="intervene-btn warn-btn" onclick="issueWarningToTarget()">
+                            <span class="icon">⚠️</span>
+                            <span class="text">Issue Warning<small>Flashes alert siren</small></span>
+                        </button>
+
+                        <button type="button" class="intervene-btn freeze-btn" onclick="toggleFreezeTarget(true)">
+                            <span class="icon">❄️</span>
+                            <span class="text">Freeze Progress<small>Locks account screen</small></span>
+                        </button>
+
+                        <button type="button" class="intervene-btn unfreeze-btn" onclick="toggleFreezeTarget(false)">
+                            <span class="icon">🔥</span>
+                            <span class="text">Unfreeze Account<small>Restores gameplay</small></span>
+                        </button>
+
+                        <button type="button" class="intervene-btn promote-btn" onclick="promoteTargetStage()">
+                            <span class="icon">⏩</span>
+                            <span class="text">Promote Stage (+1)<small>Unlocks next chamber</small></span>
+                        </button>
+
+                        <button type="button" class="intervene-btn demote-btn" onclick="demoteTargetStage()" style="border-color:#ff8e68;">
+                            <span class="icon">⏪</span>
+                            <span class="text">Demote Stage (-1)<small>Locks current chamber</small></span>
+                        </button>
+
+                        <button type="button" class="intervene-btn vip-btn" onclick="grantVipTargetStage()" style="border-color:#ffe8b3;">
+                            <span class="icon">★</span>
+                            <span class="text">Grant VIP Stage 4<small>Instant Max Unlock</small></span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Live Command Log -->
+                <div class="command-log-box">
+                    <div class="log-header">
+                        <span>📜 LIVE BROADCAST LOG:</span>
+                        <button type="button" class="clear-log-btn" onclick="clearCommandLog()">Clear</button>
+                    </div>
+                    <div id="commandLogList" class="log-list">
+                        <div class="log-item system">⚡ Game Master Nexus initialized. Ready for commands.</div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Toast Notification for Admin Feedback -->
+    <div id="adminToast" class="toast-popup hidden">
+        <div class="toast-content">
+            <span class="toast-icon" id="adminToastIcon">⚡</span>
+            <div class="toast-text">
+                <strong id="adminToastTitle">Command Sent</strong>
+                <p id="adminToastMsg">Broadcast transmitted to target players.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="admin-script.js"></script>
+</body>
+</html>

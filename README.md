@@ -1,68 +1,77 @@
-# Tech Tatva: Escape The Room ("Hack The Hacker")
-**Apex Institute of Technology, Chandigarh University**
+# 🏰 Escape The Room — Cyber Enigma: Game Master Command Center & Live Platform
 
-An interactive, responsive event website and teaser puzzle experience for the flagship **Tech Tatva 2026** event: **Escape The Room - Hack The Hacker Before Time Runs Out**.
-
----
-
-## 🧭 Event Overview
-- **Event Name**: Escape The Room: Hack The Hacker
-- **Date**: 4 August 2026
-- **Time**: 9:30 AM to 4:30 PM
-- **Venue**: Apex Institute of Technology, Chandigarh University
-- **Theme**: A fusion of Ancient Treasure Hunt & Steampunk Exploration with Modern Cybersecurity & Hacker Challenges.
+An immersive, high-stakes interactive Escape Room web application tailored for tech symposiums, coding competitions, and live student events. Featuring a state-of-the-art **Game Master Nexus Command Center** for event organizers and judges to monitor, synchronize, broadcast, and control all participating teams in real-time.
 
 ---
 
-## ✨ Features & The 4 Official Activities
-The competition centers around four progressive, code-centric escape room challenges:
-1. 🔍 **Activity 1: Digital Scavenger Hunt**
-   - Teams analyze a target codebase or file hierarchy to solve specific exploration tasks:
-     - Find the oldest file in the project directory.
-     - Identify the file with the most module imports.
-     - Locate the component or function with the longest name.
-2. 🧩 **Activity 2: Component Crossword**
-   - An interactive technical crossword puzzle where clues are based on React/web component names, props, lifecycle methods, or filenames.
-   - Solving the entire crossword grid reveals the secret coordinates of the next challenge location!
-3. 🔐 **Activity 3: Cipher Chase**
-   - A progressive cryptographic trail where every clue is encrypted using Caesar Ciphers (Caipher) and custom shift algorithms.
-   - Teams must decrypt each clue sequentially using custom scripts or our built-in interactive decryptor to advance.
-4. 📱 **Activity 4: QR Chain Challenge**
-   - A multi-stage QR scavenger challenge with two play modes:
-     - **Fragment Mode**: Collect distributed pieces of a broken QR code across the project to assemble the final master QR.
-     - **Chain Mode**: Each scanned QR code reveals the secret location of the next hidden QR code until the final vault is unlocked!
+## ⚡ Key Features
+
+### 🎮 For Players & Teams (`index.html` & `home.html`)
+- **Cinematic Entrance & Auth (`index.html`)**: Rich visual aesthetics with ember particle animations, ambient soundscapes, and team password authentication.
+- **4-Stage Challenge Progression**:
+  - **Chamber 01: Cyber Enigma (Binary/Ascii Vault)**
+  - **Chamber 02: Cryptic Corridor (Hex/Base64 Logic)**
+  - **Chamber 03: Logic Labyrinth (Algorithmic Puzzle)**
+  - **Chamber 04: The Core Sanctuary (Final Master Key)**
+- **Real-Time Stage Syncing**: Multi-tab synchronization and live status checking. When a Game Master promotes, demotes, or sends an alert, player viewports update instantly without requiring page refreshes.
+- **Dynamic Responsive UI**: Fluid grid layouts, high-contrast glow aesthetics, and mobile/desktop responsive design.
+
+### 🛡️ For Judges & Organizers (`admin.html`)
+- **Game Master Nexus Dashboard**: A restricted, high-contrast command dashboard designed with zero overlay interference for maximum visibility.
+- **300ms Real-Time Synchronization**: Multi-layer communication engine utilizing `BroadcastChannel` and `localStorage` state polling to transmit live updates instantly across all active browser windows.
+- **Instant Team Control & Roster Management**:
+  - **Live Stage Jumping**: Instantly promote (+1), demote (-1), or directly teleport any team to Stage 1, 2, 3, or 4.
+  - **Global & Target Broadcasts**: Transmit live pop-up alerts, hints, and warnings directly onto player screens.
+  - **VIP Access & Lockdowns**: Grant Stage 4 All-Access VIP status or freeze/unfreeze rule-violating teams in real-time.
+- **Credential Generator**: Generate secure, randomized team credentials with custom stage assignments.
+- **Standalone Audio Engine**: Dedicated ambient background audio toggle for the command center.
 
 ---
 
-## 🚀 Getting Started
-To run the website locally:
-1. Open `index.html` directly in any modern web browser (Chrome, Firefox, Safari, Edge).
-2. Or use a local development server such as VS Code Live Server or Python:
-   ```bash
-   python3 -m http.server 8000
-   ```
-   Then navigate to `http://localhost:8000` in your browser.
+## 🛠️ Technology Stack
+- **Core**: Vanilla HTML5, CSS3 (Custom Design System with CSS Variables, Flexbox, & CSS Grids), Vanilla JavaScript (ES6+).
+- **State & Synchronization**: Browser `localStorage`, `sessionStorage`, and HTML5 `BroadcastChannel` API for zero-latency cross-window inter-tab communication.
+- **Design & Aesthetics**: Dark mode glassmorphism, glowing neon borders (Nexus Cyan & Gold), custom typography (*Cinzel*, *Outfit*, *Share Tech Mono*), and HTML5 Canvas ember particle systems.
 
 ---
 
-## 📁 File Structure
-```
-Escape The Room/
-│
-├── index.html          # Main Event Website & Portal
-├── activity1.html      # Activity 1: Digital Scavenger Hunt
-├── activity2.html      # Activity 2: Component Crossword
-├── activity3.html      # Activity 3: Cipher Chase
-├── activity4.html      # Activity 4: QR Chain Challenge
-├── styles.css          # Core Design System, Animations & Theme Styling
-│
-└── js/
-    ├── main.js         # Countdown Timer, Navigation & Registration Modal
-    ├── game.js         # Interactive Teaser Mini-Game ("The Hacker's Vault")
-    └── audio.js        # Web Audio API Sound Synthesizer
+## 🚀 Getting Started & Local Development
+
+### 1. Run a Local Development Server
+Because the application uses HTML5 audio and browser storage APIs, serve the directory using any lightweight local HTTP server:
+
+```bash
+# Using Python 3
+python3 -m http.server 8000
+
+# Using Node.js / npx
+npx serve .
 ```
 
+### 2. Accessing the Application
+- **Player Portal**: Open [http://localhost:8000/index.html](http://localhost:8000/index.html)
+- **Game Master Nexus**: Open [http://localhost:8000/admin.html](http://localhost:8000/admin.html)
+
+### 3. Default Game Master Credentials
+To log in to the restricted Command Center (`admin.html`):
+- **Username**: `TatvaAdmin`
+- **Password**: `Tatva2026!`
+*(Note: Universal developer access is also enabled — clicking "ACCESS COMMAND CENTER" or pressing Enter in the login box will unlock the Nexus instantly during local testing).*
+
 ---
 
-## 🛠 Next Steps for Activity Development
-Each activity page (`activity1.html` through `activity4.html`) contains a dedicated interactive preview and sandbox container. As your event development progresses, you can plug your actual competition codebases, crossword grids, and QR tokens directly into these page slots!
+## 📂 Project Structure
+```text
+├── index.html          # Player login & initial portal entry
+├── home.html           # Player game dashboard & 4 challenge chambers
+├── admin.html          # Restricted Game Master Nexus Command Center
+├── style.css           # Core player styling & responsive animations
+├── admin-style.css     # High-contrast Game Master dashboard styling
+├── script.js           # Player logic, challenge validation, & live GM receiver
+├── admin-script.js     # Game Master Command Center engine & broadcast transmitter
+├── assets/             # Background imagery and visual resources
+└── README.md           # Project documentation & setup guide
+```
+
+---
+*Built with precision and high-performance real-time web technologies.*
