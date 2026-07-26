@@ -111,48 +111,48 @@
     </div>
     <div class="activities-grid">
       
-      <!-- Activity Slot 1 -->
-      <div class="activity-slot-card">
+      <!-- Zone 1 -->
+      <div class="activity-slot-card" id="zoneCard1">
         <div>
-          <span class="slot-badge">Slot 01 • Codebase Exploration</span>
+          <span class="slot-badge">Zone 01 • Codebase Exploration</span>
           <h3 class="slot-title"><span>🔍</span> Digital Scavenger Hunt</h3>
           <p class="slot-desc">Analyze project file structures and execute tasks like finding the oldest file, most imports, or longest component name.</p>
-          <div class="slot-status">⚡ Interactive Sandbox Ready</div>
+          <div class="slot-status" id="zoneStatus1" style="color: var(--cyber-green);">🔓 Zone 1: Ready to Enter (Pass: START)</div>
         </div>
-        <a href="activity1.html" class="btn-slot-launch">Launch Scavenger Hunt ➔</a>
+        <a href="activity1.html" class="btn-slot-launch">Enter Zone 1 ➔</a>
       </div>
 
-      <!-- Activity Slot 2 -->
-      <div class="activity-slot-card">
+      <!-- Zone 2 -->
+      <div class="activity-slot-card" id="zoneCard2">
         <div>
-          <span class="slot-badge">Slot 02 • Technical Grid</span>
+          <span class="slot-badge">Zone 02 • Technical Grid</span>
           <h3 class="slot-title"><span>🧩</span> Component Crossword</h3>
           <p class="slot-desc">Solve cryptographic crossword clues based on React/web component names, props, and filenames to reveal the final location.</p>
-          <div class="slot-status">⚡ Interactive Grid Ready</div>
+          <div class="slot-status" id="zoneStatus2" style="color: var(--cyber-amber);">🔒 Zone 2: Restricted (Requires Zone 1 Pass)</div>
         </div>
-        <a href="activity2.html" class="btn-slot-launch">Launch Crossword ➔</a>
+        <a href="activity2.html" class="btn-slot-launch">Enter Zone 2 ➔</a>
       </div>
 
-      <!-- Activity Slot 3 -->
-      <div class="activity-slot-card">
+      <!-- Zone 3 -->
+      <div class="activity-slot-card" id="zoneCard3">
         <div>
-          <span class="slot-badge">Slot 03 • Cryptanalysis</span>
+          <span class="slot-badge">Zone 03 • Cryptanalysis</span>
           <h3 class="slot-title"><span>🔐</span> Cipher Chase</h3>
           <p class="slot-desc">A progressive decryption trail where every clue is encrypted using Caipher (Caesar Cipher). Decrypt each one to advance!</p>
-          <div class="slot-status">⚡ Caesar Decryptor Ready</div>
+          <div class="slot-status" id="zoneStatus3" style="color: var(--cyber-amber);">🔒 Zone 3: Restricted (Requires Zone 2 Pass)</div>
         </div>
-        <a href="activity3.html" class="btn-slot-launch">Launch Cipher Chase ➔</a>
+        <a href="activity3.html" class="btn-slot-launch">Enter Zone 3 ➔</a>
       </div>
 
-      <!-- Activity Slot 4 -->
-      <div class="activity-slot-card">
+      <!-- Zone 4 -->
+      <div class="activity-slot-card" id="zoneCard4">
         <div>
-          <span class="slot-badge">Slot 04 • QR Navigation</span>
+          <span class="slot-badge">Zone 04 • QR Navigation</span>
           <h3 class="slot-title"><span>📱</span> QR Chain Challenge</h3>
           <p class="slot-desc">Collect pieces of QR codes to assemble the final master QR, or scan QR chain tokens that reveal the location of the next hidden QR.</p>
-          <div class="slot-status">⚡ Fragment Tracker Ready</div>
+          <div class="slot-status" id="zoneStatus4" style="color: var(--cyber-amber);">🔒 Zone 4: Grand Finale (Requires Zone 3 Pass)</div>
         </div>
-        <a href="activity4.html" class="btn-slot-launch">Launch QR Challenge ➔</a>
+        <a href="activity4.html" class="btn-slot-launch">Enter Zone 4 ➔</a>
       </div>
 
     </div>
@@ -363,7 +363,21 @@ Type 'help' for instructions.
 
   <!-- Scripts -->
   <script src="js/audio.js"></script>
+  <script src="js/zone-auth.js"></script>
   <script src="js/game.js"></script>
   <script src="js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      [1, 2, 3, 4].forEach(z => {
+        const el = document.getElementById('zoneStatus' + z);
+        if (!el) return;
+        if (localStorage.getItem(`techTatva_unlocked_zone_${z}`) === 'true') {
+          el.style.color = 'var(--cyber-green)';
+          el.innerHTML = `🔓 Zone ${z}: Unlocked & Cleared!`;
+        }
+      });
+      if (window.ZoneAuth) window.ZoneAuth.injectResetButton();
+    });
+  </script>
 </body>
 </html>

@@ -1290,3 +1290,122 @@ body {
   .hamburger { display: flex; }
   .parchment-banner { padding: 30px 20px; }
 }
+
+/* ==========================================================================
+   PROGRESSIVE ZONE SECURITY GATEWAY (LOGIN OVERLAYS)
+   ========================================================================== */
+.zone-login-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(circle at center, rgba(10, 15, 20, 0.95) 0%, rgba(0, 0, 0, 0.98) 100%);
+  backdrop-filter: blur(15px);
+  z-index: 5000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.zone-login-card {
+  background: var(--cyber-black);
+  border: 3px solid var(--cyber-green);
+  border-radius: 12px;
+  max-width: 520px;
+  width: 100%;
+  padding: 40px;
+  box-shadow: 0 0 50px rgba(0, 255, 102, 0.3), 0 20px 40px rgba(0,0,0,0.8);
+  color: #fff;
+  text-align: center;
+  position: relative;
+  animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.zone-login-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  border-bottom: 2px solid rgba(0, 255, 102, 0.3);
+  padding-bottom: 20px;
+  margin-bottom: 25px;
+}
+
+.zone-lock-icon {
+  font-size: 45px;
+  filter: drop-shadow(0 0 10px var(--cyber-green));
+}
+
+.zone-login-subtitle {
+  font-family: var(--font-code);
+  font-size: 0.8rem;
+  color: var(--cyber-cyan);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+
+.zone-login-title {
+  font-family: var(--font-cyber);
+  font-size: 1.4rem;
+  color: var(--cyber-green);
+  text-shadow: 0 0 10px var(--cyber-green-glow);
+}
+
+.zone-login-hint {
+  background: rgba(0, 255, 102, 0.08);
+  border-left: 4px solid var(--cyber-green);
+  padding: 12px 15px;
+  border-radius: 4px;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  color: #ccc;
+  margin-bottom: 25px;
+  text-align: left;
+  line-height: 1.5;
+}
+
+.zone-input-field {
+  width: 100%;
+  padding: 14px 16px;
+  background: #000;
+  border: 2px solid rgba(0, 255, 102, 0.4);
+  border-radius: 6px;
+  color: var(--cyber-green);
+  font-family: var(--font-code);
+  font-size: 1.1rem;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.zone-input-field:focus {
+  border-color: var(--cyber-cyan);
+  box-shadow: 0 0 15px rgba(0, 229, 255, 0.3);
+}
+
+.zone-reset-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #000;
+  color: var(--cyber-red);
+  border: 1px solid var(--cyber-red);
+  font-family: var(--font-code);
+  font-size: 0.8rem;
+  padding: 8px 15px;
+  border-radius: 20px;
+  cursor: pointer;
+  z-index: 1000;
+  opacity: 0.7;
+  transition: all 0.3s ease;
+}
+
+.zone-reset-btn:hover {
+  opacity: 1;
+  background: var(--cyber-red);
+  color: #000;
+  box-shadow: 0 0 15px var(--cyber-red);
+}
+

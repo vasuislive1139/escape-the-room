@@ -186,14 +186,19 @@
         <div id="cipherOutput" class="cipher-output">HACK THE HACKER VAULT</div>
       </div>
 
-      <!-- Success Decrypt Box -->
+      <!-- Success Decrypt & Password Reveal Box -->
       <div class="success-decrypt-box" id="successDecryptBox">
-        <div style="font-size: 40px; margin-bottom: 10px;">✨🔓</div>
-        <h3 style="font-family: var(--font-title); font-size: 1.6rem; color: #fff;">CLUE #01 DECRYPTED SUCCESSFULLY!</h3>
+        <div style="font-size: 40px; margin-bottom: 10px;">🎉🔐</div>
+        <h3 style="font-family: var(--font-title); font-size: 1.6rem; color: #fff;">CONGRATULATIONS! ZONE 3 CLEARED!</h3>
         <p style="font-family: var(--font-code); font-size: 1.3rem; color: var(--cyber-green); margin: 15px 0; font-weight: 900;">
           PASSPHRASE: "HACK THE HACKER VAULT"
         </p>
-        <p style="font-size: 0.9rem; color: #aaa;">You have mastered the Caesar cryptanalysis tool! Use this same strategy during the live event to crack every stage.</p>
+        <p style="font-size: 1.05rem; color: #fff; margin: 15px 0;">Use the secret password revealed by this cipher to unlock the security gateway for <strong>Zone 4 (QR Chain Challenge - Grand Finale)</strong>:</p>
+        <div style="background: #000; border: 2px dashed var(--cyber-green); padding: 15px; border-radius: 6px; font-family: var(--font-code); font-size: 1.6rem; color: var(--cyber-green); font-weight: 900; letter-spacing: 3px; max-width: 400px; margin: 15px auto;">
+          MATRIX-QR-04
+        </div>
+        <p style="font-size: 0.9rem; color: #aaa; margin-bottom: 20px;">Write this password down or copy it, then proceed to the Grand Finale in Zone 4!</p>
+        <a href="activity4.html" class="btn-primary" style="padding: 12px 30px; font-size: 1.1rem;">🔓 Enter Zone 4 Now ➔</a>
       </div>
 
       <div style="margin-top: 40px; text-align: center;">
@@ -209,6 +214,7 @@
   </footer>
 
   <script src="js/audio.js"></script>
+  <script src="js/zone-auth.js"></script>
   <script>
     function caesarShift(str, amount) {
       if (amount < 0) {
@@ -259,6 +265,7 @@
 
     // Init on load
     document.addEventListener('DOMContentLoaded', () => {
+      if (window.ZoneAuth) window.ZoneAuth.init(3);
       const inputEl = document.getElementById('cipherInput');
       if (inputEl) {
         inputEl.addEventListener('input', updateCipher);

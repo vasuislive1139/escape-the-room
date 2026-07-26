@@ -257,15 +257,19 @@
 
       </div>
 
-      <!-- Secret Location Unlock Box -->
+      <!-- Secret Location & Password Reveal Box -->
       <div class="secret-location-box" id="secretLocationBox">
-        <div style="font-size: 40px; margin-bottom: 10px;">🗺️✨</div>
-        <h3 style="font-family: var(--font-title); font-size: 1.6rem; color: #fff;">GRID SOLVED! FINAL LOCATION REVEALED:</h3>
-        <p style="font-family: var(--font-code); font-size: 1.4rem; color: var(--cyber-green); margin: 15px 0; font-weight: 900;">
-          📍 LAT: 30.7684° N | LONG: 76.5754° E<br>
-          (Apex Institute of Technology - Robotics & AI Lab Vault #04)
+        <div style="font-size: 40px; margin-bottom: 10px;">🎉🧩</div>
+        <h3 style="font-family: var(--font-title); font-size: 1.6rem; color: #fff;">CONGRATULATIONS! ZONE 2 CLEARED!</h3>
+        <p style="font-family: var(--font-code); font-size: 1.2rem; color: var(--gold-bright); margin: 15px 0; font-weight: 900;">
+          📍 COORDINATES FOUND: LAT 30.7684° N | LONG 76.5754° E
         </p>
-        <p style="font-size: 0.9rem; color: #aaa;">Take your team to this physical coordinate immediately for your next physical clue!</p>
+        <p style="font-size: 1.05rem; color: #fff; margin: 15px 0;">Use the secret password revealed by this grid to unlock the security gateway for <strong>Zone 3 (Cipher Chase)</strong>:</p>
+        <div style="background: #000; border: 2px dashed var(--gold-bright); padding: 15px; border-radius: 6px; font-family: var(--font-code); font-size: 1.6rem; color: var(--gold-bright); font-weight: 900; letter-spacing: 3px; max-width: 400px; margin: 15px auto;">
+          SHIFT-CYBER-03
+        </div>
+        <p style="font-size: 0.9rem; color: #aaa; margin-bottom: 20px;">Write this password down or copy it, then proceed to Zone 3!</p>
+        <a href="activity3.html" class="btn-primary" style="padding: 12px 30px; font-size: 1.1rem;">🔓 Enter Zone 3 Now ➔</a>
       </div>
 
       <div style="margin-top: 40px; text-align: center;">
@@ -281,7 +285,12 @@
   </footer>
 
   <script src="js/audio.js"></script>
+  <script src="js/zone-auth.js"></script>
   <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.ZoneAuth) window.ZoneAuth.init(2);
+    });
+
     // Auto-advance cursor in crossword
     document.querySelectorAll('.cell-input').forEach((input, idx, arr) => {
       input.addEventListener('input', (e) => {

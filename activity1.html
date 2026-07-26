@@ -181,6 +181,18 @@
         </button>
       </div>
 
+      <!-- Completion / Password Reveal Box -->
+      <div id="zone1CompletionBox" style="display: none; background: var(--cyber-dark); border: 3px solid var(--cyber-green); padding: 25px; border-radius: 8px; margin-top: 30px; text-align: center; box-shadow: 0 0 30px rgba(0,255,102,0.4); animation: popIn 0.5s ease;">
+        <div style="font-size: 40px; margin-bottom: 10px;">🎉🗝️</div>
+        <h3 style="font-family: var(--font-cyber); font-size: 1.6rem; color: var(--cyber-green);">CONGRATULATIONS! ZONE 1 CLEARED!</h3>
+        <p style="font-size: 1.05rem; color: #fff; margin: 15px 0;">You have proven your codebase exploration skills! Use the secret access password below to unlock the security gateway for <strong>Zone 2 (Component Crossword)</strong>:</p>
+        <div style="background: #000; border: 2px dashed var(--cyber-green); padding: 15px; border-radius: 6px; font-family: var(--font-code); font-size: 1.6rem; color: var(--cyber-green); font-weight: 900; letter-spacing: 3px; max-width: 400px; margin: 15px auto;">
+          REACT-GRID-02
+        </div>
+        <p style="font-size: 0.9rem; color: #aaa; margin-bottom: 20px;">Write this password down or copy it, then proceed to Zone 2!</p>
+        <a href="activity2.html" class="btn-primary" style="padding: 12px 30px; font-size: 1.1rem;">🔓 Enter Zone 2 Now ➔</a>
+      </div>
+
       <div style="margin-top: 40px; text-align: center;">
         <a href="index.html#activities" class="btn-primary">⬅ Return to Activity Hub</a>
       </div>
@@ -194,11 +206,17 @@
   </footer>
 
   <script src="js/audio.js"></script>
+  <script src="js/zone-auth.js"></script>
   <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.ZoneAuth) window.ZoneAuth.init(1);
+    });
+
     function checkPractice() {
       if (window.soundSystem) window.soundSystem.playClick();
       const val = document.getElementById('practiceInput').value.trim().toLowerCase();
       const fb = document.getElementById('practiceFeedback');
+      const box = document.getElementById('zone1CompletionBox');
       if (!val) {
         fb.style.color = 'var(--cyber-red)';
         fb.textContent = "⚠️ Please enter a command or tool name!";
@@ -209,6 +227,10 @@
         fb.style.color = 'var(--cyber-green)';
         fb.innerHTML = "✨ <strong>EXCELLENT!</strong> That tool will allow rapid code inspection during the hunt!";
         if (window.soundSystem) window.soundSystem.playUnlock();
+        if (box) {
+          box.style.display = 'block';
+          box.scrollIntoView({ behavior: 'smooth' });
+        }
       } else {
         fb.style.color = 'var(--cyber-amber)';
         fb.textContent = `⚡ Recognized input '${val}'. Standard UNIX utilities like 'grep' and 'find' are also highly recommended!`;
