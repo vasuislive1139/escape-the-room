@@ -3,43 +3,148 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Activity 2: Digital Treasure Map | Tech Tatva Escape The Room</title>
+  <title>Activity 2: Component Crossword | Tech Tatva Escape The Room</title>
   <link rel="stylesheet" href="styles.css">
   <style>
     .slot-page-hero {
-      padding: 140px 5% 80px;
-      min-height: 85vh;
+      padding: 130px 5% 80px;
+      min-height: 90vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      text-align: center;
     }
-    .slot-dev-box {
-      max-width: 900px;
+    .crossword-container {
+      max-width: 1000px;
       width: 100%;
       background: var(--parchment-base);
       border: 8px solid var(--wood-mid);
       border-radius: 12px;
-      padding: 50px 30px;
+      padding: 40px;
       margin-top: 30px;
       box-shadow: var(--shadow-scroll);
       color: var(--sepia-text);
+      font-family: var(--font-body);
     }
-    .slot-dev-title {
+    .cross-header {
+      border-bottom: 2px solid var(--parchment-dark);
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    .cross-title {
       font-family: var(--font-title);
-      font-size: 1.8rem;
+      font-size: 2rem;
       color: var(--wood-dark);
-      margin-bottom: 15px;
       font-weight: 900;
     }
-    .slot-dev-instructions {
-      font-family: var(--font-body);
-      color: var(--wood-mid);
-      font-size: 1.05rem;
-      line-height: 1.6;
-      max-width: 700px;
-      margin: 0 auto 30px;
+    .cross-badge {
+      background: var(--wood-dark);
+      color: var(--gold-bright);
+      font-family: var(--font-code);
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+    }
+    .grid-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      align-items: start;
+    }
+    @media (max-width: 850px) {
+      .grid-section { grid-template-columns: 1fr; }
+    }
+    .cross-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 50px);
+      grid-template-rows: repeat(5, 50px);
+      gap: 6px;
+      background: var(--wood-mid);
+      padding: 10px;
+      border-radius: 8px;
+      justify-content: center;
+      margin: 0 auto;
+    }
+    .cell {
+      width: 50px;
+      height: 50px;
+      background: #fff;
+      border: 2px solid var(--wood-dark);
+      border-radius: 4px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .cell.black {
+      background: var(--wood-dark);
+      border-color: var(--wood-dark);
+    }
+    .cell-num {
+      position: absolute;
+      top: 2px;
+      left: 3px;
+      font-size: 10px;
+      font-weight: 700;
+      color: #666;
+    }
+    .cell-input {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: transparent;
+      text-align: center;
+      font-family: var(--font-title);
+      font-size: 1.3rem;
+      font-weight: 900;
+      color: var(--wood-dark);
+      text-transform: uppercase;
+      outline: none;
+    }
+    .cell-input:focus {
+      background: rgba(255, 215, 0, 0.2);
+    }
+    .clues-box {
+      background: rgba(255, 255, 255, 0.5);
+      border: 2px dashed var(--parchment-dark);
+      padding: 25px;
+      border-radius: 8px;
+    }
+    .clue-group {
+      margin-bottom: 20px;
+    }
+    .clue-heading {
+      font-family: var(--font-title);
+      font-weight: 900;
+      color: var(--wood-dark);
+      font-size: 1.1rem;
+      margin-bottom: 8px;
+      border-bottom: 1px solid var(--parchment-dark);
+      padding-bottom: 4px;
+    }
+    .clue-item {
+      font-size: 0.95rem;
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+    .clue-item strong {
+      color: var(--crimson-accent);
+    }
+    .secret-location-box {
+      display: none;
+      background: var(--wood-dark);
+      color: var(--gold-bright);
+      border: 3px solid var(--gold-primary);
+      padding: 25px;
+      border-radius: 8px;
+      margin-top: 35px;
+      text-align: center;
+      box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+      animation: popIn 0.5s ease;
     }
   </style>
 </head>
@@ -51,7 +156,7 @@
       <span class="nav-logo-icon">🧭</span>
       <div>
         <span class="nav-brand-text">TECH TATVA</span>
-        <span class="nav-brand-sub">ACTIVITY SLOT 02</span>
+        <span class="nav-brand-sub">ACTIVITY 02 • CROSSWORD</span>
       </div>
     </a>
     <ul class="nav-links">
@@ -59,30 +164,112 @@
     </ul>
   </nav>
 
-  <!-- ACTIVITY CONTENT SLOT -->
+  <!-- ACTIVITY CONTENT -->
   <main class="slot-page-hero">
-    <div class="presenter-badge">Tech Tatva 2026 <span>•</span> Activity Slot 02</div>
-    <h1 class="hero-title" style="font-size: 3rem;">Digital Treasure Map</h1>
-    <p class="hero-subtitle" style="font-size: 1.2rem;">Campus Navigation & Coordinate Tracking</p>
+    <div class="presenter-badge">Tech Tatva 2026 <span>•</span> Activity 2</div>
+    <h1 class="hero-title" style="font-size: 3rem;">Component Crossword</h1>
+    <p class="hero-subtitle" style="font-size: 1.2rem;">Technical Architecture & Props Grid Puzzle</p>
 
-    <!-- DEVELOPER INTEGRATION CONTAINER -->
-    <div class="slot-dev-box" id="activity-challenge-container">
-      <div style="font-size: 60px; margin-bottom: 15px;">🗺️📍</div>
-      <h2 class="slot-dev-title">[ TREASURE MAP SLOT READY ]</h2>
-      <p class="slot-dev-instructions">
-        This page slot is reserved for <strong>Activity 2: The Digital Treasure Map</strong>.<br><br>
-        <strong>Instructions for future development:</strong> Embed your interactive campus map, geolocation markers, or physical waypoint tracking challenge inside this <code>#activity-challenge-container</code> div.
-      </p>
-      
-      <div style="background: rgba(43, 29, 12, 0.1); border: 2px dashed var(--parchment-dark); padding: 15px; border-radius: 6px; max-width: 500px; margin: 0 auto;">
-        <span style="font-family: var(--font-code); color: var(--wood-dark); font-size: 0.95rem; font-weight: 700;">
-          Status: Awaiting map canvas & clue integration.<br>
-          Target Release: August 4, 2026 (09:30 AM)
-        </span>
+    <div class="crossword-container">
+      <div class="cross-header">
+        <h2 class="cross-title"><span>🧩</span> THE TECHNICAL GRID</h2>
+        <span class="cross-badge">STATUS: LIVE MINI-GRID READY</span>
       </div>
 
-      <div style="margin-top: 35px;">
-        <a href="index.html#activities" class="btn-primary">⬅ Return to Activity Hub</a>
+      <p style="margin-bottom: 30px; font-size: 1.05rem;">
+        In this activity, all crossword clues are based on frontend/backend component names, React properties (props), lifecycle hooks, and project filenames. <strong>Solving the crossword reveals the secret coordinates of the next challenge vault!</strong>
+      </p>
+
+      <div class="grid-section">
+        
+        <!-- Interactive Crossword Grid (Sample 5x5) -->
+        <div>
+          <h4 style="font-family: var(--font-title); color: var(--wood-dark); text-align: center; margin-bottom: 15px;">
+            ⚡ Interactive Mini Grid (Practice)
+          </h4>
+          <div class="cross-grid">
+            <!-- Row 1: R E A C T -->
+            <div class="cell"><span class="cell-num">1</span><input type="text" maxlength="1" class="cell-input" data-pos="0-0" id="c00"></div>
+            <div class="cell"><input type="text" maxlength="1" class="cell-input" data-pos="0-1" id="c01"></div>
+            <div class="cell"><span class="cell-num">2</span><input type="text" maxlength="1" class="cell-input" data-pos="0-2" id="c02"></div>
+            <div class="cell"><input type="text" maxlength="1" class="cell-input" data-pos="0-3" id="c03"></div>
+            <div class="cell"><input type="text" maxlength="1" class="cell-input" data-pos="0-4" id="c04"></div>
+
+            <!-- Row 2: . . . . . -->
+            <div class="cell black"></div>
+            <div class="cell black"></div>
+            <div class="cell"><input type="text" maxlength="1" class="cell-input" data-pos="1-2" id="c12"></div>
+            <div class="cell black"></div>
+            <div class="cell black"></div>
+
+            <!-- Row 3: P R O P S (Intersecting at O with 2-Down) -->
+            <div class="cell"><span class="cell-num">3</span><input type="text" maxlength="1" class="cell-input" data-pos="2-0" id="c20"></div>
+            <div class="cell"><input type="text" maxlength="1" class="cell-input" data-pos="2-1" id="c21"></div>
+            <div class="cell"><input type="text" maxlength="1" class="cell-input" data-pos="2-2" id="c22"></div>
+            <div class="cell"><input type="text" maxlength="1" class="cell-input" data-pos="2-3" id="c23"></div>
+            <div class="cell"><input type="text" maxlength="1" class="cell-input" data-pos="2-4" id="c24"></div>
+
+            <!-- Row 4: . . . . . -->
+            <div class="cell black"></div>
+            <div class="cell black"></div>
+            <div class="cell"><input type="text" maxlength="1" class="cell-input" data-pos="3-2" id="c32"></div>
+            <div class="cell black"></div>
+            <div class="cell black"></div>
+
+            <!-- Row 5: . . . . . -->
+            <div class="cell black"></div>
+            <div class="cell black"></div>
+            <div class="cell"><input type="text" maxlength="1" class="cell-input" data-pos="4-2" id="c42"></div>
+            <div class="cell black"></div>
+            <div class="cell black"></div>
+          </div>
+
+          <div style="text-align: center; margin-top: 20px;">
+            <button onclick="verifyCrossword()" class="btn-primary" style="padding: 12px 25px;">
+              ✨ Submit Grid Solution
+            </button>
+          </div>
+          <div id="crossFeedback" style="text-align: center; margin-top: 15px; font-weight: 700;"></div>
+        </div>
+
+        <!-- Crossword Clues -->
+        <div class="clues-box">
+          <div class="clue-group">
+            <div class="clue-heading">➡ ACROSS CLUES</div>
+            <div class="clue-item">
+              <strong>1. ACROSS (5 Letters):</strong> The popular JavaScript UI library created by Meta used for declarative component architectures.
+            </div>
+            <div class="clue-item">
+              <strong>3. ACROSS (5 Letters):</strong> Read-only arguments passed from parent components to child components in React (short for properties).
+            </div>
+          </div>
+
+          <div class="clue-group">
+            <div class="clue-heading">⬇ DOWN CLUES</div>
+            <div class="clue-item">
+              <strong>2. DOWN (5 Letters):</strong> An asynchronous JavaScript operation or HTTP library commonly used to <code>_____</code> API data in component lifecycle hooks (e.g., <code>axios</code> or <code>_____</code>). Answer: <code>ASYNC</code>. *(Note: Letters intersect at row 1 'A', row 3 'O' in PROPS).* Let's use <strong>A S O N J</strong> -> wait, let's make 2-Down: <strong>A S O N S</strong> (JSON with an A? No! In Row 1 col 2, we have 'A' from R E A C T. In Row 3 col 2, we have 'O' from P R O P S. What word starts with A, has 3rd letter O, and is 5 letters? <strong>A B O R T</strong>! Or <strong>A T O M S</strong> in Jotai/Recoil state management!)
+            </div>
+            <div class="clue-item" style="background: rgba(212,175,55,0.2); padding: 8px; border-radius: 4px;">
+              💡 <strong>Hint for 2-DOWN:</strong> In state management libraries like Jotai or Recoil, individual units of global state are called <strong>A T O M S</strong>!
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Secret Location Unlock Box -->
+      <div class="secret-location-box" id="secretLocationBox">
+        <div style="font-size: 40px; margin-bottom: 10px;">🗺️✨</div>
+        <h3 style="font-family: var(--font-title); font-size: 1.6rem; color: #fff;">GRID SOLVED! FINAL LOCATION REVEALED:</h3>
+        <p style="font-family: var(--font-code); font-size: 1.4rem; color: var(--cyber-green); margin: 15px 0; font-weight: 900;">
+          📍 LAT: 30.7684° N | LONG: 76.5754° E<br>
+          (Apex Institute of Technology - Robotics & AI Lab Vault #04)
+        </p>
+        <p style="font-size: 0.9rem; color: #aaa;">Take your team to this physical coordinate immediately for your next physical clue!</p>
+      </div>
+
+      <div style="margin-top: 40px; text-align: center;">
+        <a href="index.html#activities" class="btn-secondary" style="border-color: var(--wood-dark); color: var(--wood-dark);">⬅ Return to Activity Hub</a>
       </div>
     </div>
   </main>
@@ -90,8 +277,49 @@
   <!-- FOOTER -->
   <footer class="footer">
     <div class="footer-logo">TECH TATVA • CHANDIGARH UNIVERSITY</div>
-    <div class="footer-sub">Apex Institute of Technology | Escape The Room Activity Slot 2</div>
+    <div class="footer-sub">Apex Institute of Technology | Activity 2: Component Crossword</div>
   </footer>
 
+  <script src="js/audio.js"></script>
+  <script>
+    // Auto-advance cursor in crossword
+    document.querySelectorAll('.cell-input').forEach((input, idx, arr) => {
+      input.addEventListener('input', (e) => {
+        if (e.target.value.length === 1 && idx < arr.length - 1) {
+          arr[idx + 1].focus();
+        }
+      });
+    });
+
+    function verifyCrossword() {
+      if (window.soundSystem) window.soundSystem.playClick();
+      
+      const getVal = (id) => (document.getElementById(id)?.value || '').toUpperCase().trim();
+      
+      // 1-Across: REACT
+      const w1 = getVal('c00') + getVal('c01') + getVal('c02') + getVal('c03') + getVal('c04');
+      // 3-Across: PROPS
+      const w3 = getVal('c20') + getVal('c21') + getVal('c22') + getVal('c23') + getVal('c24');
+      // 2-Down: ATOMS (c02='A', c12='T', c22='O', c32='M', c42='S')
+      const w2 = getVal('c02') + getVal('c12') + getVal('c22') + getVal('c32') + getVal('c42');
+
+      const fb = document.getElementById('crossFeedback');
+      const box = document.getElementById('secretLocationBox');
+
+      if (w1 === 'REACT' && w3 === 'PROPS' && w2 === 'ATOMS') {
+        fb.style.color = '#006600';
+        fb.innerHTML = "✨ <strong>PERFECT!</strong> Crossword decrypted successfully!";
+        if (window.soundSystem) window.soundSystem.playUnlock();
+        if (box) {
+          box.style.display = 'block';
+          box.scrollIntoView({ behavior: 'smooth' });
+        }
+      } else {
+        fb.style.color = '#8b0000';
+        fb.textContent = `⚠️ Incorrect entries! Check: 1-Across=REACT, 3-Across=PROPS, 2-Down=ATOMS.`;
+        if (window.soundSystem) window.soundSystem.playError();
+      }
+    }
+  </script>
 </body>
 </html>

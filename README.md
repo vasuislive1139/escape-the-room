@@ -14,17 +14,23 @@ An interactive, responsive event website and teaser puzzle experience for the fl
 
 ---
 
-## ✨ Features
-1. **Parchment & Cyberpunk Aesthetics**: Custom UI styled after aged parchment paper, antique gold frames, compasses, and neon cyber terminals.
-2. **Live Countdown Timer**: Real-time countdown to August 4, 2026, 9:30 AM.
-3. **Interactive Teaser Game ("The Hacker's Treasure Vault")**: An embedded 3-stage mini-game on the homepage allowing students to solve a compass lock, hack a terminal, and unlock a virtual treasure chest for a secret event bonus code!
-4. **4 Dedicated Activity Slots**: Ready-to-build page slots for the four flagship activities:
-   - 🧩 **Activity 1**: The Cryptic Cipher (Logic & Pattern Decoding)
-   - 📜 **Activity 2**: The Digital Treasure Map (Campus & Vault Navigation)
-   - 💻 **Activity 3**: Cyber Firewall Breach (Terminal Hacking & Security Override)
-   - 🏆 **Activity 4**: The Master Vault Escape (Final Collaborative Challenge)
-5. **Interactive Registration Form**: Dynamic student registration generating a downloadable/printable "Treasure Pass".
-6. **Web Audio API Sound Effects**: Synthesized ambient sound effects without relying on external audio files.
+## ✨ Features & The 4 Official Activities
+The competition centers around four progressive, code-centric escape room challenges:
+1. 🔍 **Activity 1: Digital Scavenger Hunt**
+   - Teams analyze a target codebase or file hierarchy to solve specific exploration tasks:
+     - Find the oldest file in the project directory.
+     - Identify the file with the most module imports.
+     - Locate the component or function with the longest name.
+2. 🧩 **Activity 2: Component Crossword**
+   - An interactive technical crossword puzzle where clues are based on React/web component names, props, lifecycle methods, or filenames.
+   - Solving the entire crossword grid reveals the secret coordinates of the next challenge location!
+3. 🔐 **Activity 3: Cipher Chase**
+   - A progressive cryptographic trail where every clue is encrypted using Caesar Ciphers (Caipher) and custom shift algorithms.
+   - Teams must decrypt each clue sequentially using custom scripts or our built-in interactive decryptor to advance.
+4. 📱 **Activity 4: QR Chain Challenge**
+   - A multi-stage QR scavenger challenge with two play modes:
+     - **Fragment Mode**: Collect distributed pieces of a broken QR code across the project to assemble the final master QR.
+     - **Chain Mode**: Each scanned QR code reveals the secret location of the next hidden QR code until the final vault is unlocked!
 
 ---
 
@@ -44,10 +50,10 @@ To run the website locally:
 Escape The Room/
 │
 ├── index.html          # Main Event Website & Portal
-├── activity1.html      # Activity Slot 1: The Cryptic Cipher
-├── activity2.html      # Activity Slot 2: The Digital Treasure Map
-├── activity3.html      # Activity Slot 3: Cyber Firewall Breach
-├── activity4.html      # Activity Slot 4: The Master Vault Escape
+├── activity1.html      # Activity 1: Digital Scavenger Hunt
+├── activity2.html      # Activity 2: Component Crossword
+├── activity3.html      # Activity 3: Cipher Chase
+├── activity4.html      # Activity 4: QR Chain Challenge
 ├── styles.css          # Core Design System, Animations & Theme Styling
 │
 └── js/
@@ -59,4 +65,4 @@ Escape The Room/
 ---
 
 ## 🛠 Next Steps for Activity Development
-Each activity page (`activity1.html` through `activity4.html`) contains a modular slot template with consistent navigation, header, and footer styling. As you build out the custom challenges for each activity, modify the respective slot container inside those files!
+Each activity page (`activity1.html` through `activity4.html`) contains a dedicated interactive preview and sandbox container. As your event development progresses, you can plug your actual competition codebases, crossword grids, and QR tokens directly into these page slots!

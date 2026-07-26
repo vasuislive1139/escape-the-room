@@ -3,41 +3,106 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Activity 1: The Cryptic Cipher | Tech Tatva Escape The Room</title>
+  <title>Activity 1: Digital Scavenger Hunt | Tech Tatva Escape The Room</title>
   <link rel="stylesheet" href="styles.css">
   <style>
     .slot-page-hero {
-      padding: 140px 5% 80px;
-      min-height: 85vh;
+      padding: 130px 5% 80px;
+      min-height: 90vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      text-align: center;
     }
-    .slot-dev-box {
-      max-width: 900px;
+    .hunt-container {
+      max-width: 1000px;
       width: 100%;
       background: var(--cyber-black);
-      border: 3px dashed var(--cyber-green);
+      border: 3px solid var(--cyber-green);
       border-radius: 12px;
-      padding: 50px 30px;
+      padding: 40px;
       margin-top: 30px;
       box-shadow: var(--shadow-cyber);
+      color: #fff;
+      font-family: var(--font-body);
     }
-    .slot-dev-title {
+    .hunt-header {
+      border-bottom: 2px solid rgba(0,255,102,0.3);
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    .hunt-title {
       font-family: var(--font-cyber);
-      font-size: 1.8rem;
+      font-size: 2rem;
       color: var(--cyber-green);
+      text-shadow: 0 0 15px var(--cyber-green-glow);
+    }
+    .hunt-badge {
+      background: rgba(0, 255, 102, 0.1);
+      border: 1px solid var(--cyber-green);
+      color: var(--cyber-green);
+      font-family: var(--font-code);
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+    }
+    .task-card {
+      background: var(--cyber-dark);
+      border: 1px solid rgba(0, 255, 102, 0.3);
+      border-radius: 8px;
+      padding: 25px;
+      margin-bottom: 20px;
+      transition: all 0.3s ease;
+    }
+    .task-card:hover {
+      border-color: var(--cyber-cyan);
+      box-shadow: 0 5px 20px rgba(0, 229, 255, 0.2);
+    }
+    .task-num {
+      font-family: var(--font-code);
+      color: var(--cyber-amber);
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+    .task-desc {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 12px;
+    }
+    .task-hint {
+      font-family: var(--font-code);
+      font-size: 0.9rem;
+      color: #888;
+      background: rgba(0,0,0,0.4);
+      padding: 10px 15px;
+      border-left: 3px solid var(--cyber-cyan);
+      border-radius: 4px;
       margin-bottom: 15px;
     }
-    .slot-dev-instructions {
+    .practice-box {
+      background: rgba(0,0,0,0.6);
+      border: 1px dashed var(--gold-primary);
+      padding: 25px;
+      border-radius: 8px;
+      margin-top: 40px;
+    }
+    .practice-input {
+      width: 100%;
+      padding: 12px 15px;
+      background: #000;
+      border: 1px solid var(--cyber-green);
+      color: var(--cyber-green);
       font-family: var(--font-code);
-      color: #aaa;
-      font-size: 1rem;
-      line-height: 1.6;
-      max-width: 700px;
-      margin: 0 auto 30px;
+      border-radius: 6px;
+      margin-top: 10px;
+      outline: none;
     }
   </style>
 </head>
@@ -49,7 +114,7 @@
       <span class="nav-logo-icon">🧭</span>
       <div>
         <span class="nav-brand-text">TECH TATVA</span>
-        <span class="nav-brand-sub">ACTIVITY SLOT 01</span>
+        <span class="nav-brand-sub">ACTIVITY 01 • SCAVENGER HUNT</span>
       </div>
     </a>
     <ul class="nav-links">
@@ -57,30 +122,67 @@
     </ul>
   </nav>
 
-  <!-- ACTIVITY CONTENT SLOT -->
+  <!-- ACTIVITY CONTENT -->
   <main class="slot-page-hero">
-    <div class="presenter-badge">Tech Tatva 2026 <span>•</span> Activity Slot 01</div>
-    <h1 class="hero-title" style="font-size: 3rem;">The Cryptic Cipher</h1>
-    <p class="hero-subtitle" style="font-size: 1.2rem;">Logic, Pattern Decoding & ASCII Cryptanalysis</p>
+    <div class="presenter-badge">Tech Tatva 2026 <span>•</span> Activity 1</div>
+    <h1 class="hero-title" style="font-size: 3rem;">Digital Scavenger Hunt</h1>
+    <p class="hero-subtitle" style="font-size: 1.2rem;">Codebase Exploration & Analytical File Queries</p>
 
-    <!-- DEVELOPER INTEGRATION CONTAINER -->
-    <div class="slot-dev-box" id="activity-challenge-container">
-      <div style="font-size: 50px; margin-bottom: 15px;">🔐💻</div>
-      <h2 class="slot-dev-title">[ CHALLENGE SLOT READY ]</h2>
-      <p class="slot-dev-instructions">
-        This page slot is reserved for <strong>Activity 1: The Cryptic Cipher</strong>.<br><br>
-        <strong>Instructions for future development:</strong> Replace or insert your interactive puzzle code (e.g., cipher dials, binary conversion tools, riddle textboxes) directly inside this <code>#activity-challenge-container</code> div.
-      </p>
-      
-      <div style="background: rgba(0,255,102,0.08); border: 1px solid var(--cyber-green); padding: 15px; border-radius: 6px; max-width: 500px; margin: 0 auto;">
-        <span style="font-family: var(--font-code); color: var(--cyber-cyan); font-size: 0.9rem;">
-          Status: Awaiting custom puzzle implementation.<br>
-          Target Release: August 4, 2026 (09:30 AM)
-        </span>
+    <div class="hunt-container">
+      <div class="hunt-header">
+        <h2 class="hunt-title"><span>🔍</span> CODEBASE EXPEDITION</h2>
+        <span class="hunt-badge">STATUS: LIVE SANDBOX READY</span>
       </div>
 
-      <div style="margin-top: 35px;">
-        <a href="index.html#activities" class="btn-secondary">⬅ Return to Activity Hub</a>
+      <p style="color: #aaa; margin-bottom: 30px; font-size: 1.05rem;">
+        In this activity, teams are provided with a complex target project repository. You must navigate the directory structure, inspect file metadata, and execute rapid command-line queries to locate specific technical artifacts before the rival teams!
+      </p>
+
+      <h3 style="font-family: var(--font-title); color: var(--gold-bright); margin-bottom: 20px; font-size: 1.4rem;">
+        📋 Official Challenge Tasks (Preview)
+      </h3>
+
+      <!-- TASK 1 -->
+      <div class="task-card">
+        <div class="task-num">Task 01 // Time Paradox</div>
+        <div class="task-desc">Find the oldest file in the entire project repository.</div>
+        <div class="task-hint">💡 Hint: Inspect file timestamps using terminal listing commands like <code>ls -lt</code> or recursive file search utilities.</div>
+      </div>
+
+      <!-- TASK 2 -->
+      <div class="task-card">
+        <div class="task-num">Task 02 // Dependency Matrix</div>
+        <div class="task-desc">Find the source file with the highest number of module imports.</div>
+        <div class="task-hint">💡 Hint: Count occurrences of keyword <code>import</code> or <code>require()</code> using regex pattern matching tools across all JavaScript/TypeScript files.</div>
+      </div>
+
+      <!-- TASK 3 -->
+      <div class="task-card">
+        <div class="task-num">Task 03 // Verbose Architecture</div>
+        <div class="task-desc">Find the UI component or class with the longest identifier name.</div>
+        <div class="task-hint">💡 Hint: Parse component declarations and sort identifier strings by character length.</div>
+      </div>
+
+      <!-- INTERACTIVE PRACTICE BOX -->
+      <div class="practice-box">
+        <h4 style="font-family: var(--font-cyber); color: var(--cyber-cyan); font-size: 1.2rem; margin-bottom: 10px;">
+          ⚡ Interactive Scavenger Simulator
+        </h4>
+        <p style="color: #ccc; font-size: 0.95rem;">
+          Test your preparedness! Type a bash command or tool name you would use to recursively search for text inside all files in a directory:
+        </p>
+        
+        <input type="text" id="practiceInput" class="practice-input" placeholder="e.g. grep -r 'import' . or ripgrep">
+        
+        <div id="practiceFeedback" style="margin-top: 15px; font-family: var(--font-code); font-weight: 700; min-height: 25px;"></div>
+
+        <button onclick="checkPractice()" class="btn-secondary" style="margin-top: 15px; border-color: var(--gold-bright); color: var(--gold-bright);">
+          ✔ Verify Command Strategy
+        </button>
+      </div>
+
+      <div style="margin-top: 40px; text-align: center;">
+        <a href="index.html#activities" class="btn-primary">⬅ Return to Activity Hub</a>
       </div>
     </div>
   </main>
@@ -88,8 +190,31 @@
   <!-- FOOTER -->
   <footer class="footer">
     <div class="footer-logo">TECH TATVA • CHANDIGARH UNIVERSITY</div>
-    <div class="footer-sub">Apex Institute of Technology | Escape The Room Activity Slot 1</div>
+    <div class="footer-sub">Apex Institute of Technology | Activity 1: Digital Scavenger Hunt</div>
   </footer>
 
+  <script src="js/audio.js"></script>
+  <script>
+    function checkPractice() {
+      if (window.soundSystem) window.soundSystem.playClick();
+      const val = document.getElementById('practiceInput').value.trim().toLowerCase();
+      const fb = document.getElementById('practiceFeedback');
+      if (!val) {
+        fb.style.color = 'var(--cyber-red)';
+        fb.textContent = "⚠️ Please enter a command or tool name!";
+        if (window.soundSystem) window.soundSystem.playError();
+        return;
+      }
+      if (val.includes('grep') || val.includes('find') || val.includes('rg') || val.includes('ls') || val.includes('cat')) {
+        fb.style.color = 'var(--cyber-green)';
+        fb.innerHTML = "✨ <strong>EXCELLENT!</strong> That tool will allow rapid code inspection during the hunt!";
+        if (window.soundSystem) window.soundSystem.playUnlock();
+      } else {
+        fb.style.color = 'var(--cyber-amber)';
+        fb.textContent = `⚡ Recognized input '${val}'. Standard UNIX utilities like 'grep' and 'find' are also highly recommended!`;
+        if (window.soundSystem) window.soundSystem.playBeep();
+      }
+    }
+  </script>
 </body>
 </html>
