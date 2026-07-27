@@ -132,7 +132,7 @@
                         <select id="startingStage" class="ornate-select bright-input">
                             <option value="1">Stage 1: Puzzle Solving (Standard Reward)</option>
                             <option value="2">Stage 2: Treasure Hunt (VIP / Bonus Reward)</option>
-                            <option value="3">Stage 3: Tech Challenges (Advanced Starter)</option>
+                            <option value="3">Stage 3: Caesar Cipher (Advanced Starter)</option>
                             <option value="4">Stage 4: All Unlocked (Exhibition Mode)</option>
                         </select>
                     </div>
@@ -144,10 +144,12 @@
 
                 <!-- Quick Preset Injector for Testing -->
                 <div class="quick-preset-box">
-                    <span class="preset-label">⚡ Fast-Inject Demo Teams:</span>
-                    <div class="preset-btn-group">
-                        <button type="button" class="preset-btn" onclick="injectDemoTeams()">📥 Load 4 Starter Teams</button>
-                        <button type="button" class="preset-btn danger" onclick="clearAllTeams()">🗑️ Clear All Teams Database</button>
+                    <span class="preset-label">⚡ Database Setup & Presets:</span>
+                    <div class="preset-btn-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                        <button type="button" class="preset-btn" onclick="injectDemoTeams()" title="Injects 4 starter teams for testing">📥 Load 4 Demo Teams</button>
+                        <button type="button" class="preset-btn" onclick="generate24EventTeams()" style="border-color: #50e3c2; color: #50e3c2;" title="Populate database with 24 teams (TEAM-01 to TEAM-24)">⚡ Generate 24 Teams</button>
+                        <button type="button" class="preset-btn" onclick="downloadCredentialsCSV()" style="border-color: #ffe8b3; color: #ffe8b3;" title="Download a CSV checklist of all team names and passwords">📥 Download CSV Key</button>
+                        <button type="button" class="preset-btn danger" onclick="clearAllTeams()" title="Clear all team records from database">🗑️ Clear Database</button>
                     </div>
                 </div>
 
@@ -198,7 +200,7 @@
 
                     <div class="analytics-card">
                         <div class="card-header-row">
-                            <span class="chart-label">STAGE 3: TECH CHALLENGES</span>
+                            <span class="chart-label">STAGE 3: CAESAR CIPHER</span>
                             <span id="countStage3" class="chart-count">0 Teams (0%)</span>
                         </div>
                         <div class="chart-bar-container">

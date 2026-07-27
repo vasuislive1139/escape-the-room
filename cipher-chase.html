@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escape The Room — Caesar Cipher Vault</title>
+    <meta name="description" content="Chamber 03: Standalone Caesar Cipher Decryption Terminal. Unlock the security code to advance.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@500;700;800&family=Outfit:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="cipher-chase-style.css">
+</head>
+<body class="cipher-body">
+    <!-- Embers background particles -->
+    <canvas id="embersCanvas"></canvas>
+    <div class="atmosphere-overlay"></div>
+
+    <!-- Main Container -->
+    <main class="page-container" style="max-width: 650px;">
+        <!-- Header Plaque -->
+        <header class="event-header" style="margin-bottom: 24px;">
+            <div class="audio-control-container" style="margin-bottom: 12px;">
+                <button id="audioToggleBtn" class="audio-btn" aria-label="Toggle Ambient Sound" title="Toggle Ambient Escape Room Sound">
+                    <svg id="soundOnIcon" class="sound-icon hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                    </svg>
+                    <svg id="soundOffIcon" class="sound-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                        <line x1="23" y1="9" x2="17" y2="15"></line>
+                        <line x1="17" y1="9" x2="23" y2="15"></line>
+                    </svg>
+                    <span class="audio-label">Ambient Audio</span>
+                </button>
+            </div>
+            
+            <h1 class="event-title">
+                <span class="title-word" style="font-size: 3rem;">CHAMBER 03</span>
+                <span class="title-subword" style="letter-spacing: 0.15em;" id="stageTitle">CIPHER CHASE</span>
+            </h1>
+            <div class="title-divider">
+                <span class="divider-line"></span>
+                <span class="tagline" id="stageStepTag">SUB-STAGE 01 OF 03</span>
+                <span class="divider-line"></span>
+            </div>
+        </header>
+
+        <!-- Cyber Terminal Card -->
+        <section class="login-section">
+            <div class="ornate-card">
+                <div class="corner-flourish top-left"></div>
+                <div class="corner-flourish top-right"></div>
+                <div class="corner-flourish bottom-left"></div>
+                <div class="corner-flourish bottom-right"></div>
+                
+                <div class="card-inner-border" style="padding: 32px 28px;">
+                    <div class="card-content">
+                        <!-- Terminal Warning Badge -->
+                        <div class="terminal-badge-row">
+                            <span class="terminal-status-dot"></span>
+                            <span class="terminal-tag" id="teamIndicator">ACTIVE TEAM: LOADING...</span>
+                        </div>
+
+                        <div class="header-separator">
+                            <span class="separator-diamond">◆</span>
+                        </div>
+
+                        <!-- Instructions -->
+                        <div class="cipher-instruction-box">
+                            <strong style="color: var(--gold-bright); font-size: 0.95rem;" id="substageInstructionTitle">DECRYPTION SEQUENCE INITIATED</strong>
+                            <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 6px; line-height: 1.5;" id="substageInstructionDesc">
+                                Your team has been assigned a unique encrypted key. Slide the shift key dial below to shift the characters in real-time. Find the key that decrypts the sequence into a meaningful English word, then submit it below to unlock the chamber.
+                            </p>
+                        </div>
+
+                        <!-- Decryption workspace -->
+                        <div class="terminal-workspace">
+                            <!-- Sub-stage progress dots -->
+                            <div class="substage-tracker" style="display: flex; gap: 8px; justify-content: center; margin-bottom: 12px;">
+                                <span id="dot-sub-1" class="sub-dot" style="width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.2); transition: all 0.3s ease;"></span>
+                                <span id="dot-sub-2" class="sub-dot" style="width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.2); transition: all 0.3s ease;"></span>
+                                <span id="dot-sub-3" class="sub-dot" style="width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.2); transition: all 0.3s ease;"></span>
+                            </div>
+
+                            <!-- Display Ciphertext -->
+                            <div class="cipher-display-row">
+                                <span class="workspace-label" id="cipherTypeLabel">🔒 ENCRYPTED KEY (CAESAR):</span>
+                                <div id="caesarCiphertextDisplay" class="cipher-display-code text-gold">ELSKHU</div>
+                            </div>
+
+                            <!-- Interactive Slider (Show only for Caesar Stage 1) -->
+                            <div class="slider-group-container" id="sliderContainer">
+                                <div class="slider-info">
+                                    <label for="caesarShiftDial" class="slider-title">DECRYPTION SHIFT KEY:</label>
+                                    <span id="caesarShiftVal" class="slider-value mono">0</span>
+                                </div>
+                                <input type="range" id="caesarShiftDial" min="0" max="25" value="0" oninput="updateCaesarDecryption()">
+                            </div>
+
+                            <!-- Interactive Workbench Input (for Atbash/ROT13) -->
+                            <div class="slider-group-container" id="workbenchContainer" style="display:none; margin-bottom: 16px;">
+                                <div class="slider-info" style="margin-bottom: 6px;">
+                                    <label for="workbenchInput" class="slider-title" id="workbenchTitle">INTERACTIVE DECODING WORKBENCH:</label>
+                                </div>
+                                <input type="text" id="workbenchInput" class="ornate-input" placeholder="Type text here to test mappings..." oninput="updateWorkbenchDecryption()" style="padding-left: 16px;">
+                                <div class="workbench-output" style="margin-top: 10px; font-size: 0.85rem; color: #50e3c2;">
+                                    <span>Output: </span><strong id="workbenchOutputText" class="mono"></strong>
+                                </div>
+                            </div>
+
+                            <!-- Output Terminal -->
+                            <div class="decryption-result-terminal">
+                                <span class="workspace-label" id="resultTypeLabel">🟢 DECRYPTED STRING (SLIDE DIAL):</span>
+                                <div id="caesarDecryptedOutput" class="decoded-text-glow mono">ELSKHU</div>
+                            </div>
+                        </div>
+
+                        <!-- Submit form -->
+                        <form id="cipherChaseForm" class="login-form" style="margin-top: 24px;" novalidate>
+                            <div id="caesarFeedback" class="error-banner hidden" role="alert" style="margin-bottom: 16px;">
+                                <svg class="error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                </svg>
+                                <span id="feedbackText">Incorrect decrypted word. Try again.</span>
+                            </div>
+
+                            <div class="input-group">
+                                <label for="caesarAnswerInput" class="sr-only">Decrypted Key</label>
+                                <div class="input-wrapper">
+                                    <span class="input-icon">🔑</span>
+                                    <input type="text" id="caesarAnswerInput" class="ornate-input" placeholder="Enter Decrypted Word" required autocomplete="off" style="text-transform: uppercase; padding-left: 48px;">
+                                </div>
+                            </div>
+
+                            <button type="submit" class="ornate-btn">
+                                <span class="btn-text">SUBMIT OVERRIDE KEY</span>
+                                <span class="btn-arrow">➔</span>
+                                <div class="btn-shine"></div>
+                            </button>
+                        </form>
+
+                        <!-- Back Button navigation -->
+                        <div style="margin-top: 20px; text-align: center;">
+                            <a href="home.html" class="back-link" onclick="playClickSound()">&larr; Return to Chamber Portal</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Success Unlocked Overlay Modal -->
+    <div id="successModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal-content" style="max-width: 420px; text-align: center;">
+            <div class="lock-animation-box" style="margin-bottom: 20px;">
+                <svg class="unlock-svg" viewBox="0 0 64 64" fill="none" stroke="var(--gold-primary)" stroke-width="2.5" style="width:72px;height:72px;">
+                    <rect x="12" y="28" width="40" height="28" rx="4" fill="rgba(20, 16, 12, 0.9)"/>
+                    <path id="lockShackle" d="M20 28 V 16 A 12 12 0 0 1 44 16 V 28" stroke-linecap="round" class="shackle-open"/>
+                    <circle cx="32" cy="40" r="4" fill="var(--gold-bright)"/>
+                    <path d="M32 44 V 50" stroke-width="3" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <h3 id="modalTitle" class="modal-title" style="color:#50e3c2;">ACCESS GRANTED</h3>
+            <p class="modal-subtitle" style="color:#ffffff; margin-top:8px;">Chamber 03 Override Successful!</p>
+            <p class="modal-status" style="font-size:0.85rem; color:var(--text-secondary); margin-top:6px;">Stage 4 is now unlocked. Returning to portal...</p>
+            <div class="progress-bar-container" style="margin-top:20px; height:6px;">
+                <div id="successProgressBar" class="progress-bar-fill" style="background:#50e3c2; width:0%; transition: width 2s ease;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Core Scripts -->
+    <script src="cipher-chase-script.js"></script>
+</body>
+</html>
