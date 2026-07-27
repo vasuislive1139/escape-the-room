@@ -485,7 +485,11 @@ function renderProgressionState() {
             if (btn) {
                 btn.className = 'explore-btn unlocked-btn';
                 btn.innerHTML = `<span>${i < unlockedLevel ? 'RE-EXPLORE' : 'EXPLORE'}</span><span class="arrow">➔</span>`;
-                btn.setAttribute('onclick', `openChallengeModal(${i})`);
+                if (i === 3) {
+                    btn.setAttribute('onclick', "window.location.href = 'cipher-chase.html'");
+                } else {
+                    btn.setAttribute('onclick', `openChallengeModal(${i})`);
+                }
             }
         } else {
             card.className = 'activity-card locked';
@@ -644,18 +648,20 @@ function processGmCommand(cmd) {
     } else if (cmd.type === 'PROMOTE') {
         playUnlockSound();
         const cur = parseInt(localStorage.getItem('escape_unlocked_level') || '1', 10);
-        if (cur < 4) {
-            localStorage.setItem('escape_unlocked_level', (cur + 1).toString());
+        const targetStage = cmd.stage || (cur + 1);
+        if (targetStage >= 1 && targetStage <= 4) {
+            localStorage.setItem('escape_unlocked_level', targetStage.toString());
             renderProgressionState();
-            showToast("⏩ STAGE PROMOTION", cmd.message || `Advanced to Stage 0${cur + 1}!`);
+            showToast("⏩ STAGE PROMOTION", cmd.message || `Advanced to Stage 0${targetStage}!`);
         }
     } else if (cmd.type === 'DEMOTE') {
         playErrorSound();
         const cur = parseInt(localStorage.getItem('escape_unlocked_level') || '1', 10);
-        if (cur > 1) {
-            localStorage.setItem('escape_unlocked_level', (cur - 1).toString());
+        const targetStage = cmd.stage || (cur - 1);
+        if (targetStage >= 1 && targetStage <= 4) {
+            localStorage.setItem('escape_unlocked_level', targetStage.toString());
             renderProgressionState();
-            showToast("⏪ STAGE DEMOTED", cmd.message || `Moved back to Stage 0${cur - 1}.`);
+            showToast("⏪ STAGE DEMOTED", cmd.message || `Moved back to Stage 0${targetStage}.`);
         }
     } else if (cmd.type === 'LOGOUT') {
         alert("Your session credentials have been revoked by the Game Master.");

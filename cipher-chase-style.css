@@ -1,0 +1,180 @@
+/* ==========================================================================
+   STANDALONE CIPHER CHASE VAULT TERMINAL STYLING
+   ========================================================================== */
+.cipher-body {
+    background-color: var(--bg-deep) !important;
+    background-image: url('assets/home_bg.jpg') !important;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
+/* Terminal Badge Header */
+.terminal-badge-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+.terminal-status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #50e3c2;
+    box-shadow: 0 0 8px #50e3c2;
+    display: inline-block;
+    animation: blinkStatus 1.8s infinite ease-in-out;
+}
+@keyframes blinkStatus {
+    0%, 100% { opacity: 0.5; filter: blur(0.5px); }
+    50% { opacity: 1; filter: drop-shadow(0 0 4px #50e3c2); }
+}
+.terminal-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.85rem;
+    color: #50e3c2;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+}
+
+/* Cipher Instructions Box */
+.cipher-instruction-box {
+    background: rgba(18, 15, 12, 0.95);
+    border: 1px solid rgba(197, 160, 89, 0.3);
+    border-radius: 6px;
+    padding: 16px;
+    margin-bottom: 24px;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.8);
+}
+
+/* Terminal Decoder Workspace */
+.terminal-workspace {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    background: rgba(8, 10, 12, 0.9);
+    border: 1px solid rgba(80, 227, 194, 0.25);
+    border-radius: 6px;
+    padding: 20px;
+    box-shadow: inset 0 4px 15px rgba(0,0,0,0.9);
+}
+
+.workspace-label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-weight: 700;
+    margin-bottom: 6px;
+    letter-spacing: 0.05em;
+}
+
+.cipher-display-row {
+    background: rgba(0,0,0,0.45);
+    border: 1px dashed rgba(197, 160, 89, 0.35);
+    border-radius: 6px;
+    padding: 14px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.cipher-display-code {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: 0.2em;
+    text-shadow: 0 0 10px rgba(255, 232, 179, 0.45);
+}
+
+/* Custom Interactive Dial Slider */
+.slider-group-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 8px 0;
+}
+.slider-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.slider-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--gold-bright);
+}
+.slider-value {
+    color: #50e3c2;
+    font-weight: 800;
+    font-size: 1.1rem;
+    text-shadow: 0 0 6px rgba(80, 227, 194, 0.5);
+}
+
+input[type="range"] {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    outline: none;
+    accent-color: #50e3c2;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+}
+input[type="range"]::-webkit-slider-runnable-track {
+    background: rgba(255, 255, 255, 0.05);
+    height: 6px;
+    border-radius: 3px;
+}
+input[type="range"]::-webkit-slider-thumb {
+    margin-top: -5px;
+    background: #50e3c2;
+    border: 1px solid #ffffff;
+    box-shadow: 0 0 10px #50e3c2;
+}
+
+/* Decrypted Output Screen */
+.decryption-result-terminal {
+    background: rgba(0,0,0,0.6);
+    border: 1px solid rgba(80, 227, 194, 0.35);
+    border-radius: 6px;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.decoded-text-glow {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #50e3c2;
+    letter-spacing: 0.2em;
+    text-shadow: 0 0 12px rgba(80, 227, 194, 0.8), 0 0 25px rgba(80, 227, 194, 0.4);
+    transition: color 0.15s ease, text-shadow 0.15s ease;
+}
+
+/* Navigation Back Link */
+.back-link {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-weight: 600;
+    transition: var(--transition-smooth);
+    border-bottom: 1px solid transparent;
+    padding-bottom: 2px;
+}
+.back-link:hover {
+    color: var(--gold-bright);
+    border-color: var(--gold-primary);
+}
+
+/* Success Open Lock Anim */
+.shackle-open {
+    animation: shackleOpen 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    transform-origin: 20px 28px;
+}
+@keyframes shackleOpen {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(-45deg) translate(-2px, -6px); }
+}

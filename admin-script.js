@@ -321,8 +321,122 @@ function injectDemoTeams() {
     };
     saveTeamsDb(db);
     showAdminToast("📥 Demo Teams Injected", "Loaded 4 starter teams across all stages.");
-    addLogItem("Injected 4 demo teams into Game Master database.", 'system');
 }
+
+const STAGE3_WORDS = [
+    'CYBER', 'ENIGMA', 'MATRIX', 'KERNEL', 
+    'BINARY', 'SECURE', 'NEXUS', 'BUFFER', 
+    'SOCKET', 'ROUTER', 'SERVER', 'VAULT', 
+    'SYSTEM', 'PORTAL', 'HEXAGON', 'DECODE', 
+    'PYTHON', 'PIXELS', 'LOGGER', 'SENSORS', 
+    'SCRIPTS', 'COMPASS', 'OVERLAY', 'LANTERN'
+];
+
+function getStage3CiphersForTeam(teamName) {
+    const cleanName = (teamName || 'TEAM-ALPHA').trim().toUpperCase();
+    let teamIndex = 0;
+    const match = cleanName.match(/TEAM-0*(\d+)/);
+    if (match) {
+        const num = parseInt(match[1], 10);
+        teamIndex = (num - 1) % 24;
+    } else {
+        let hash = 0;
+        for (let i = 0; i < cleanName.length; i++) {
+            hash = cleanName.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        teamIndex = Math.abs(hash) % 24;
+    }
+    
+    const w1Index = (teamIndex * 3 + 0) % STAGE3_WORDS.length;
+    const w2Index = (teamIndex * 3 + 1) % STAGE3_WORDS.length;
+    const w3Index = (teamIndex * 3 + 2) % STAGE3_WORDS.length;
+    
+    const word1 = STAGE3_WORDS[w1Index];
+    const word2 = STAGE3_WORDS[w2Index];
+    const word3 = STAGE3_WORDS[w3Index];
+    
+    const caesarShift = ((teamIndex * 7 + 3) % 20) + 3;
+    
+    let caesarCiphertext = "";
+    for (let i = 0; i < word1.length; i++) {
+        let code = word1.charCodeAt(i) - 65;
+        caesarCiphertext += String.fromCharCode(((code + caesarShift) % 26) + 65);
+    }
+    
+    let atbashCiphertext = "";
+    for (let i = 0; i < word2.length; i++) {
+        let code = word2.charCodeAt(i);
+        if (code >= 65 && code <= 90) {
+            atbashCiphertext += String.fromCharCode(90 - (code - 65));
+        } else {
+            atbashCiphertext += word2.charAt(i);
+        }
+    }
+    
+    let rot13Ciphertext = "";
+    for (let i = 0; i < word3.length; i++) {
+        let code = word3.charCodeAt(i);
+        if (code >= 65 && code <= 90) {
+            rot13Ciphertext += String.fromCharCode(((code - 65 + 13) % 26) + 65);
+        } else {
+            rot13Ciphertext += word3.charAt(i);
+        }
+    }
+    
+    return {
+        c1: { plaintext: word1, ciphertext: caesarCiphertext, shift: caesarShift },
+        c2: { plaintext: word2, ciphertext: atbashCiphertext },
+        c3: { plaintext: word3, ciphertext: rot13Ciphertext }
+    };
+}
+window.getStage3CiphersForTeam = getStage3CiphersForTeam;
+
+function generate24EventTeams() {
+    if (confirm("This will overwrite the current database and generate 24 standard teams (TEAM-01 to TEAM-24) with secure randomized passwords. Proceed?")) {
+        const words = ['CYBER', 'VAULT', 'TATVA', 'ENIGMA', 'SOLVE', 'HACK', 'QUEST', 'GOLD', 'NEXUS', 'ALPHA', 'DELTA', 'CODE'];
+        const db = {};
+        for (let i = 1; i <= 24; i++) {
+            const teamNum = i.toString().padStart(2, '0');
+            const teamName = `TEAM-${teamNum}`;
+            const randomWord = words[Math.floor(Math.random() * words.length)];
+            const randomNum = Math.floor(1000 + Math.random() * 9000);
+            const password = `${randomWord}${randomNum}`;
+            db[teamName] = { password: password, stage: 1, status: 'active', warnings: 0 };
+        }
+        saveTeamsDb(db);
+        showAdminToast("🎟️ 24 Teams Generated", "Database populated with 24 teams starting at Stage 1.");
+        addLogItem("Bulk generated 24 participant credentials.", 'system');
+    }
+}
+window.generate24EventTeams = generate24EventTeams;
+
+function downloadCredentialsCSV() {
+    const db = getTeamsDb();
+    const keys = Object.keys(db);
+    if (keys.length === 0) {
+        alert("Database is empty! Create or generate teams first.");
+        return;
+    }
+    
+    let csvContent = "TEAM NAME,PASSWORD,S3 CAESAR CIPHER,S3 CAESAR ANSWER,S3 ATBASH CIPHER,S3 ATBASH ANSWER,S3 ROT13 CIPHER,S3 ROT13 ANSWER,INITIAL STAGE,STATUS\r\n";
+    keys.forEach(name => {
+        const t = db[name];
+        const ciphers = getStage3CiphersForTeam(name);
+        csvContent += `${name},${t.password},${ciphers.c1.ciphertext},${ciphers.c1.plaintext},${ciphers.c2.ciphertext},${ciphers.c2.plaintext},${ciphers.c3.ciphertext},${ciphers.c3.plaintext},Stage ${t.stage},${t.status}\r\n`;
+    });
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "escape_room_credentials.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showAdminToast("📥 CSV Downloaded", "Credentials checklist with Stage 3 answers generated.");
+}
+window.downloadCredentialsCSV = downloadCredentialsCSV;
 
 function clearAllTeams() {
     if (confirm("Are you sure you want to delete all registered team credentials from the database?")) {
@@ -455,13 +569,14 @@ function populateTargetSelector(teamNames) {
 /* ==========================================================================
    6. REAL-TIME GAME MASTER INTERVENTIONS & BROADCAST TRANSMISSIONS
    ========================================================================== */
-function transmitGmCommand(targetTeam, commandType, messageContent, extraType = 'info') {
+function transmitGmCommand(targetTeam, commandType, messageContent, extraType = 'info', targetStage = null) {
     const payload = {
         id: 'gm_cmd_' + Date.now() + '_' + Math.floor(Math.random()*1000),
         target: targetTeam,
         type: commandType,
         message: messageContent,
         category: extraType,
+        stage: targetStage,
         timestamp: new Date().toLocaleTimeString()
     };
 
@@ -590,7 +705,7 @@ function quickAction(teamName, actionType) {
         if (cur < 4) {
             db[teamName].stage = cur + 1;
             saveTeamsDb(db);
-            transmitGmCommand(teamName, 'PROMOTE', `⏩ Game Master promoted you to Stage 0${cur + 1}!`);
+            transmitGmCommand(teamName, 'PROMOTE', `⏩ Game Master promoted you to Stage 0${cur + 1}!`, 'info', cur + 1);
             showAdminToast("⏩ Stage Promoted", `${teamName} advanced to Stage 0${cur + 1}.`);
             addLogItem(`Promoted [${teamName}] to Stage 0${cur + 1}`, 'system');
         } else {
@@ -601,7 +716,7 @@ function quickAction(teamName, actionType) {
         if (cur > 1) {
             db[teamName].stage = cur - 1;
             saveTeamsDb(db);
-            transmitGmCommand(teamName, 'DEMOTE', `⏪ Game Master moved you back to Stage 0${cur - 1}.`);
+            transmitGmCommand(teamName, 'DEMOTE', `⏪ Game Master moved you back to Stage 0${cur - 1}.`, 'info', cur - 1);
             showAdminToast("⏪ Stage Demoted", `${teamName} demoted to Stage 0${cur - 1}.`);
             addLogItem(`Demoted [${teamName}] to Stage 0${cur - 1}`, 'warn');
         } else {
@@ -610,7 +725,7 @@ function quickAction(teamName, actionType) {
     } else if (actionType === 'vip') {
         db[teamName].stage = 4;
         saveTeamsDb(db);
-        transmitGmCommand(teamName, 'PROMOTE', `★ VIP ACCESS GRANTED: All 4 chambers unlocked by Game Master!`);
+        transmitGmCommand(teamName, 'PROMOTE', `★ VIP ACCESS GRANTED: All 4 chambers unlocked by Game Master!`, 'info', 4);
         showAdminToast("★ VIP Granted", `${teamName} given Stage 4 All-Access.`);
         addLogItem(`Granted VIP Stage 4 access to [${teamName}]`, 'system');
     } else if (actionType === 'warn') {
@@ -653,7 +768,7 @@ function setStageDirectly(teamName, targetStage) {
     }
     db[teamName].stage = targetStage;
     saveTeamsDb(db);
-    transmitGmCommand(teamName, targetStage > old ? 'PROMOTE' : 'DEMOTE', `⚡ Game Master set your access directly to Stage 0${targetStage}!`);
+    transmitGmCommand(teamName, targetStage > old ? 'PROMOTE' : 'DEMOTE', `⚡ Game Master set your access directly to Stage 0${targetStage}!`, 'info', targetStage);
     showAdminToast(`⚡ Stage 0${targetStage} Set`, `${teamName} is now at Stage 0${targetStage}.`);
     addLogItem(`Directly set [${teamName}] to Stage 0${targetStage}`, 'system');
 }
