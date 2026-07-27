@@ -172,20 +172,38 @@ body.admin-body .atmosphere-overlay {
    ========================================================================== */
 .admin-main-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 20px;
+    grid-template-columns: minmax(360px, 1fr) minmax(440px, 1.6fr);
+    grid-template-areas:
+        "cred actions"
+        "analytics analytics";
+    gap: 32px;
     align-items: start;
+    margin-top: 24px;
+}
+.cred-generator-panel { grid-area: cred; }
+.actions-panel { grid-area: actions; }
+.analytics-panel { grid-area: analytics; }
+
+@media (max-width: 1150px) {
+    .admin-main-grid {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "cred"
+            "actions"
+            "analytics";
+    }
 }
 
 .admin-panel {
-    background: radial-gradient(circle at top left, rgba(20, 32, 48, 0.92), rgba(10, 16, 26, 0.95));
-    border: 1px solid var(--nexus-border);
-    border-radius: 10px;
-    padding: 24px;
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.8), 0 0 25px rgba(80, 227, 194, 0.1);
+    background: rgba(14, 22, 34, 0.82);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(80, 227, 194, 0.22);
+    border-radius: 14px;
+    padding: 32px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75), 0 0 30px rgba(80, 227, 194, 0.05);
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 24px;
 }
 
 .panel-header {
@@ -331,8 +349,19 @@ body.admin-body .atmosphere-overlay {
    ========================================================================== */
 .analytics-cards-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+@media (max-width: 1100px) {
+    .analytics-cards-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+@media (max-width: 600px) {
+    .analytics-cards-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .analytics-card {
