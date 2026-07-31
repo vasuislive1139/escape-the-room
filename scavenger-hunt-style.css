@@ -22,6 +22,7 @@ body {
     overflow: hidden;
     font-family: var(--font-body);
     color: var(--sh-text-main);
+    display: block; /* Override flex centering from style.css */
 }
 
 /* Background Effects */
