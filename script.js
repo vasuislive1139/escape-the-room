@@ -322,16 +322,16 @@ function initFormControls() {
             }
 
             if (!isValid) {
+                // Only fallback to these if the database somehow failed to initialize,
+                // and ONLY allow these exact matches.
                 const validCredentials = {
                     'TEAM-ALPHA': 'ESCAPE2026',
-                    'MYSTERY-007': 'UNLOCKME',
-                    'ADMIN': 'ADMIN123',
-                    'CYBER-SQUAD': 'ENIGMA99',
-                    'SHERLOCK': 'BAKER221'
+                    'CYBER KNIGHTS': 'TATVAPASS1',
+                    'PHOENIX-007': 'UNLOCKME',
+                    'SHERLOCK HOMIES': 'BAKER221',
+                    'ADMIN': 'ADMIN123'
                 };
                 if (validCredentials[teamId] && validCredentials[teamId] === password) {
-                    isValid = true;
-                } else if (password === 'ESCAPE2026' || password === 'ADMIN123' || password === 'DEMO' || password.endsWith('2026')) {
                     isValid = true;
                 }
             }
@@ -438,7 +438,12 @@ function initHomeProgression() {
     const activitiesGrid = document.getElementById('activitiesGrid');
     if (!activitiesGrid) return;
 
-    const teamId = localStorage.getItem('escape_team_id') || 'TEAM-ALPHA';
+    const teamId = localStorage.getItem('escape_team_id');
+    if (!teamId) {
+        window.location.href = 'index.html';
+        return;
+    }
+    
     const navTeamId = document.getElementById('navTeamId');
     if (navTeamId) navTeamId.textContent = teamId;
 
@@ -716,19 +721,19 @@ const stagePuzzles = {
         title: "TREASURE HUNT",
         riddle: "Decode the secret cipher found on the treasure map: '20-18-5-1-19-21-18-5' (A=1, B=2, C=3...). What is the word?",
         hint: "Type the decoded word (Hint: TREASURE or GOLD)",
-        answers: ['TREASURE', 'GOLD', 'MAP', 'HUNT', 'KEY', 'TEST', 'DEMO', '2']
+        answers: ['TREASURE', 'GOLD', 'MAP', 'HUNT', 'KEY']
     },
     3: {
         title: "TECH CHALLENGES",
         riddle: "Security Breach Protocol: What is the standard binary equivalent of hexadecimal 0xF? (Or enter override code '2026')",
         hint: "Type binary or code (Hint: 1111 or 2026)",
-        answers: ['1111', '15', '0XF', '2026', 'BREACH', 'HACK', 'TEST', 'DEMO', '3']
+        answers: ['1111', '15', '0XF', '2026', 'BREACH', 'HACK']
     },
     4: {
         title: "EXCITING REWARDS",
         riddle: "THE FINAL VAULT: You have conquered all tech challenges! Type the club passcode to unlock the ultimate reward & leaderboard.",
         hint: "Type passcode (Hint: WINNER or CHAMPION)",
-        answers: ['WINNER', 'CHAMPION', 'VICTORY', 'ESCAPE', 'REWARD', 'TEST', 'DEMO', '4']
+        answers: ['WINNER', 'CHAMPION', 'VICTORY', 'ESCAPE', 'REWARD']
     }
 };
 
@@ -875,6 +880,23 @@ function resetProgress() {
     playClickSound();
     localStorage.setItem('escape_unlocked_level', '1');
     renderProgressionState();
+    
+    const myTeam = localStorage.getItem('escape_team_id');
+    const rawDb = localStorage.getItem('escape_teams_db');
+    if (myTeam && rawDb) {
+        try {
+            const db = JSON.parse(rawDb);
+            if (db[myTeam]) {
+                db[myTeam].stage = 1;
+                localStorage.setItem('escape_teams_db', JSON.stringify(db));
+            }
+        } catch(e) {}
+    }
+
+    if (playerBroadcastChannel) {
+        playerBroadcastChannel.postMessage({ type: 'PLAYER_UPDATE', teamId: myTeam, stage: 1 });
+    }
+    
     showToast("🔄 Progress Reset", "Returned to Stage 1. Activities 2, 3, and 4 are locked!");
 }
 
@@ -882,9 +904,26 @@ function unlockUpToStage(targetLevel) {
     playUnlockSound();
     localStorage.setItem('escape_unlocked_level', targetLevel.toString());
     renderProgressionState();
+    
+    const myTeam = localStorage.getItem('escape_team_id');
+    const rawDb = localStorage.getItem('escape_teams_db');
+    if (myTeam && rawDb) {
+        try {
+            const db = JSON.parse(rawDb);
+            if (db[myTeam]) {
+                db[myTeam].stage = targetLevel;
+                localStorage.setItem('escape_teams_db', JSON.stringify(db));
+            }
+        } catch(e) {}
+    }
+
+    if (playerBroadcastChannel) {
+        playerBroadcastChannel.postMessage({ type: 'PLAYER_UPDATE', teamId: myTeam, stage: targetLevel });
+    }
+
     if (targetLevel === 4) {
         showToast("🔓 All 4 Stages Unlocked", "Organizer Demo Mode: All tech activities are open!");
     } else {
-        showToast(`🔓 Unlocked Up To Stage ${targetLevel}`, `Activities 1 to ${targetLevel} are now accessible!`);
+        showToast("🔓 Stages Unlocked", `Activities up to Stage 0${targetLevel} are now accessible.`);
     }
 }

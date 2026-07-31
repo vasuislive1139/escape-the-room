@@ -442,13 +442,27 @@ function completeStage() {
     document.getElementById('completionOverlay').classList.remove('hidden');
     playSound('success');
     
-    // Unlock Stage 2 in local storage (if current is 1)
-    const curLevel = parseInt(localStorage.getItem('escape_unlocked_level') || '1', 10);
-    if (curLevel < 2) {
-        localStorage.setItem('escape_unlocked_level', '2');
-        if (playerBroadcastChannel) {
-            playerBroadcastChannel.postMessage({ type: 'STAGE_PROMOTED', team: activeTeamName, newStage: 2 });
-        }
+    // Save progression stage 2 to database
+    localStorage.setItem('escape_unlocked_level', '2');
+    
+    // Update roster stage state
+    const rawDb = localStorage.getItem('escape_teams_db');
+    if (rawDb && activeTeamName) {
+        try {
+            const db = JSON.parse(rawDb);
+            if (db[activeTeamName]) {
+                db[activeTeamName].stage = 2;
+                localStorage.setItem('escape_teams_db', JSON.stringify(db));
+            }
+        } catch(e) {}
+    }
+
+    if (playerBroadcastChannel) {
+        playerBroadcastChannel.postMessage({
+            type: 'PLAYER_UPDATE',
+            teamId: activeTeamName,
+            stage: 2
+        });
     }
 }
 
