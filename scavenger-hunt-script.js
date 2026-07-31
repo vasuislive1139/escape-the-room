@@ -484,8 +484,8 @@ function syncWithGameMasterDb() {
         dot.style.boxShadow = isFrozen ? '0 0 10px #ff2a2a' : (activeWarnings > 0 ? '0 0 10px #ffca68' : '0 0 10px #68fedb');
     }
     
-    if (!isFrozen && curLevel !== 1) {
-        // If GM changes stage while they are here, bounce them to home
+    if (!isFrozen && curLevel < 1) {
+        // Only bounce if they somehow lose access to Stage 1 (impossible, but for safety)
         window.location.href = 'home.html';
     }
 }

@@ -477,9 +477,9 @@ function syncWithGameMasterDb() {
                 }
             }
 
-            // 2. Check if team level changed from Stage 3
-            // If the GM demoted them to Stage 1 or 2, or promoted them directly, redirect instantly!
-            if (teamData.stage && teamData.stage !== 3) {
+            // 2. Check if team loses access to Stage 3
+            // Only kick them out if they are demoted to < 3. If they are > 3, they are re-exploring.
+            if (teamData.stage && teamData.stage < 3) {
                 localStorage.setItem('escape_unlocked_level', teamData.stage.toString());
                 localStorage.removeItem('escape_cipher_substage');
                 window.location.href = 'home.html';
