@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Scavenger Hunt - Stage 1</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Fira+Code:wght@400;500;700&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css"> <!-- Base styles (resets, fonts, etc.) -->
+    <link rel="stylesheet" href="scavenger-hunt-style.css"> <!-- Specific to this stage -->
+</head>
+<body>
+    <!-- Background Canvas for Matrix Particles -->
+    <canvas id="matrixCanvas"></canvas>
+    <div class="overlay-scanline"></div>
+
+    <!-- Top Navigation Bar -->
+    <nav class="top-navbar sh-nav">
+        <div class="nav-logo-box">
+            <span class="nav-logo-text">STAGE 01 <small>— DIGITAL SCAVENGER HUNT —</small></span>
+        </div>
+        
+        <div class="nav-user-controls">
+            <div class="audio-control-container" style="margin-right: 12px;">
+                <button id="audioToggleBtn" class="audio-btn" aria-label="Toggle Ambient Sound" title="Toggle Hacker Ambient Sound">
+                    <span class="audio-label">🔊 Audio</span>
+                </button>
+            </div>
+            <div class="user-badge" id="userBadge">
+                <span class="status-dot" id="playerStatusDot"></span>
+                <span id="navTeamId">LOADING...</span>
+                <svg class="user-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+            </div>
+            <button type="button" class="logout-btn" id="logoutBtn" title="Return to Portal" onclick="window.location.href='home.html'">
+                <span style="font-family: var(--font-heading); font-weight: bold;">BACK ➔</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Global Freeze Overlay (Triggered by Game Master) -->
+    <div id="freezeOverlay" class="freeze-overlay hidden">
+        <div class="freeze-content">
+            <span class="freeze-icon">❄️</span>
+            <h2>SYSTEM LOCKED</h2>
+            <p>Your session has been temporarily paused by the Game Master.</p>
+        </div>
+    </div>
+
+    <!-- Hero Section (Pre-start) -->
+    <div id="heroSection" class="sh-hero-section">
+        <div class="sh-hero-content">
+            <h1 class="sh-title glow-blue">DIGITAL SCAVENGER HUNT</h1>
+            <p class="sh-subtitle">"Every file hides a clue. Every clue brings you closer to escaping."</p>
+            
+            <div class="sh-stats-row">
+                <div class="sh-stat-box">
+                    <span class="sh-stat-label">TIME LIMIT</span>
+                    <span class="sh-stat-value timer-font">20:00</span>
+                </div>
+                <div class="sh-stat-box">
+                    <span class="sh-stat-label">CLUES</span>
+                    <span class="sh-stat-value">6</span>
+                </div>
+            </div>
+
+            <div class="sh-action-buttons">
+                <button class="sh-btn outline-btn" id="rulesBtn">View Rules</button>
+                <button class="sh-btn start-btn" id="startBtn">START CHALLENGE ➔</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rules Modal -->
+    <div id="rulesModal" class="sh-modal hidden">
+        <div class="sh-modal-content">
+            <h2 class="glow-purple">SYSTEM DIRECTIVES</h2>
+            <ul class="rules-list">
+                <li><span class="icon">📁</span> Participants may inspect all files and folders in the workspace.</li>
+                <li><span class="icon">🚫</span> External internet searches are strictly prohibited.</li>
+                <li><span class="icon">🔢</span> Answers must be submitted sequentially to unlock the next clue.</li>
+                <li><span class="icon">⚠️</span> Incorrect answers reduce your score (-2 pts).</li>
+                <li><span class="icon">💡</span> You have 3 hints available (-5 pts each).</li>
+                <li><span class="icon">⚡</span> Fastest completion earns bonus points!</li>
+            </ul>
+            <button class="sh-btn close-modal-btn" id="closeRulesBtn">ACKNOWLEDGE</button>
+        </div>
+    </div>
+
+    <!-- Main Workspace (Hidden until start) -->
+    <div id="workspaceSection" class="sh-workspace hidden">
+        
+        <!-- Left Sidebar: Virtual File Explorer -->
+        <aside class="sh-sidebar">
+            <div class="sidebar-header">
+                <span>EXPLORER</span>
+            </div>
+            <div class="file-tree" id="fileTree">
+                <!-- Populated via JS -->
+            </div>
+        </aside>
+
+        <!-- Center: Editor Panel -->
+        <main class="sh-editor">
+            <div class="editor-tabs">
+                <div class="tab active" id="editorTab">welcome.md</div>
+            </div>
+            <div class="editor-content-area" id="editorContent">
+                <!-- Code is injected here with typing animation -->
+            </div>
+        </main>
+
+        <!-- Right Sidebar: Clue Panel & Progress Tracker -->
+        <aside class="sh-clue-panel">
+            <div class="tracker-header">
+                <div class="tracker-stat">
+                    <span>SCORE</span>
+                    <span id="scoreDisplay" class="glow-blue">000</span>
+                </div>
+                <div class="tracker-stat">
+                    <span>TIME</span>
+                    <span id="timerDisplay" class="timer-font glow-purple">20:00</span>
+                </div>
+            </div>
+
+            <div class="clue-progress">
+                <span>CLUES RESOLVED</span>
+                <span id="clueProgressText">0 / 6</span>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" id="clueProgressBar"></div>
+                </div>
+            </div>
+
+            <div class="current-clue-box">
+                <h3 id="clueTitle">CLUE #1</h3>
+                <p id="clueText">Loading directive...</p>
+                
+                <div class="answer-section">
+                    <input type="text" id="answerInput" class="sh-input" placeholder="Enter solution here..." autocomplete="off">
+                    <button id="submitAnswerBtn" class="sh-btn submit-btn">SUBMIT ➔</button>
+                    <p id="feedbackMsg" class="feedback-msg"></p>
+                </div>
+                
+                <div class="hint-section">
+                    <button id="hintBtn" class="sh-btn outline-btn hint-btn">USE HINT (<span id="hintsLeft">3</span> left)</button>
+                    <p id="hintText" class="hint-text hidden"></p>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Completion Screen Overlay -->
+    <div id="completionOverlay" class="completion-overlay hidden">
+        <div class="completion-content">
+            <h1 class="glitch-text glow-blue" data-text="ACCESS GRANTED">ACCESS GRANTED</h1>
+            <p class="completion-subtitle">Primary firewall bypassed. Stage 1 Complete.</p>
+            
+            <div class="completion-stats">
+                <div class="c-stat">
+                    <span>FINAL SCORE</span>
+                    <span id="finalScore" class="glow-purple">0</span>
+                </div>
+                <div class="c-stat">
+                    <span>COMPLETION TIME</span>
+                    <span id="finalTime" class="timer-font glow-blue">00:00</span>
+                </div>
+            </div>
+
+            <button class="sh-btn proceed-btn" onclick="window.location.href='home.html'">PROCEED TO STAGE 2 ➔</button>
+        </div>
+    </div>
+
+    <script src="scavenger-hunt-script.js"></script>
+</body>
+</html>
