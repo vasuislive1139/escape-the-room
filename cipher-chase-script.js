@@ -86,12 +86,22 @@ function getStage3CiphersForTeam(teamName) {
     const w2Index = (teamIndex * 3 + 1) % STAGE3_WORDS.length;
     const w3Index = (teamIndex * 3 + 2) % STAGE3_WORDS.length;
     
-    const word1 = STAGE3_WORDS[w1Index];
-    const word2 = STAGE3_WORDS[w2Index];
-    const word3 = STAGE3_WORDS[w3Index];
+    const word1 = STAGE3_WORDS[w1Index]; // Correct Solution Word
     
-    // Caesar Shift Key (unique to team index, 3 to 22)
-    const caesarShift = ((teamIndex * 7 + 3) % 20) + 3;
+    // Find a decoy word of the exact same length
+    const sameLengthWords = STAGE3_WORDS.filter(w => w.length === word1.length && w !== word1);
+    let word1Decoy = STAGE3_WORDS[w2Index];
+    if (sameLengthWords.length > 0) {
+        word1Decoy = sameLengthWords[teamIndex % sameLengthWords.length];
+    }
+    
+    const word2 = STAGE3_WORDS[w2Index]; // Atbash Word
+    const word3 = STAGE3_WORDS[w3Index]; // ROT13 Word
+    
+    // Caesar Shift Key (unique to team index, 3 to 17)
+    const caesarShift = ((teamIndex * 7 + 3) % 15) + 3;
+    // Caesar Decoy Shift Key (unique to team index, 18 to 25)
+    const caesarDecoyShift = ((teamIndex * 11 + 7) % 8) + 18;
     
     // Encrypt Caesar (Word 1)
     let caesarCiphertext = "";
@@ -123,7 +133,7 @@ function getStage3CiphersForTeam(teamName) {
     }
     
     return {
-        c1: { plaintext: word1, ciphertext: caesarCiphertext, shift: caesarShift },
+        c1: { plaintext: word1, ciphertext: caesarCiphertext, shift: caesarShift, decoytext: word1Decoy, decoyshift: caesarDecoyShift },
         c2: { plaintext: word2, ciphertext: atbashCiphertext },
         c3: { plaintext: word3, ciphertext: rot13Ciphertext }
     };
@@ -263,6 +273,12 @@ function updateCaesarDecryption() {
     
     const currentShift = parseInt(shiftDial.value, 10);
     if (shiftValEl) shiftValEl.textContent = currentShift;
+    
+    // Decoy word override (render secondary meaningful decoy if shift matches)
+    if (currentShift === currentTeamCiphers.c1.decoyshift) {
+        outputEl.textContent = currentTeamCiphers.c1.decoytext.toUpperCase();
+        return;
+    }
     
     let decrypted = "";
     for (let i = 0; i < ciphertext.length; i++) {
