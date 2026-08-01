@@ -21,7 +21,7 @@
     <main class="page-container" style="max-width: 650px;">
         <!-- Header Plaque -->
         <header class="event-header" style="margin-bottom: 24px;">
-            <div class="audio-control-container" style="margin-bottom: 12px;">
+            <div class="audio-control-container" style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
                 <button id="audioToggleBtn" class="audio-btn" aria-label="Toggle Ambient Sound" title="Toggle Ambient Escape Room Sound">
                     <svg id="soundOnIcon" class="sound-icon hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
@@ -34,6 +34,13 @@
                     </svg>
                     <span class="audio-label">Ambient Audio</span>
                 </button>
+
+                <!-- Countdown Timer -->
+                <div id="cipherTimerBox" class="cipher-timer-widget mono" title="Time remaining before security lock resets">
+                    <span class="timer-blink-dot"></span>
+                    <span class="timer-label">LOCKDOWN:</span>
+                    <span id="cipherCountdown" class="timer-value">10:00</span>
+                </div>
             </div>
             
             <h1 class="event-title">
@@ -143,9 +150,12 @@
                             </button>
                         </form>
 
-                        <!-- Back Button navigation -->
-                        <div style="margin-top: 20px; text-align: center;">
-                            <a href="home.html" class="back-link" onclick="playClickSound()">&larr; Return to Chamber Portal</a>
+                        <!-- Back Button navigation & Hint button -->
+                        <div style="margin-top: 24px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(197, 160, 89, 0.15); padding-top: 16px;">
+                            <a href="home.html" class="back-link" onclick="playClickSound()">&larr; Return to Portal</a>
+                            <button type="button" class="audio-btn hint-btn" onclick="showChamberHint()" style="border-color: rgba(80, 227, 194, 0.4); color: #50e3c2; padding: 6px 14px; font-weight: 700;">
+                                <span>💡 REQUEST HINT</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -169,6 +179,39 @@
             <p class="modal-status" style="font-size:0.85rem; color:var(--text-secondary); margin-top:6px;">Stage 4 is now unlocked. Returning to portal...</p>
             <div class="progress-bar-container" style="margin-top:20px; height:6px;">
                 <div id="successProgressBar" class="progress-bar-fill" style="background:#50e3c2; width:0%; transition: width 2s ease;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hint Modal -->
+    <div id="hintModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="hintModalTitle">
+        <div class="modal-content" style="max-width: 440px;">
+            <h3 id="hintModalTitle" class="modal-title" style="color: var(--gold-bright); text-align: center; letter-spacing: 0.1em;">💡 DECRYPTION HINT</h3>
+            <div class="header-separator" style="margin: 12px 0;">
+                <span class="separator-diamond">◆</span>
+            </div>
+            <p id="hintText" style="color: var(--text-secondary); font-size: 0.92rem; line-height: 1.6; text-align: center; margin-bottom: 20px;">
+                Hint text will load dynamically.
+            </p>
+            <button type="button" class="ornate-btn" onclick="closeChamberHint()">
+                <span class="btn-text">ACKNOWLEDGE & RESUME</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Timeout / Failure Modal -->
+    <div id="timeoutModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="timeoutTitle">
+        <div class="modal-content" style="max-width: 440px; text-align: center; border-color: #ff5555; box-shadow: 0 0 25px rgba(255, 85, 85, 0.4);">
+            <div class="lock-animation-box" style="margin-bottom: 20px;">
+                <span style="font-size: 4rem; filter: drop-shadow(0 0 10px #ff5555);">🚨</span>
+            </div>
+            <h3 id="timeoutTitle" class="modal-title" style="color: #ff5555; letter-spacing: 0.05em;">SECURITY LOCKDOWN</h3>
+            <p style="color: #ffffff; margin-top: 8px; font-weight: 600;">CLEARANCE TIME EXPIRED</p>
+            <p style="font-size: 0.88rem; color: var(--text-secondary); margin-top: 8px; line-height: 1.5;">
+                Chamber 03 security protocols have automatically locked down the terminal. Redirecting to chamber portal to reset clearance...
+            </p>
+            <div class="progress-bar-container" style="margin-top: 20px; height: 6px; background: rgba(255, 85, 85, 0.1); overflow: hidden; border-radius: 3px;">
+                <div id="timeoutProgressBar" class="progress-bar-fill" style="background: #ff5555; width: 0%; transition: width 3s linear;"></div>
             </div>
         </div>
     </div>
