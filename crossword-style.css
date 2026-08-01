@@ -1,0 +1,1910 @@
+/* =========================================
+   VARIABLES
+========================================= */
+
+:root {
+
+    --cell-size: 52px;
+
+}
+
+
+/* =========================================
+   RESET
+========================================= */
+
+* {
+
+    margin: 0;
+
+    padding: 0;
+
+    box-sizing: border-box;
+
+}
+
+
+body {
+
+    min-height: 100vh;
+
+    background: #160c07;
+
+    color: #f4e7cf;
+
+    font-family:
+        "Orbitron",
+        sans-serif;
+
+    overflow-x: hidden;
+
+}
+
+
+/* =========================================
+   DESERT BACKGROUND
+========================================= */
+
+.desert-background {
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: -20;
+
+    overflow: hidden;
+
+    background:
+
+        linear-gradient(
+            to bottom,
+            #20100c,
+            #6b351d 50%,
+            #c17b36
+        );
+
+}
+
+
+/* =========================================
+   SUN
+========================================= */
+
+.sun {
+
+    position: absolute;
+
+    width: 280px;
+
+    height: 280px;
+
+    left: 50%;
+
+    top: 14%;
+
+    transform:
+        translateX(-50%);
+
+    border-radius: 50%;
+
+    background:
+
+        radial-gradient(
+            circle,
+            #ffe7a0,
+            #e99b3d 48%,
+            transparent 70%
+        );
+
+    opacity: 0.5;
+
+}
+
+
+/* =========================================
+   PYRAMIDS
+========================================= */
+
+.pyramid {
+
+    position: absolute;
+
+    width: 0;
+
+    height: 0;
+
+    bottom: 8%;
+
+    opacity: 0.25;
+
+    filter:
+
+        drop-shadow(
+            0 20px 20px
+            rgba(0, 0, 0, 0.4)
+        );
+
+}
+
+
+.pyramid-one {
+
+    left: -5%;
+
+    border-left:
+        260px solid transparent;
+
+    border-right:
+        260px solid transparent;
+
+    border-bottom:
+        350px solid #b46f34;
+
+}
+
+
+.pyramid-two {
+
+    left: 32%;
+
+    border-left:
+        340px solid transparent;
+
+    border-right:
+        340px solid transparent;
+
+    border-bottom:
+        450px solid #9b572b;
+
+}
+
+
+.pyramid-three {
+
+    right: -10%;
+
+    border-left:
+        280px solid transparent;
+
+    border-right:
+        280px solid transparent;
+
+    border-bottom:
+        370px solid #7d4326;
+
+}
+
+
+/* =========================================
+   SAND
+========================================= */
+
+.sand {
+
+    position: absolute;
+
+    border-radius: 50%;
+
+    bottom: -220px;
+
+}
+
+
+.sand-one {
+
+    width: 120%;
+
+    height: 400px;
+
+    left: -20%;
+
+    background:
+        #9e5d30;
+
+    opacity: 0.6;
+
+}
+
+
+.sand-two {
+
+    width: 100%;
+
+    height: 350px;
+
+    right: -30%;
+
+    background:
+        #67351f;
+
+    opacity: 0.7;
+
+}
+
+
+/* =========================================
+   BACKGROUND OVERLAY
+========================================= */
+
+.background-overlay {
+
+    position: absolute;
+
+    inset: 0;
+
+    background:
+
+        radial-gradient(
+            circle at center,
+            rgba(0, 0, 0, 0.05),
+            rgba(8, 3, 2, 0.80)
+        );
+
+}
+
+
+/* =========================================
+   HEADER
+========================================= */
+
+.game-header {
+
+    min-height: 100px;
+
+    padding:
+        18px 5%;
+
+    display: flex;
+
+    justify-content:
+        space-between;
+
+    align-items: center;
+
+    border-bottom:
+
+        1px solid
+        rgba(220, 166, 77, 0.25);
+
+    background:
+
+        rgba(19, 10, 7, 0.72);
+
+    backdrop-filter:
+        blur(15px);
+
+}
+
+
+.event-info {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 18px;
+
+}
+
+
+.header-logo {
+
+    width: 85px;
+
+    height: 65px;
+
+    object-fit:
+        contain;
+
+}
+
+
+.event-small {
+
+    color:
+        #b88c4d;
+
+    font-size:
+        8px;
+
+    letter-spacing:
+        3px;
+
+    margin-bottom:
+        5px;
+
+}
+
+
+.event-info h1 {
+
+    font-family:
+        "Cinzel",
+        serif;
+
+    font-size:
+        21px;
+
+    letter-spacing:
+        2px;
+
+    color:
+        #f0c66e;
+
+}
+
+
+/* =========================================
+   TEAM + TIMER
+========================================= */
+
+.team-area {
+
+    display: flex;
+
+    gap: 12px;
+
+}
+
+
+.team-box,
+.timer-box {
+
+    min-width:
+        130px;
+
+    padding:
+        11px 15px;
+
+    border:
+
+        1px solid
+        rgba(221, 166, 73, 0.25);
+
+    background:
+
+        rgba(15, 8, 6, 0.55);
+
+    text-align:
+        center;
+
+}
+
+
+.team-box span,
+.timer-box span {
+
+    display:
+        block;
+
+    margin-bottom:
+        4px;
+
+    font-size:
+        7px;
+
+    letter-spacing:
+        2px;
+
+    color:
+        #8d704a;
+
+}
+
+
+.team-box strong,
+.timer-box strong {
+
+    color:
+        #f0bb55;
+
+    font-size:
+        16px;
+
+}
+
+
+/* =========================================
+   PROGRESS
+========================================= */
+
+.progress-section {
+
+    width:
+        90%;
+
+    max-width:
+        1350px;
+
+    margin:
+        24px auto 0;
+
+}
+
+
+.progress-info {
+
+    display:
+        flex;
+
+    justify-content:
+        space-between;
+
+    margin-bottom:
+        8px;
+
+    color:
+        #9d8059;
+
+    font-size:
+        8px;
+
+    letter-spacing:
+        2px;
+
+}
+
+
+.progress-track {
+
+    width:
+        100%;
+
+    height:
+        4px;
+
+    background:
+
+        rgba(255, 255, 255, 0.07);
+
+    overflow:
+        hidden;
+
+}
+
+
+.progress-bar {
+
+    width:
+        0;
+
+    height:
+        100%;
+
+    background:
+
+        linear-gradient(
+            90deg,
+            #a86528,
+            #f1bd58
+        );
+
+    box-shadow:
+
+        0 0 10px
+        rgba(240, 185, 80, 0.45);
+
+    transition:
+        width 0.4s ease;
+
+}
+
+
+/* =========================================
+   GAME LAYOUT
+========================================= */
+
+.game-container {
+
+    width:
+        90%;
+
+    max-width:
+        1350px;
+
+    margin:
+        25px auto 50px;
+
+    display:
+        grid;
+
+    grid-template-columns:
+
+        minmax(500px, 1.4fr)
+
+        minmax(350px, 0.8fr);
+
+    gap:
+        25px;
+
+}
+
+
+/* =========================================
+   PANELS
+========================================= */
+
+.crossword-panel,
+.clue-panel {
+
+    background:
+
+        linear-gradient(
+            145deg,
+            rgba(37, 20, 13, 0.90),
+            rgba(16, 9, 7, 0.93)
+        );
+
+    border:
+
+        1px solid
+        rgba(216, 160, 68, 0.30);
+
+    backdrop-filter:
+        blur(15px);
+
+    box-shadow:
+
+        0 25px 60px
+        rgba(0, 0, 0, 0.35);
+
+}
+
+
+.crossword-panel {
+
+    padding:
+        25px;
+
+    overflow-x:
+        auto;
+
+}
+
+
+.clue-panel {
+
+    padding:
+        25px;
+
+}
+
+
+/* =========================================
+   PANEL HEADING
+========================================= */
+
+.panel-heading {
+
+    display:
+        flex;
+
+    justify-content:
+        space-between;
+
+    align-items:
+        center;
+
+    gap:
+        20px;
+
+    margin-bottom:
+        25px;
+
+}
+
+
+.panel-label {
+
+    color:
+        #9c7949;
+
+    font-size:
+        8px;
+
+    letter-spacing:
+        3px;
+
+}
+
+
+.panel-heading h2 {
+
+    margin-top:
+        6px;
+
+    font-family:
+        "Cinzel",
+        serif;
+
+    color:
+        #e6c58a;
+
+    font-size:
+        22px;
+
+}
+
+
+.small-button {
+
+    padding:
+        8px 13px;
+
+    background:
+        transparent;
+
+    border:
+
+        1px solid
+        #76572e;
+
+    color:
+        #a98a59;
+
+    font-family:
+        "Orbitron",
+        sans-serif;
+
+    font-size:
+        8px;
+
+    letter-spacing:
+        1px;
+
+    cursor:
+        pointer;
+
+    transition:
+        0.2s;
+
+}
+
+
+.small-button:hover {
+
+    color:
+        #e7bc71;
+
+    border-color:
+        #c38c3e;
+
+}
+
+
+/* =========================================
+   CROSSWORD GRID
+========================================= */
+
+.crossword-grid {
+
+    display:
+        grid;
+
+    justify-content:
+        center;
+
+    gap:
+        2px;
+
+    width:
+        max-content;
+
+    margin:
+        auto;
+
+}
+
+
+/* =========================================
+   PLAYABLE CELL
+========================================= */
+
+.crossword-cell {
+
+    width:
+        var(--cell-size);
+
+    height:
+        var(--cell-size);
+
+    position:
+        relative;
+
+    background:
+
+        rgba(240, 215, 170, 0.92);
+
+    border:
+
+        1px solid
+        #7c5428;
+
+    transition:
+
+        background 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.2s ease;
+
+}
+
+
+/* =========================================
+   INPUT
+========================================= */
+
+.crossword-cell input {
+
+    width:
+        100%;
+
+    height:
+        100%;
+
+    border:
+        none;
+
+    outline:
+        none;
+
+    background:
+        transparent;
+
+    text-align:
+        center;
+
+    color:
+        #2c170c;
+
+    font-family:
+        "Cinzel",
+        serif;
+
+    font-size:
+        23px;
+
+    font-weight:
+        800;
+
+    text-transform:
+        uppercase;
+
+    padding-top:
+        5px;
+
+    cursor:
+        pointer;
+
+    caret-color:
+        transparent;
+
+}
+
+
+/* =========================================
+   CELL NUMBER
+========================================= */
+
+.cell-number {
+
+    position:
+        absolute;
+
+    top:
+        2px;
+
+    left:
+        4px;
+
+    z-index:
+        3;
+
+    color:
+        #69441f;
+
+    font-family:
+        Arial,
+        sans-serif;
+
+    font-size:
+        9px;
+
+    font-weight:
+        bold;
+
+    pointer-events:
+        none;
+
+}
+
+
+/* =========================================
+   BLOCK CELL
+========================================= */
+
+.block-cell {
+
+    width:
+        var(--cell-size);
+
+    height:
+        var(--cell-size);
+
+    background:
+
+        rgba(10, 5, 4, 0.68);
+
+    border:
+
+        1px solid
+        rgba(122, 78, 38, 0.08);
+
+}
+
+
+/* =========================================
+   ACTIVE WORD
+========================================= */
+
+.crossword-cell.word-highlight {
+
+    background:
+        #efd391;
+
+    box-shadow:
+
+        inset 0 0 0 2px
+        rgba(183, 117, 39, 0.28);
+
+}
+
+
+/* =========================================
+   SELECTED CELL
+========================================= */
+
+.crossword-cell.selected-cell {
+
+    background:
+        #f6b94e;
+
+    box-shadow:
+
+        inset 0 0 0 3px
+        #fff0b0,
+
+        0 0 14px
+        rgba(241, 180, 69, 0.35);
+
+}
+
+
+/* =========================================
+   SOLVED WORD
+========================================= */
+
+.crossword-cell.solved-word-cell {
+
+    background:
+
+        linear-gradient(
+            145deg,
+            #d7d49b,
+            #b9ca85
+        );
+
+}
+
+
+.crossword-cell.solved-word-cell input {
+
+    color:
+        #263013;
+
+}
+
+
+/*
+   Selected cell should always
+   remain visually strongest.
+*/
+
+.crossword-cell.solved-word-cell.selected-cell {
+
+    background:
+        #f6b94e;
+
+}
+
+
+/* =========================================
+   CHECK RESULT — CORRECT
+========================================= */
+
+.crossword-cell.correct-cell {
+
+    background:
+        #c8d99a;
+
+}
+
+
+/* =========================================
+   CHECK RESULT — INCORRECT
+========================================= */
+
+.crossword-cell.incorrect-cell {
+
+    background:
+        #e39b7f;
+
+    animation:
+
+        wrongShake
+        0.25s;
+
+}
+
+
+@keyframes wrongShake {
+
+    25% {
+
+        transform:
+            translateX(-3px);
+
+    }
+
+    75% {
+
+        transform:
+            translateX(3px);
+
+    }
+
+}
+
+
+/* =========================================
+   ACTIVE CLUE BAR
+========================================= */
+
+.active-clue {
+
+    margin-top:
+        20px;
+
+    min-height:
+        55px;
+
+    padding:
+        14px 17px;
+
+    border-left:
+
+        3px solid
+        #d49a42;
+
+    background:
+
+        rgba(224, 166, 72, 0.07);
+
+    color:
+        #cdb68d;
+
+    font-family:
+        Arial,
+        sans-serif;
+
+    font-size:
+        14px;
+
+    line-height:
+        1.5;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    flex-wrap:
+        wrap;
+
+    gap:
+        5px;
+
+}
+
+
+/* =========================================
+   DIRECTION SYMBOL
+========================================= */
+
+.direction-symbol {
+
+    display:
+        inline-flex;
+
+    justify-content:
+        center;
+
+    align-items:
+        center;
+
+    flex-shrink:
+        0;
+
+    width:
+        27px;
+
+    height:
+        27px;
+
+    margin-right:
+        5px;
+
+    border:
+
+        1px solid
+        rgba(228, 173, 77, 0.45);
+
+    color:
+        #f2b84e;
+
+    font-family:
+        Arial,
+        sans-serif;
+
+    font-size:
+        16px;
+
+}
+
+
+/* =========================================
+   CLUE HEADING
+========================================= */
+
+.clue-heading {
+
+    display:
+        flex;
+
+    justify-content:
+        center;
+
+    align-items:
+        center;
+
+    gap:
+        12px;
+
+    margin-bottom:
+        25px;
+
+    color:
+        #d6a34e;
+
+}
+
+
+.clue-heading h2 {
+
+    font-family:
+        "Cinzel",
+        serif;
+
+    letter-spacing:
+        3px;
+
+    font-size:
+        19px;
+
+}
+
+
+/* =========================================
+   CLUE SECTIONS
+========================================= */
+
+.clue-section {
+
+    margin-bottom:
+        25px;
+
+}
+
+
+.clue-section h3 {
+
+    padding-bottom:
+        8px;
+
+    margin-bottom:
+        8px;
+
+    border-bottom:
+
+        1px solid
+        rgba(209, 158, 72, 0.18);
+
+    color:
+        #b98a47;
+
+    font-size:
+        10px;
+
+    letter-spacing:
+        3px;
+
+}
+
+
+/* =========================================
+   CLUE ITEM
+========================================= */
+
+.clue-item {
+
+    padding:
+        11px 10px;
+
+    color:
+        #b9a486;
+
+    font-family:
+        Arial,
+        sans-serif;
+
+    font-size:
+        14px;
+
+    line-height:
+        1.45;
+
+    cursor:
+        pointer;
+
+    border-left:
+
+        2px solid
+        transparent;
+
+    transition:
+
+        background 0.2s,
+        border 0.2s,
+        color 0.2s,
+        transform 0.2s;
+
+}
+
+
+.clue-item:hover {
+
+    background:
+
+        rgba(223, 164, 67, 0.07);
+
+    transform:
+
+        translateX(3px);
+
+}
+
+
+/* =========================================
+   ACTIVE CLUE
+========================================= */
+
+.clue-item.active-clue-item {
+
+    color:
+        #f1d9aa;
+
+    background:
+
+        rgba(223, 164, 67, 0.10);
+
+    border-left-color:
+        #e2a84a;
+
+}
+
+
+/* =========================================
+   SOLVED CLUE
+========================================= */
+
+.clue-item.solved-clue {
+
+    color:
+        #b9c88a;
+
+    opacity:
+        0.78;
+
+}
+
+
+.clue-item.solved-clue strong {
+
+    color:
+        #d2dc9c;
+
+}
+
+
+.clue-item.solved-clue::after {
+
+    content:
+        " ✓";
+
+    color:
+        #c8d887;
+
+    font-weight:
+        bold;
+
+}
+
+
+/* =========================================
+   CHECK BUTTON
+========================================= */
+
+.check-button {
+
+    width:
+        100%;
+
+    height:
+        52px;
+
+    border:
+
+        1px solid
+        #efc36c;
+
+    background:
+
+        linear-gradient(
+            135deg,
+            #b96e27,
+            #e9ad47
+        );
+
+    color:
+        #241306;
+
+    font-family:
+        "Cinzel",
+        serif;
+
+    font-weight:
+        800;
+
+    letter-spacing:
+        2px;
+
+    cursor:
+        pointer;
+
+    transition:
+
+        transform 0.2s,
+        box-shadow 0.2s;
+
+}
+
+
+.check-button:hover {
+
+    transform:
+        translateY(-2px);
+
+    box-shadow:
+
+        0 8px 25px
+        rgba(225, 164, 67, 0.20);
+
+}
+
+
+.check-button:disabled {
+
+    opacity:
+        0.4;
+
+    cursor:
+        not-allowed;
+
+    transform:
+        none;
+
+}
+
+
+/* =========================================
+   MESSAGE
+========================================= */
+
+.game-message {
+
+    min-height:
+        20px;
+
+    margin-top:
+        15px;
+
+    color:
+        #dfaa5d;
+
+    font-family:
+        Arial,
+        sans-serif;
+
+    text-align:
+        center;
+
+    font-size:
+        13px;
+
+    line-height:
+        1.5;
+
+}
+
+
+/* =========================================
+   SUCCESS MODAL
+========================================= */
+
+.modal {
+
+    position:
+        fixed;
+
+    inset:
+        0;
+
+    z-index:
+        100;
+
+    display:
+        none;
+
+    justify-content:
+        center;
+
+    align-items:
+        center;
+
+    padding:
+        20px;
+
+    background:
+
+        rgba(8, 4, 2, 0.86);
+
+    backdrop-filter:
+        blur(10px);
+
+}
+
+
+.modal.show {
+
+    display:
+        flex;
+
+}
+
+
+/* =========================================
+   MODAL CARD
+========================================= */
+
+.modal-card {
+
+    width:
+        100%;
+
+    max-width:
+        520px;
+
+    padding:
+        40px;
+
+    text-align:
+        center;
+
+    background:
+
+        linear-gradient(
+            145deg,
+            #332015,
+            #160d08
+        );
+
+    border:
+
+        1px solid
+        #d7a24b;
+
+    box-shadow:
+
+        0 0 80px
+        rgba(218, 158, 64, 0.18);
+
+}
+
+
+/* =========================================
+   TREASURE SYMBOL
+========================================= */
+
+.treasure-symbol {
+
+    margin-bottom:
+        15px;
+
+    color:
+        #f0b84e;
+
+    font-size:
+        35px;
+
+    text-shadow:
+
+        0 0 20px
+        #d89532;
+
+}
+
+
+/* =========================================
+   MODAL TEXT
+========================================= */
+
+.modal-small {
+
+    color:
+        #aa8146;
+
+    font-size:
+        8px;
+
+    letter-spacing:
+        3px;
+
+}
+
+
+.modal-card h2 {
+
+    margin:
+        12px 0;
+
+    font-family:
+        "Cinzel",
+        serif;
+
+    color:
+        #f1cf8a;
+
+    font-size:
+        26px;
+
+}
+
+
+.modal-card > p {
+
+    color:
+        #a99678;
+
+    font-family:
+        Arial,
+        sans-serif;
+
+    line-height:
+        1.6;
+
+}
+
+
+/* =========================================
+   COMPLETION DATA
+========================================= */
+
+.completion-data {
+
+    margin:
+        25px 0;
+
+    display:
+        grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    border:
+
+        1px solid
+        rgba(217, 161, 69, 0.20);
+
+}
+
+
+.completion-data div {
+
+    padding:
+        15px;
+
+}
+
+
+.completion-data div:first-child {
+
+    border-right:
+
+        1px solid
+        rgba(217, 161, 69, 0.20);
+
+}
+
+
+.completion-data span {
+
+    display:
+        block;
+
+    color:
+        #8d6e45;
+
+    font-size:
+        7px;
+
+    letter-spacing:
+        2px;
+
+}
+
+
+.completion-data strong {
+
+    display:
+        block;
+
+    margin-top:
+        7px;
+
+    color:
+        #e8b75e;
+
+}
+
+
+/* =========================================
+   NEXT CLUE
+========================================= */
+
+.next-clue {
+
+    padding:
+        20px;
+
+    background:
+
+        rgba(217, 160, 64, 0.08);
+
+    border:
+
+        1px dashed
+        #8b6634;
+
+}
+
+
+.next-clue span {
+
+    display:
+        block;
+
+    margin-bottom:
+        9px;
+
+    color:
+        #957243;
+
+    font-size:
+        8px;
+
+    letter-spacing:
+        2px;
+
+}
+
+
+.next-clue strong {
+
+    font-family:
+        "Cinzel",
+        serif;
+
+    color:
+        #e7c17a;
+
+    line-height:
+        1.5;
+
+}
+
+
+/* =========================================
+   MODAL BUTTON
+========================================= */
+
+#closeSuccess {
+
+    margin-top:
+        20px;
+
+    padding:
+        12px 30px;
+
+    border:
+
+        1px solid
+        #d6a24b;
+
+    background:
+        transparent;
+
+    color:
+        #e5bd73;
+
+    font-family:
+        "Orbitron",
+        sans-serif;
+
+    cursor:
+        pointer;
+
+    transition:
+        0.2s;
+
+}
+
+
+#closeSuccess:hover {
+
+    background:
+
+        rgba(218, 162, 75, 0.08);
+
+}
+
+
+/* =========================================
+   TABLET
+========================================= */
+
+@media (max-width: 950px) {
+
+    .game-container {
+
+        grid-template-columns:
+            1fr;
+
+    }
+
+}
+
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 650px) {
+
+    :root {
+
+        --cell-size:
+            40px;
+
+    }
+
+
+    .game-header {
+
+        flex-direction:
+            column;
+
+        gap:
+            15px;
+
+        align-items:
+            flex-start;
+
+    }
+
+
+    .event-info {
+
+        width:
+            100%;
+
+    }
+
+
+    .event-info h1 {
+
+        font-size:
+            17px;
+
+    }
+
+
+    .header-logo {
+
+        width:
+            65px;
+
+        height:
+            55px;
+
+    }
+
+
+    .team-area {
+
+        width:
+            100%;
+
+    }
+
+
+    .team-box,
+    .timer-box {
+
+        flex:
+            1;
+
+        min-width:
+            0;
+
+    }
+
+
+    .game-container,
+    .progress-section {
+
+        width:
+            94%;
+
+    }
+
+
+    .crossword-panel {
+
+        padding:
+            15px;
+
+    }
+
+
+    .panel-heading h2 {
+
+        font-size:
+            18px;
+
+    }
+
+
+    .crossword-grid {
+
+        gap:
+            1px;
+
+    }
+
+
+    .crossword-cell input {
+
+        font-size:
+            18px;
+
+    }
+
+
+    .cell-number {
+
+        font-size:
+            7px;
+
+        top:
+            1px;
+
+        left:
+            2px;
+
+    }
+
+
+    .active-clue {
+
+        font-size:
+            12px;
+
+    }
+
+
+    .clue-panel {
+
+        padding:
+            18px;
+
+    }
+
+
+    .modal-card {
+
+        padding:
+            28px 20px;
+
+    }
+
+
+    .modal-card h2 {
+
+        font-size:
+            21px;
+
+    }
+
+}
+
+
+/* =========================================
+   VERY SMALL PHONES
+========================================= */
+
+@media (max-width: 430px) {
+
+    :root {
+
+        --cell-size:
+            35px;
+
+    }
+
+
+    .team-box strong,
+    .timer-box strong {
+
+        font-size:
+            13px;
+
+    }
+
+
+    .panel-heading {
+
+        align-items:
+            flex-start;
+
+    }
+
+
+    .small-button {
+
+        padding:
+            7px 9px;
+
+    }
+
+}

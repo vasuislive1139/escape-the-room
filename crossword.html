@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Component Crossword | TechTatva</title>
+
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Orbitron:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    >
+
+
+    <link rel="stylesheet" href="crossword-style.css">
+
+</head>
+
+
+<body>
+
+
+<!-- ======================================
+     DESERT BACKGROUND
+======================================= -->
+
+<div class="desert-background">
+
+    <div class="sun"></div>
+
+    <div class="pyramid pyramid-one"></div>
+
+    <div class="pyramid pyramid-two"></div>
+
+    <div class="pyramid pyramid-three"></div>
+
+    <div class="sand sand-one"></div>
+
+    <div class="sand sand-two"></div>
+
+    <div class="background-overlay"></div>
+
+</div>
+
+
+
+<!-- ======================================
+     HEADER
+======================================= -->
+
+<header class="game-header">
+
+
+    <div class="event-info">
+
+        <img
+            src="assets/club-logo.png"
+            alt="Club Logo"
+            class="header-logo"
+            style="height: 50px; width: auto;"
+        >
+
+
+        <div>
+
+            <p class="event-small">
+                TECHTATVA TREASURE HUNT
+            </p>
+
+            <h1>
+                COMPONENT CROSSWORD
+            </h1>
+
+        </div>
+
+    </div>
+
+
+
+    <div class="team-area">
+
+
+        <div class="team-box">
+
+            <span>
+                TEAM
+            </span>
+
+            <strong id="teamDisplay">
+                --
+            </strong>
+
+        </div>
+
+
+        <div class="timer-box">
+
+            <span>
+                TIME REMAINING
+            </span>
+
+            <strong id="timer">
+                15:00
+            </strong>
+
+        </div>
+
+
+    </div>
+
+
+</header>
+
+
+
+<!-- ======================================
+     PROGRESS
+======================================= -->
+
+<section class="progress-section">
+
+
+    <div class="progress-info">
+
+        <span>
+            EXPEDITION PROGRESS
+        </span>
+
+        <span id="progressText">
+            0 / 5
+        </span>
+
+    </div>
+
+
+    <div class="progress-track">
+
+        <div
+            id="progressBar"
+            class="progress-bar"
+        ></div>
+
+    </div>
+
+
+</section>
+
+
+
+<!-- ======================================
+     GAME
+======================================= -->
+
+<main class="game-container">
+
+
+    <!-- CROSSWORD -->
+
+    <section class="crossword-panel">
+
+
+        <div class="panel-heading">
+
+            <div>
+
+                <span class="panel-label">
+                    ANCIENT GRID
+                </span>
+
+                <h2>
+                    Decode the Components
+                </h2>
+
+            </div>
+
+
+            <button
+                id="clearButton"
+                class="small-button"
+                type="button"
+            >
+                CLEAR
+            </button>
+
+        </div>
+
+
+
+        <div
+            id="crosswordGrid"
+            class="crossword-grid"
+        ></div>
+
+
+
+        <div
+            id="activeClue"
+            class="active-clue"
+        >
+
+            Select a square to begin.
+
+        </div>
+
+
+    </section>
+
+
+
+    <!-- CLUES -->
+
+    <aside class="clue-panel">
+
+
+        <div class="clue-heading">
+
+            <span>
+                ◇
+            </span>
+
+            <h2>
+                CLUES
+            </h2>
+
+            <span>
+                ◇
+            </span>
+
+        </div>
+
+
+
+        <section class="clue-section">
+
+            <h3>
+                ACROSS
+            </h3>
+
+            <div id="acrossClues"></div>
+
+        </section>
+
+
+
+        <section class="clue-section">
+
+            <h3>
+                DOWN
+            </h3>
+
+            <div id="downClues"></div>
+
+        </section>
+
+
+
+        <button
+            id="checkButton"
+            class="check-button"
+            type="button"
+        >
+
+            CHECK THE GRID
+
+            <span>
+                →
+            </span>
+
+        </button>
+
+
+        <p
+            id="gameMessage"
+            class="game-message"
+        ></p>
+
+
+    </aside>
+
+
+</main>
+
+
+
+<!-- ======================================
+     SUCCESS MODAL
+======================================= -->
+
+<div
+    id="successModal"
+    class="modal"
+>
+
+
+    <div class="modal-card">
+
+
+        <div class="treasure-symbol">
+            ◆
+        </div>
+
+
+        <p class="modal-small">
+            EXPEDITION COMPLETE
+        </p>
+
+
+        <h2>
+            THE GRID HAS BEEN SOLVED
+        </h2>
+
+
+        <p>
+            Your team has successfully decoded
+            the Component Crossword.
+        </p>
+
+
+        <div class="completion-data">
+
+            <div>
+
+                <span>
+                    TEAM
+                </span>
+
+                <strong id="completeTeam">
+                    --
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>
+                    TIME
+                </span>
+
+                <strong id="completeTime">
+                    --
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <div class="next-clue">
+
+            <span>
+                YOUR NEXT CLUE
+            </span>
+
+            <strong>
+                THE NEXT DESTINATION WILL APPEAR HERE
+            </strong>
+
+        </div>
+
+
+        <button
+            id="closeSuccess"
+            type="button"
+        >
+            CONTINUE
+        </button>
+
+
+    </div>
+
+
+</div>
+
+
+
+
+
+<script src="crossword-logic.js"></script>
+<script src="crossword-script.js"></script>
+
+
+</body>
+
+</html>

@@ -490,9 +490,14 @@ function renderProgressionState() {
             if (btn) {
                 btn.className = 'explore-btn unlocked-btn';
                 btn.innerHTML = `<span>${i < unlockedLevel ? 'RE-EXPLORE' : 'EXPLORE'}</span><span class="arrow">➔</span>`;
-                if (i === 1) {
+                const activityId = i;
+                if (activityId === 1) {
+                    btn.textContent = "EXPLORE";
                     btn.setAttribute('onclick', "window.location.href = 'scavenger-hunt.html'");
-                } else if (i === 3) {
+                } else if (activityId === 2) {
+                    btn.textContent = "EXPLORE";
+                    btn.setAttribute('onclick', "window.location.href = 'crossword.html'");
+                } else if (activityId === 3) {
                     btn.setAttribute('onclick', "window.location.href = 'cipher-chase.html'");
                 } else {
                     btn.setAttribute('onclick', `openChallengeModal(${i})`);
