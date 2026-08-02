@@ -135,13 +135,21 @@ function handleInputNavigation(e) {
     const cellMap = window.crosswordCellMap;
     
     let target = null;
-    if (e.key === 'ArrowRight') target = cellMap[`${r}-${c+1}`];
-    else if (e.key === 'ArrowLeft') target = cellMap[`${r}-${c-1}`];
-    else if (e.key === 'ArrowDown') target = cellMap[`${r+1}-${c}`];
-    else if (e.key === 'ArrowUp') target = cellMap[`${r-1}-${c}`];
+    if (!window.crosswordDirection) window.crosswordDirection = 'across';
+    
+    if (e.key === 'ArrowRight') { target = cellMap[`${r}-${c+1}`]; window.crosswordDirection = 'across'; }
+    else if (e.key === 'ArrowLeft') { target = cellMap[`${r}-${c-1}`]; window.crosswordDirection = 'across'; }
+    else if (e.key === 'ArrowDown') { target = cellMap[`${r+1}-${c}`]; window.crosswordDirection = 'down'; }
+    else if (e.key === 'ArrowUp') { target = cellMap[`${r-1}-${c}`]; window.crosswordDirection = 'down'; }
     else if (e.key.length === 1 && input.value.length === 1) {
-        // Auto advance to next right or down
-        target = cellMap[`${r}-${c+1}`] || cellMap[`${r+1}-${c}`];
+        // Auto advance based on current active direction
+        if (window.crosswordDirection === 'down') {
+            target = cellMap[`${r+1}-${c}`];
+            if (!target) { target = cellMap[`${r}-${c+1}`]; window.crosswordDirection = 'across'; }
+        } else {
+            target = cellMap[`${r}-${c+1}`];
+            if (!target) { target = cellMap[`${r+1}-${c}`]; window.crosswordDirection = 'down'; }
+        }
     }
     
     if (target) {
