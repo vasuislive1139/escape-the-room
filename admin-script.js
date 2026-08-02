@@ -20,7 +20,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initAdminClock();
     initAdminAudio();
     initAdminAuth();
-    initCredentialGenerator();
     initCommandCenter();
 });
 
@@ -343,7 +342,7 @@ function openAddTeamModal() {
 
 function handleAddNewTeam(e) {
     e.preventDefault();
-    const nameInput = document.getElementById('modalTeamName').value.trim();
+    const nameInput = document.getElementById('modalTeamName').value.trim().toUpperCase();
     const membersInput = document.getElementById('modalTeamMembers').value.trim();
     const passInput = document.getElementById('modalTeamPassword').value.trim();
     const stageInput = parseInt(document.getElementById('modalTeamStage').value);
