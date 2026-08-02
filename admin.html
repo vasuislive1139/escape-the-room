@@ -230,6 +230,7 @@
                                             <th>TEAM</th>
                                             <th>STAGE</th>
                                             <th>SCORE</th>
+                                            <th style="text-align: right;">ACTIONS</th>
                                         </tr>
                                     </thead>
                                     <tbody id="leaderboardBody">
@@ -243,15 +244,29 @@
                 
                 <!-- VIEW: REGISTERED TEAMS -->
                 <section id="view-teams-registered" class="admin-view">
-                    <div class="view-header flex-between">
+                    <div class="view-header flex-between" style="flex-wrap: wrap; gap: 10px;">
                         <h2>Team Management</h2>
-                        <button class="ornate-btn small-btn" onclick="openAddTeamModal()">+ Add New Team</button>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <select id="bulkActionSelect" class="ornate-select bright-input" style="padding: 6px; font-size: 0.85rem;">
+                                <option value="">-- Bulk Actions --</option>
+                                <option value="freeze">❄️ Freeze Selected</option>
+                                <option value="unfreeze">🔥 Unfreeze Selected</option>
+                                <option value="warn">⚠️ Warn Selected</option>
+                                <option value="revive">💚 Revive Selected</option>
+                                <option value="delete">🗑️ Delete Selected</option>
+                            </select>
+                            <button class="ornate-btn small-btn" onclick="executeBulkAction()" style="padding: 6px 12px; font-size: 0.85rem;">Apply</button>
+                            
+                            <button class="ornate-btn small-btn" onclick="openBulkCreateModal()" style="margin-left: 15px;">+ Bulk Create</button>
+                            <button class="ornate-btn small-btn" onclick="openAddTeamModal()">+ Add New</button>
+                        </div>
                     </div>
                     
                     <div class="table-responsive">
                         <table class="roster-table full-width">
                             <thead>
                                 <tr>
+                                    <th style="width: 40px; text-align: center;"><input type="checkbox" id="selectAllTeams" onclick="toggleAllTeams()"></th>
                                     <th>TEAM ID</th>
                                     <th>MEMBERS</th>
                                     <th>SLOT</th>
@@ -535,6 +550,44 @@
 
                 <button type="submit" class="ornate-btn create-btn" style="margin-top: 10px;">
                     <span>💾 SAVE CHANGES</span>
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Bulk Create Teams Modal -->
+    <div id="bulkCreateModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
+        <div class="modal-content admin-panel" style="max-width: 500px;">
+            <div class="panel-header flex-between">
+                <h3 class="panel-title"><span class="panel-icon">⚡</span> Bulk Create Teams</h3>
+                <button type="button" class="close-modal-btn" onclick="document.getElementById('bulkCreateModal').classList.add('hidden')">✖</button>
+            </div>
+            
+            <form id="bulkCreateForm" class="cred-form" onsubmit="handleBulkCreateTeams(event)" style="margin-top: 20px;">
+                <p style="color: #aaa; font-size: 0.9rem; margin-bottom: 15px;">Generate multiple teams at once. Passwords will be randomized automatically.</p>
+                
+                <div class="form-group">
+                    <label class="form-label">Number of Teams</label>
+                    <input type="number" id="bulkCreateCount" class="ornate-input bright-input" value="10" min="1" max="100" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Team Name Prefix</label>
+                    <input type="text" id="bulkCreatePrefix" class="ornate-input bright-input" placeholder="e.g. TEAM-" value="TEAM-" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Starting Stage (Room)</label>
+                    <select id="bulkCreateStage" class="ornate-select bright-input">
+                        <option value="1">Room 1: Scavenger Hunt</option>
+                        <option value="2">Room 2: Treasure Hunt</option>
+                        <option value="3">Room 3: Caesar Cipher</option>
+                        <option value="4">Room 4: Final Vault</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="ornate-btn create-btn" style="margin-top: 10px;">
+                    <span>⚡ GENERATE TEAMS</span>
                 </button>
             </form>
         </div>

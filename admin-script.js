@@ -430,6 +430,65 @@ function handleEditTeam(e) {
     showAdminToast("✅ Success", `Team ${newId} updated.`);
 }
 
+function openBulkCreateModal() {
+    document.getElementById('bulkCreateModal').classList.remove('hidden');
+}
+
+function handleBulkCreateTeams(e) {
+    e.preventDefault();
+    const count = parseInt(document.getElementById('bulkCreateCount').value);
+    const prefix = document.getElementById('bulkCreatePrefix').value.trim();
+    const stageInput = parseInt(document.getElementById('bulkCreateStage').value);
+    
+    if (isNaN(count) || count < 1 || !prefix) return;
+    
+    const db = getTeamsDb();
+    let created = 0;
+    
+    const words = ['CYBER', 'VAULT', 'TATVA', 'ENIGMA', 'SOLVE', 'HACK', 'QUEST', 'GOLD', 'NEXUS', 'ALPHA', 'DELTA', 'CODE'];
+    
+    // Find the next available number index for the prefix
+    let maxIdx = 0;
+    const existingKeys = Object.keys(db);
+    existingKeys.forEach(k => {
+        if (k.startsWith(prefix)) {
+            const numPart = k.substring(prefix.length);
+            const num = parseInt(numPart);
+            if (!isNaN(num) && num > maxIdx) {
+                maxIdx = num;
+            }
+        }
+    });
+    
+    for (let i = 1; i <= count; i++) {
+        const teamNum = (maxIdx + i).toString().padStart(2, '0');
+        const teamName = `${prefix}${teamNum}`.toUpperCase();
+        
+        const randomWord = words[Math.floor(Math.random() * words.length)];
+        const randomNum = Math.floor(1000 + Math.random() * 9000);
+        const password = `${randomWord}${randomNum}`;
+        
+        if (!db[teamName]) {
+            db[teamName] = {
+                password: password,
+                stage: stageInput,
+                status: 'active',
+                warnings: 0,
+                members: '',
+                score: 0,
+                entryTime: Date.now()
+            };
+            created++;
+        }
+    }
+    
+    saveTeamsDbAndRender(db);
+    addDetailedLog(`Bulk generated ${created} credentials with prefix ${prefix}`, 'system', 'Admin', `Stage ${stageInput}`);
+    
+    document.getElementById('bulkCreateModal').classList.add('hidden');
+    showAdminToast("✅ Success", `Bulk generated ${created} teams.`);
+}
+
 function openCreateSlotModal() {
     document.getElementById('slotStartTime').value = '';
     document.getElementById('slotEndTime').value = '';
@@ -832,6 +891,14 @@ function renderLiveActivityFeed() {
     });
 }
 
+function toggleAllTeams() {
+    const isChecked = document.getElementById('selectAllTeams').checked;
+    const checkboxes = document.querySelectorAll('.team-checkbox');
+    checkboxes.forEach(cb => {
+        cb.checked = isChecked;
+    });
+}
+
 function renderFullTeamsList() {
     const db = getTeamsDb();
     const teamNames = Object.keys(db);
@@ -839,7 +906,7 @@ function renderFullTeamsList() {
     if (!tbody) return;
 
     if (teamNames.length === 0) {
-        tbody.innerHTML = `<tr class="empty-row"><td colspan="7">No teams registered yet. Use form to create credentials!</td></tr>`;
+        tbody.innerHTML = `<tr class="empty-row"><td colspan="8">No teams registered yet. Use form to create credentials!</td></tr>`;
         return;
     }
 
@@ -858,6 +925,7 @@ function renderFullTeamsList() {
         
         const tr = document.createElement('tr');
         tr.innerHTML = `
+            <td style="text-align: center;"><input type="checkbox" class="team-checkbox" value="${name}"></td>
             <td><strong style="color:#ffffff;">${name}</strong><br><small class="mono" style="color:#888;">${t.password}</small></td>
             <td>${t.members || 'Not assigned'}</td>
             <td>${t.slotId || 'None'}</td>
@@ -910,7 +978,11 @@ function renderLeaderboard() {
             <td><strong style="color:#ffffff;">${team.name}</strong></td>
             <td>Stage ${team.stage || 1}</td>
             <td class="text-gold">${team.score || 0}</td>
-            <td>${team.warnings || 0}</td>
+            <td style="text-align: right; white-space: nowrap;">
+                ${team.status === 'timeout' ? `<button type="button" class="row-btn" style="border-color:#50e3c2; color:#50e3c2; padding: 2px 6px;" onclick="quickAction('${team.name}', 'revive')" title="Revive">💚</button>` : ''}
+                <button type="button" class="row-btn" style="padding: 2px 6px;" onclick="quickAction('${team.name}', 'warn')" title="Issue Warning">⚠️</button>
+                <button type="button" class="row-btn" style="padding: 2px 6px;" onclick="quickAction('${team.name}', 'freeze')" title="Toggle Freeze">❄️</button>
+            </td>
         `;
         tbody.appendChild(tr);
     });
@@ -1132,6 +1204,65 @@ function quickAction(teamName, actionType) {
             addLogItem(`Deleted team [${teamName}] from database.`, 'alert');
         }
     }
+}
+
+function executeBulkAction() {
+    const actionSelect = document.getElementById('bulkActionSelect');
+    if (!actionSelect) return;
+    const action = actionSelect.value;
+    if (!action) {
+        showAdminToast("ℹ️ Info", "Please select a bulk action first.");
+        return;
+    }
+    
+    const checkboxes = document.querySelectorAll('.team-checkbox:checked');
+    if (checkboxes.length === 0) {
+        showAdminToast("ℹ️ Info", "No teams selected.");
+        return;
+    }
+    
+    const selectedTeams = Array.from(checkboxes).map(cb => cb.value);
+    
+    if (action === 'delete') {
+        if (!confirm(`Are you sure you want to delete ${selectedTeams.length} teams?`)) return;
+    }
+    
+    selectedTeams.forEach(teamName => {
+        // Skip confirm prompts for bulk delete since we already confirmed once
+        if (action === 'delete') {
+            const db = getTeamsDb();
+            delete db[teamName];
+            saveTeamsDb(db);
+            transmitGmCommand(teamName, 'LOGOUT', 'Your credentials have been revoked.');
+            addLogItem(`Deleted team [${teamName}] from database.`, 'alert');
+        } else {
+            // Unfreeze maps to freeze in quickAction since it's a toggle, but we should make sure it actually unfreezes.
+            if (action === 'unfreeze') {
+                const db = getTeamsDb();
+                if (db[teamName].status === 'frozen') {
+                    quickAction(teamName, 'freeze');
+                }
+            } else if (action === 'freeze') {
+                const db = getTeamsDb();
+                if (db[teamName].status !== 'frozen') {
+                    quickAction(teamName, 'freeze');
+                }
+            } else {
+                quickAction(teamName, action);
+            }
+        }
+    });
+    
+    // Clear selection
+    const masterCb = document.getElementById('selectAllTeams');
+    if (masterCb) masterCb.checked = false;
+    toggleAllTeams();
+    
+    // Force re-render to reflect changes
+    renderFullTeamsList();
+    
+    showAdminToast("✅ Bulk Action Complete", `Applied ${action} to ${selectedTeams.length} teams.`);
+    actionSelect.value = '';
 }
 
 function setStageDirectly(teamName, targetStage) {
