@@ -12,7 +12,7 @@ let currentTeamId = localStorage.getItem('escape_team_id') || 'UNKNOWN';
 const STAGE_TIMES = {
     1: 8 * 60,  // Crossword (8 mins)
     2: 10 * 60, // Scavenger Hunt (10 mins)
-    3: 10 * 60, // Cipher Chase (10 mins)
+    3: 8 * 60,  // Cipher Chase (8 mins)
     4: 12 * 60  // StreamWave Vault (12 mins)
 };
 
