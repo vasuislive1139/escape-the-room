@@ -178,7 +178,6 @@ function renderSubStageUI() {
 
     // 3. Load active challenge data
     const sliderContainer = document.getElementById('sliderContainer');
-    const workbenchContainer = document.getElementById('workbenchContainer');
     const ciphertextDisplay = document.getElementById('caesarCiphertextDisplay');
     const decryptedOutput = document.getElementById('caesarDecryptedOutput');
     const instTitle = document.getElementById('substageInstructionTitle');
@@ -189,7 +188,6 @@ function renderSubStageUI() {
     if (currentSubStage === 1) {
         // Caesar Sub-stage
         if (sliderContainer) sliderContainer.style.display = 'block';
-        if (workbenchContainer) workbenchContainer.style.display = 'none';
         
         if (instTitle) instTitle.textContent = "SUB-STAGE 01: CAESAR CIPHER VAULT";
         if (instDesc) instDesc.textContent = "Slide the decryption key dial below to shift the characters in real-time. Find the key shift value that reveals a meaningful English word, then submit it below.";
@@ -213,15 +211,9 @@ function renderSubStageUI() {
     } else if (currentSubStage === 2) {
         // Atbash Sub-stage
         if (sliderContainer) sliderContainer.style.display = 'none';
-        if (workbenchContainer) {
-            workbenchContainer.style.display = 'block';
-            document.getElementById('workbenchInput').value = '';
-            document.getElementById('workbenchOutputText').textContent = '';
-            document.getElementById('workbenchTitle').textContent = "INTERACTIVE ATBASH BENCH (MIRROR A-Z):";
-        }
         
         if (instTitle) instTitle.textContent = "SUB-STAGE 02: ATBASH VAULT (MIRROR)";
-        if (instDesc) instDesc.textContent = "This vault is locked with the ancient Atbash alphabet mirror. Use the Interactive Workbench below to test character mirror mappings and decipher the encrypted key.";
+        if (instDesc) instDesc.textContent = "This vault is locked with the Atbash alphabet mirror. Look at the encrypted key and decipher it manually (A ↔ Z, B ↔ Y, C ↔ X, ...).";
         if (cipherLabel) cipherLabel.textContent = "🔒 ENCRYPTED KEY (ATBASH):";
         if (resultLabel) resultLabel.textContent = "🟢 DECRYPTED STRING STATUS:";
         
@@ -235,15 +227,9 @@ function renderSubStageUI() {
     } else if (currentSubStage === 3) {
         // ROT13 Sub-stage
         if (sliderContainer) sliderContainer.style.display = 'none';
-        if (workbenchContainer) {
-            workbenchContainer.style.display = 'block';
-            document.getElementById('workbenchInput').value = '';
-            document.getElementById('workbenchOutputText').textContent = '';
-            document.getElementById('workbenchTitle').textContent = "INTERACTIVE ROT13 BENCH (ROTATE 13):";
-        }
         
         if (instTitle) instTitle.textContent = "SUB-STAGE 03: ROT13 VAULT (ROTATION)";
-        if (instDesc) instDesc.textContent = "The final lock utilizes ROT13 symmetric shift. Type in the interactive bench to test the rotation shift and decrypt the final override key.";
+        if (instDesc) instDesc.textContent = "The final lock utilizes ROT13 symmetric shift. Decipher the key by rotating each character by 13 positions forward or backward.";
         if (cipherLabel) cipherLabel.textContent = "🔒 ENCRYPTED KEY (ROT13):";
         if (resultLabel) resultLabel.textContent = "🟢 DECRYPTED STRING STATUS:";
         
@@ -296,41 +282,7 @@ function updateCaesarDecryption() {
 }
 window.updateCaesarDecryption = updateCaesarDecryption;
 
-function updateWorkbenchDecryption() {
-    const input = document.getElementById('workbenchInput').value;
-    const outputTextEl = document.getElementById('workbenchOutputText');
-    if (!outputTextEl) return;
 
-    let output = "";
-    if (currentSubStage === 2) {
-        // Run Atbash Mirror translation
-        for (let i = 0; i < input.length; i++) {
-            let code = input.charCodeAt(i);
-            if (code >= 65 && code <= 90) {
-                output += String.fromCharCode(90 - (code - 65));
-            } else if (code >= 97 && code <= 122) {
-                output += String.fromCharCode(122 - (code - 97));
-            } else {
-                output += input.charAt(i);
-            }
-        }
-    } else if (currentSubStage === 3) {
-        // Run ROT13 offset translation
-        for (let i = 0; i < input.length; i++) {
-            let code = input.charCodeAt(i);
-            if (code >= 65 && code <= 90) {
-                output += String.fromCharCode(((code - 65 + 13) % 26) + 65);
-            } else if (code >= 97 && code <= 122) {
-                output += String.fromCharCode(((code - 97 + 13) % 26) + 97);
-            } else {
-                output += input.charAt(i);
-            }
-        }
-    }
-
-    outputTextEl.textContent = output.toUpperCase();
-}
-window.updateWorkbenchDecryption = updateWorkbenchDecryption;
 
 /* ==========================================================================
    4. FORM ACTIONS & SEQUENTIAL SUBSTAGE PROGRESSION
@@ -761,8 +713,8 @@ function initCountdownTimer() {
     let endTime;
     
     if (!endTimeStr) {
-        // Set new 10 minute end timestamp
-        endTime = Date.now() + 10 * 60 * 1000;
+        // Set new 8 minute end timestamp
+        endTime = Date.now() + 8 * 60 * 1000;
         localStorage.setItem('escape_cipher_timer_end', endTime.toString());
     } else {
         endTime = parseInt(endTimeStr, 10);

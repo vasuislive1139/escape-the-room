@@ -39,7 +39,7 @@
                 <div id="cipherTimerBox" class="cipher-timer-widget mono" title="Time remaining before security lock resets">
                     <span class="timer-blink-dot"></span>
                     <span class="timer-label">LOCKDOWN:</span>
-                    <span id="cipherCountdown" class="timer-value">10:00</span>
+                    <span id="cipherCountdown" class="timer-value">08:00</span>
                 </div>
             </div>
             
@@ -106,16 +106,7 @@
                                 <input type="range" id="caesarShiftDial" min="0" max="25" value="0" oninput="updateCaesarDecryption()">
                             </div>
 
-                            <!-- Interactive Workbench Input (for Atbash/ROT13) -->
-                            <div class="slider-group-container" id="workbenchContainer" style="display:none; margin-bottom: 16px;">
-                                <div class="slider-info" style="margin-bottom: 6px;">
-                                    <label for="workbenchInput" class="slider-title" id="workbenchTitle">INTERACTIVE DECODING WORKBENCH:</label>
-                                </div>
-                                <input type="text" id="workbenchInput" class="ornate-input" placeholder="Type text here to test mappings..." oninput="updateWorkbenchDecryption()" style="padding-left: 16px;">
-                                <div class="workbench-output" style="margin-top: 10px; font-size: 0.85rem; color: #50e3c2;">
-                                    <span>Output: </span><strong id="workbenchOutputText" class="mono"></strong>
-                                </div>
-                            </div>
+
 
                             <!-- Output Terminal -->
                             <div class="decryption-result-terminal">
