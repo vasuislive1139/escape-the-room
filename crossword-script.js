@@ -178,6 +178,16 @@ function handleInputNavigation(e) {
             target = cellMap[`${r}-${c+1}`];
             if (!target) { target = cellMap[`${r+1}-${c}`]; window.crosswordDirection = 'down'; }
         }
+    } else if (e.key === 'Backspace') {
+        if (window.crosswordDirection === 'down') {
+            target = cellMap[`${r-1}-${c}`];
+        } else {
+            target = cellMap[`${r}-${c-1}`];
+        }
+    }
+    
+    if (e.key.length === 1 || e.key === 'Backspace') {
+        if (typeof playTypingSound === 'function') playTypingSound();
     }
     
     if (target) {
@@ -201,6 +211,7 @@ function setupValidation(puzzleData, teamId) {
     
     if (checkBtn) {
         checkBtn.addEventListener('click', () => {
+            if (typeof playClickSound === 'function') playClickSound();
             const cellMap = window.crosswordCellMap;
             let allCorrect = true;
             let totalCells = 0;
@@ -231,6 +242,7 @@ function setupValidation(puzzleData, teamId) {
             }
             
             if (allCorrect) {
+                if (typeof playCompletionSound === 'function') playCompletionSound();
                 if (gameMsg) {
                     gameMsg.textContent = "✓ CORRECT! CROSSWORD SOLVED!";
                     gameMsg.style.color = "#50e3c2";
@@ -250,9 +262,10 @@ function setupValidation(puzzleData, teamId) {
                     successModal.style.display = 'flex';
                 }
             } else {
+                if (typeof playErrorSound === 'function') playErrorSound();
                 if (gameMsg) {
-                    gameMsg.textContent = "✗ Some answers are incorrect. Keep trying!";
-                    gameMsg.style.color = "#ff6b6b";
+                    gameMsg.textContent = "Incorrect. Please review your answers.";
+                    gameMsg.style.color = "#ff4d4d";
                 }
             }
         });
@@ -295,4 +308,106 @@ function triggerStage2Completion(teamId) {
             });
         } catch(e) {}
     }
+}
+
+// --- Audio Effects System ---
+let audioCtx = null;
+let bgOsc = null;
+
+function initAudio() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // Background Desert Drone
+        bgOsc = audioCtx.createOscillator();
+        const bgGain = audioCtx.createGain();
+        bgOsc.type = 'sine';
+        bgOsc.frequency.value = 55; // Low desert hum
+        bgGain.gain.value = 0.05;
+        
+        bgOsc.connect(bgGain);
+        bgGain.connect(audioCtx.destination);
+        bgOsc.start();
+        
+        // Add subtle modulation
+        setInterval(() => {
+            if (audioCtx) {
+                bgOsc.frequency.linearRampToValueAtTime(55 + (Math.random() * 5), audioCtx.currentTime + 2);
+            }
+        }, 4000);
+    }
+}
+
+// Initialize audio on first interaction
+document.addEventListener('click', initAudio, { once: true });
+document.addEventListener('keydown', initAudio, { once: true });
+
+function playTypingSound() {
+    if (!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(600 + (Math.random() * 200), audioCtx.currentTime);
+    gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+    
+    osc.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.1);
+}
+
+function playClickSound() {
+    if (!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+    gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+    osc.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.1);
+}
+
+function playCompletionSound() {
+    if (!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    osc.type = 'sine';
+    
+    osc.frequency.setValueAtTime(440, audioCtx.currentTime); // A4
+    osc.frequency.setValueAtTime(554.37, audioCtx.currentTime + 0.15); // C#5
+    osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.3); // E5
+    osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.45); // A5
+    
+    gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.5);
+    
+    osc.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    
+    osc.start();
+    osc.stop(audioCtx.currentTime + 1.5);
+}
+
+function playErrorSound() {
+    if (!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+    
+    gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+    
+    osc.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.3);
 }
