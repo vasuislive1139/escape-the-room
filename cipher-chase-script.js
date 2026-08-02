@@ -757,51 +757,19 @@ function playErrorSound() {
    8. PERSISTENT COUNTDOWN TIMER & FAILURE RED-OUTS
    ========================================================================== */
 function initCountdownTimer() {
-    let endTimeStr = localStorage.getItem('escape_cipher_timer_end');
-    let endTime;
-    
-    if (!endTimeStr) {
-        // Set new 10 minute end timestamp
-        endTime = Date.now() + 10 * 60 * 1000;
-        localStorage.setItem('escape_cipher_timer_end', endTime.toString());
-    } else {
-        endTime = parseInt(endTimeStr, 10);
+    if (typeof initStageTimer === 'function') {
+        initStageTimer(3);
+        
+        // Add low-time effect by overriding updateTimerDisplay or using an interval
+        setInterval(() => {
+            const timerBox = document.getElementById('cipherTimerBox');
+            if (typeof currentStageTimeLeft !== 'undefined' && currentStageTimeLeft <= 120 && currentStageTimeLeft > 0) {
+                if (timerBox) timerBox.classList.add('low-time');
+            } else {
+                if (timerBox) timerBox.classList.remove('low-time');
+            }
+        }, 1000);
     }
-    
-    const countdownEl = document.getElementById('cipherCountdown');
-    const timerBox = document.getElementById('cipherTimerBox');
-    
-    function updateClock() {
-        const remaining = endTime - Date.now();
-        
-        if (remaining <= 0) {
-            clearInterval(countdownIntervalId);
-            if (countdownEl) countdownEl.textContent = "00:00";
-            
-            // Trigger lockdown sequence
-            triggerLockdownFailure();
-            return;
-        }
-        
-        const totalSecs = Math.ceil(remaining / 1000);
-        const mins = Math.floor(totalSecs / 60);
-        const secs = totalSecs % 60;
-        
-        const displayMins = mins.toString().padStart(2, '0');
-        const displaySecs = secs.toString().padStart(2, '0');
-        
-        if (countdownEl) countdownEl.textContent = `${displayMins}:${displaySecs}`;
-        
-        // Low time check (under 60 seconds)
-        if (totalSecs <= 60) {
-            if (timerBox) timerBox.classList.add('low-time');
-        } else {
-            if (timerBox) timerBox.classList.remove('low-time');
-        }
-    }
-    
-    updateClock();
-    countdownIntervalId = setInterval(updateClock, 1000);
 }
 
 function triggerLockdownFailure() {

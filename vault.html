@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StreamWave — Movies, Sports & More</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="vault-style.css" />
+  <link rel="stylesheet" href="vault-categories.css" />
+  <link rel="stylesheet" href="qr.css" />
+</head>
+<body>
+  <!-- Start Game Overlay -->
+  <div id="startOverlay" class="start-overlay" style="z-index: 100000; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 4, 3, 0.98); display: flex; justify-content: center; align-items: center; color: white;">
+      <div class="start-content" style="text-align: center; background: rgba(15, 12, 10, 0.9); padding: 40px; border: 2px solid #50e3c2; border-radius: 12px;">
+          <h2 style="color: #50e3c2; font-size: 2rem; margin-bottom: 10px;">STREAMWAVE VAULT</h2>
+          <p style="margin-bottom: 24px; font-size: 1.1rem;">Time Limit: 12 Minutes</p>
+          <p style="margin-bottom: 24px;">Are you ready to begin? The timer will start immediately.</p>
+          <button id="startPlayingBtn" style="background: #50e3c2; color: #000; padding: 12px 24px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">
+              START PLAYING ➔
+          </button>
+      </div>
+  </div>
+  <header class="topbar">
+    <a class="brand" href="#home" aria-label="StreamWave home"><span>stream</span>wave</a>
+    <nav class="navlinks" aria-label="Main navigation">
+      <a class="active" href="#home">Home</a><a href="#shows">Shows</a><a href="#movies">Movies</a><a href="#sports">Sports</a>
+    </nav>
+    <div class="header-actions">
+      <div id="timer" style="color: #ff4f55; font-family: monospace; font-size: 1.2rem; margin-right: 15px; font-weight: bold;">12:00</div>
+      <button class="icon-button" id="searchButton" aria-label="Search">⌕</button>
+      <button class="profile" aria-label="Open profile">M</button>
+    </div>
+  </header>
+
+  <main id="home">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-content">
+        <p class="eyebrow">STREAMWAVE ORIGINAL</p>
+        <h1 id="hero-title">THE LAST<br><em>LIGHTHOUSE</em></h1>
+        <div class="meta"><span>2025</span><span>2h 14m</span><span class="badge">U/A 16+</span><span>Drama · Mystery</span></div>
+        <p class="hero-copy">On a remote island, a keeper discovers a signal that could change everything — if the storm lets him leave alive.</p>
+        <div class="hero-actions">
+          <button class="play-button" id="playHero"><span>▶</span> Watch now</button>
+          <button class="circle-button" aria-label="Add to my list">＋</button>
+        </div>
+      </div>
+      <div class="hero-art" role="img" aria-label="A dramatic lighthouse on a rugged coast"></div>
+      <div class="hero-fade"></div>
+    </section>
+
+    <section class="chip-row" aria-label="Browse categories">
+      <button class="chip selected">For you</button><button class="chip">Disney</button><button class="chip">HBO</button><button class="chip">Marvel</button><button class="chip">Star Sports</button><button class="chip">Kids</button>
+    </section>
+
+    <section class="rail category-rail" aria-labelledby="category-title">
+      <div class="section-heading"><h2 id="category-title">Browse by category</h2></div>
+      <div class="categories">
+        <button class="category-card action has-qr" data-category="Action" data-qr="QR 1: Action collection" data-qr-index="1"><img class="qr-mini" src="https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=LOCATION%20OF%20QR%202%3A%20Live%20Sports%20section" alt="QR code 1"><span>Action</span><small>High stakes, no brakes</small><b class="scan-label">SCAN 1</b></button>
+        <button class="category-card drama" data-category="Drama"><span>Drama</span><small>Stories that stay with you</small></button>
+        <button class="category-card comedy" data-category="Comedy"><span>Comedy</span><small>Feel-good favourites</small></button>
+        <button class="category-card scifi" data-category="Sci-fi"><span>Sci-fi</span><small>Beyond the ordinary</small></button>
+        <button class="category-card doc" data-category="Documentaries"><span>Documentaries</span><small>Discover something real</small></button>
+        <button class="category-card family" data-category="Family"><span>Family</span><small>Made for everyone</small></button>
+        <button class="category-card romance" data-category="Romance"><span>Romance</span><small>Love in every language</small></button>
+        <button class="category-card horror has-qr" data-category="Horror" data-qr="QR 4: Horror collection" data-qr-index="4"><img class="qr-mini" src="https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=LOCATION%20OF%20QR%205%3A%20Tokyo%20Signal%20movie%20card%20in%20Stories%20from%20around%20the%20world" alt="QR code 4"><span>Horror</span><small>Stay up if you dare</small><b class="scan-label">SCAN 4</b></button>
+        <button class="category-card anime" data-category="Anime"><span>Anime</span><small>Animated worlds await</small></button>
+        <button class="category-card reality" data-category="Reality"><span>Reality</span><small>Unscripted and unforgettable</small></button>
+      </div>
+    </section>
+
+    <section class="rail" id="shows">
+      <div class="section-heading"><h2>Continue watching</h2><a href="#">See all <span>›</span></a></div>
+      <div class="cards progress-cards">
+        <article class="poster wide-card" style="--image:url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80')"><div class="card-title">Wild Lines</div><div class="progress"><i style="width:66%"></i></div></article>
+        <article class="poster wide-card" style="--image:url('https://images.unsplash.com/photo-1488866022504-f2584929ca5f?auto=format&fit=crop&w=800&q=80')"><div class="card-title">City of Glass</div><div class="progress"><i style="width:37%"></i></div></article>
+        <article class="poster wide-card" style="--image:url('https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=800&q=80')"><div class="card-title">Northern Road</div><div class="progress"><i style="width:84%"></i></div></article>
+        <article class="poster wide-card" style="--image:url('https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=800&q=80')"><div class="card-title">The Grove</div><div class="progress"><i style="width:49%"></i></div></article>
+      </div>
+    </section>
+
+    <section class="rail" id="movies">
+      <div class="section-heading"><h2>New & trending</h2><a href="#">See all <span>›</span></a></div>
+      <div class="cards landscape-cards">
+        <article class="poster" style="--image:url('https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=800&q=80')"><div class="rank">01</div><div class="card-title">After the Fall</div></article>
+        <article class="poster" style="--image:url('https://images.unsplash.com/photo-1518929458119-e5bf444c30f4?auto=format&fit=crop&w=800&q=80')"><div class="rank">02</div><div class="card-title">VELVET</div></article>
+        <article class="poster" style="--image:url('https://images.unsplash.com/photo-1519608487953-e999c86e7454?auto=format&fit=crop&w=800&q=80')"><div class="rank">03</div><div class="card-title">Nightfall</div></article>
+        <article class="poster" style="--image:url('https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=800&q=80')"><div class="rank">04</div><div class="card-title">Far From Home</div></article>
+        <article class="poster" style="--image:url('https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=800&q=80')"><div class="rank">05</div><div class="card-title">Runaway</div></article>
+      </div>
+    </section>
+
+    <section class="rail" id="sports">
+      <div class="section-heading"><h2>Live sports</h2><button class="section-qr" data-qr="QR 2: Live sports" data-qr-index="2"><img src="https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=LOCATION%20OF%20QR%203%3A%20Binge-worthy%20series%20section" alt="QR code 2">Scan clue 2</button></div>
+      <div class="cards sport-cards">
+        <article class="poster sport-card" style="--image:url('https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=900&q=80')"><span class="live">● LIVE</span><div class="sport-info"><b>CHN vs MUM</b><small>Premier League · 48'</small></div></article>
+        <article class="poster sport-card" style="--image:url('https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&w=900&q=80')"><span class="live">● LIVE</span><div class="sport-info"><b>IND vs AUS</b><small>World Cricket · 2nd ODI</small></div></article>
+        <article class="poster sport-card" style="--image:url('https://images.unsplash.com/photo-1551698618-1dfe5d97d256?auto=format&fit=crop&w=900&q=80')"><span class="upcoming">UP NEXT</span><div class="sport-info"><b>GRAND PRIX</b><small>Formula One · 8:00 PM</small></div></article>
+      </div>
+    </section>
+
+    <section class="rail">
+      <div class="section-heading"><h2>Blockbuster movies</h2></div>
+      <div class="cards landscape-cards">
+        <article class="poster" style="--image:url('https://images.unsplash.com/photo-1440404653325-ab127d49abc1?auto=format&fit=crop&w=800&q=80')"><div class="card-title">ECHO POINT</div></article>
+        <article class="poster" style="--image:url('https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=800&q=80')"><div class="card-title">The Headliner</div></article>
+        <article class="poster" style="--image:url('https://images.unsplash.com/photo-1509347528160-932d9e87f8e6?auto=format&fit=crop&w=800&q=80')"><div class="card-title">SOLARIS</div></article>
+        <article class="poster" style="--image:url('https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=800&q=80')"><div class="card-title">Parallel</div></article>
+        <article class="poster" style="--image:url('https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?auto=format&fit=crop&w=800&q=80')"><div class="card-title">Oxygen</div></article>
+      </div>
+    </section>
+
+    <section class="rail">
+      <div class="section-heading"><h2>Feel-good picks</h2><a href="#">See all <span>›</span></a></div>
+      <div class="cards">
+        <article class="poster" style="--image:url('https://images.unsplash.com/photo-1499244571948-7ccddb3583f3?auto=format&fit=crop&w=800&q=80')"><div class="card-title">Sunday Club</div></article>
+        <article class="poster" style="--image:url('https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80')"><div class="card-title">Little Things</div></article>
+        <article class="poster" style="--image:url('https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=800&q=80')"><div class="card-title">Summer Friends</div></article>
+        <article class="poster" style="--image:url('https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=800&q=80')"><div class="card-title">Fresh Start</div></article>
+        <article class="poster" style="--image:url('https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=800&q=80')"><div class="card-title">Blue Skies</div></article>
+      </div>
+    </section>
+
+    <section class="rail">
+      <div class="section-heading"><h2>Binge-worthy series</h2><button class="section-qr" data-qr="QR 3: Binge-worthy series" data-qr-index="3"><img src="https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=LOCATION%20OF%20QR%204%3A%20Horror%20category" alt="QR code 3">Scan clue 3</button><a href="#">See all <span>›</span></a></div>
+      <div class="cards landscape-cards">
+        <article class="poster" style="--image:url('https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=800&q=80')"><div class="card-title">Blackout</div></article>
+        <article class="poster" style="--image:url('https://images.unsplash.com/photo-1519608487953-e999c86e7454?auto=format&fit=crop&w=800&q=80')"><div class="card-title">The Divide</div></article>
+        <article class="poster" style="--image:url('https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=800&q=80')"><div class="card-title">NEON DAYS</div></article>
+        <article class="poster" style="--image:url('https://images.unsplash.com/photo-1516796181074-bf453fbfa3e6?auto=format&fit=crop&w=800&q=80')"><div class="card-title">Wild Heart</div></article>
+        <article class="poster" style="--image:url('https://images.unsplash.com/photo-1511882150382-421056c89033?auto=format&fit=crop&w=800&q=80')"><div class="card-title">Office Hours</div></article>
+      </div>
+    </section>
+
+    <section class="rail">
+      <div class="section-heading"><h2>Stories from around the world</h2><a href="#">See all <span>›</span></a></div>
+      <div class="cards">
+        <article class="poster" style="--image:url('https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=800&q=80')"><div class="card-title">Paris After Dark</div></article>
+        <article class="poster" style="--image:url('https://images.unsplash.com/photo-1534274988757-a28bf1a57c17?auto=format&fit=crop&w=800&q=80')"><div class="card-title">Tokyo Signal</div><button class="poster-qr" data-qr="QR 5: Tokyo Signal" data-qr-index="5" aria-label="Open QR code 5"><img src="https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=LOCATION%20OF%20QR%206%3A%20Moon%20and%20Me%20movie%20card%20in%20Kids%20and%20family%20favourites" alt="QR code 5"></button></article>
+        <article class="poster" style="--image:url('https://images.unsplash.com/photo-1530789253388-582c481c54b0?auto=format&fit=crop&w=800&q=80')"><div class="card-title">Coastal Roads</div></article>
+        <article class="poster" style="--image:url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80')"><div class="card-title">Sahara</div></article>
+        <article class="poster" style="--image:url('https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=800&q=80')"><div class="card-title">Outback</div></article>
+      </div>
+    </section>
+
+    <section class="rail">
+      <div class="section-heading"><h2>Kids & family favourites</h2><a href="#">See all <span>›</span></a></div>
+      <div class="cards">
+        <article class="poster" style="--image:url('https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?auto=format&fit=crop&w=800&q=80')"><div class="card-title">Tiny Explorers</div></article>
+        <article class="poster" style="--image:url('https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&w=800&q=80')"><div class="card-title">Moon & Me</div><button class="poster-qr moon-qr" data-qr="QR 6: Winner!" data-qr-index="6" aria-label="Open QR code 6"><img src="https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=Congratulations%21%20You%27re%20the%20winner%21" alt="QR code 6"></button></article>
+        <article class="poster" style="--image:url('https://images.unsplash.com/photo-1491308059282-79a5e5e6f1a1?auto=format&fit=crop&w=800&q=80')"><div class="card-title">Happy Planet</div></article>
+        <article class="poster" style="--image:url('https://images.unsplash.com/photo-1489710437720-ebb67ec84dd2?auto=format&fit=crop&w=800&q=80')"><div class="card-title">The Workshop</div></article>
+        <article class="poster" style="--image:url('https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&w=800&q=80')"><div class="card-title">Star Pals</div></article>
+      </div>
+    </section>
+  </main>
+
+  <!-- Escape The Room Overlays and Scripts -->
+  <a href="index.html" class="escape-return-btn" style="position: fixed; bottom: 20px; left: 20px; z-index: 100; background: #e08a4c; color: #fff; padding: 10px 20px; border-radius: 5px; text-decoration: none; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">⬅ Return to Hub</a>
+
+  <div class="search-panel" id="searchPanel" aria-hidden="true">
+    <div class="search-box"><span>⌕</span><input id="searchInput" type="search" placeholder="Search movies, shows and sports" autocomplete="off"><button id="closeSearch" aria-label="Close search">×</button></div>
+    <p>Try searching for “drama”, “cricket”, or “lighthouse”.</p>
+  </div>
+  <div class="qr-modal" id="qrModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="qrTitle">
+    <div class="qr-dialog"><button class="qr-close" id="closeQr" aria-label="Close QR code">×</button><p class="eyebrow">SCAN TRAIL</p><h2 id="qrTitle">Scan to watch</h2><img id="qrLarge" alt="QR code"><p id="qrHint">Open your phone camera and scan this code to continue.</p></div>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <!-- Game Master Sync Script -->
+  <script src="script.js"></script>
+  <!-- Activity 4 Logic -->
+  <script src="timer-logic.js"></script>
+  <script src="vault-script.js"></script>
+</body>
+</html>

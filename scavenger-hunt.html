@@ -10,6 +10,19 @@
     <link rel="stylesheet" href="scavenger-hunt-style.css"> <!-- Specific to this stage -->
 </head>
 <body>
+    <!-- Start Game Overlay -->
+    <div id="startOverlay" class="start-overlay">
+        <div class="start-content">
+            <h2>DIGITAL SCAVENGER HUNT</h2>
+            <p>Time Limit: 10 Minutes</p>
+            <p>Are you ready to begin? The timer will start immediately.</p>
+            <button id="startPlayingBtn" class="ornate-btn">
+                <span class="btn-text">START PLAYING</span>
+                <span class="btn-arrow">➔</span>
+                <div class="btn-shine"></div>
+            </button>
+        </div>
+    </div>
     <!-- Background Canvas for Matrix Particles -->
     <canvas id="matrixCanvas"></canvas>
     <div class="overlay-scanline"></div>
@@ -173,6 +186,7 @@
         </div>
     </div>
 
+    <script src="timer-logic.js"></script>
     <script src="scavenger-hunt-script.js"></script>
 </body>
 </html>

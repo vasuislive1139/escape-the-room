@@ -1,0 +1,19 @@
+/* categories.css */
+.category-rail{padding-top:10px}
+.categories{display:flex;gap:13px;overflow-x:auto;padding:3px 0 9px}
+.category-card{border:0;border-radius:8px;color:#fff;text-align:left;padding:18px 16px;min-width:176px;height:100px;display:flex;flex-direction:column;justify-content:flex-end;gap:3px;background-size:cover;background-position:center;box-shadow:inset 0 -70px 45px rgba(6,17,28,.78);cursor:pointer;transition:.22s}
+.category-card:hover{transform:translateY(-4px);filter:saturate(1.25)}
+.category-card span{font:700 19px 'Space Grotesk'}
+.category-card small{color:#d7e1e4;font-size:10px}
+.action{background-image:url('https://images.unsplash.com/photo-1518173946687-a4c8892bbd9f?auto=format&fit=crop&w=700&q=80')}
+.drama{background-image:url('https://images.unsplash.com/photo-1493246507139-91e8fad9978e?auto=format&fit=crop&w=700&q=80')}
+.comedy{background-image:url('https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=700&q=80')}
+.scifi{background-image:url('https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=700&q=80')}
+.doc{background-image:url('https://images.unsplash.com/photo-1521292270410-a8c4d716d518?auto=format&fit=crop&w=700&q=80')}
+.family{background-image:url('https://images.unsplash.com/photo-1504159506876-f8338247a14e?auto=format&fit=crop&w=700&q=80')}
+.romance{background-image:url('https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?auto=format&fit=crop&w=700&q=80')}
+.horror{background-image:url('https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=700&q=80')}
+.anime{background-image:url('https://images.unsplash.com/photo-1519608487953-e999c86e7454?auto=format&fit=crop&w=700&q=80')}
+.reality{background-image:url('https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=700&q=80')}
+@media(max-width:650px){.category-card{min-width:150px;height:90px}.category-card span{font-size:17px}}nsform:rotate(0) scale(1)}.moon-qr{right:9px;bottom:31px;transform:rotate(-23deg) scale(.42)}
+.qr-locked{display:none!important}.category-card.qr-locked .qr-mini,.category-card.qr-locked .scan-label{display:none!important}

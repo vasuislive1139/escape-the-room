@@ -28,21 +28,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     renderCrossword(puzzleData);
     
-    // Timer Logic (8 minutes countdown)
-    let endTime = parseInt(localStorage.getItem(`escape_crossword_end_${teamId}`));
-    if (!endTime) {
-        endTime = Date.now() + (8 * 60 * 1000);
-        localStorage.setItem(`escape_crossword_end_${teamId}`, endTime);
+    // Timer Logic (dynamic pausable)
+    if (typeof initStageTimer === 'function') {
+        initStageTimer(1); // 1 = crossword
     }
-    
-    const timerEl = document.getElementById('timer');
-    setInterval(() => {
-        let remaining = Math.floor((endTime - Date.now()) / 1000);
-        if (remaining < 0) remaining = 0;
-        const m = Math.floor(remaining / 60);
-        const s = remaining % 60;
-        if (timerEl) timerEl.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-    }, 1000);
     
     setupValidation(puzzleData, teamId);
 });
@@ -312,29 +301,11 @@ function triggerStage2Completion(teamId) {
 
 // --- Audio Effects System ---
 let audioCtx = null;
-let bgOsc = null;
 
 function initAudio() {
     if (!audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
-        // Background Desert Drone
-        bgOsc = audioCtx.createOscillator();
-        const bgGain = audioCtx.createGain();
-        bgOsc.type = 'sine';
-        bgOsc.frequency.value = 55; // Low desert hum
-        bgGain.gain.value = 0.05;
-        
-        bgOsc.connect(bgGain);
-        bgGain.connect(audioCtx.destination);
-        bgOsc.start();
-        
-        // Add subtle modulation
-        setInterval(() => {
-            if (audioCtx) {
-                bgOsc.frequency.linearRampToValueAtTime(55 + (Math.random() * 5), audioCtx.currentTime + 2);
-            }
-        }, 4000);
+        // Background audio removed as per request
     }
 }
 

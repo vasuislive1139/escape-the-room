@@ -1,0 +1,98 @@
+/* QR Modal Styles */
+.qr-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(7, 18, 30, 0.96);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(10px);
+}
+
+.qr-modal[aria-hidden="true"] {
+    display: none;
+}
+
+.qr-dialog {
+    background: #101f2d;
+    border: 1px solid var(--aqua, #72ead4);
+    border-radius: 12px;
+    padding: 30px;
+    text-align: center;
+    position: relative;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.qr-close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: transparent;
+    border: none;
+    color: #8f9da7;
+    font-size: 32px;
+    cursor: pointer;
+}
+
+.qr-close:hover {
+    color: white;
+}
+
+#qrLarge {
+    width: 250px;
+    height: 250px;
+    margin: 20px auto;
+    display: block;
+    border-radius: 8px;
+    background: white;
+    padding: 10px;
+}
+
+#qrHint {
+    color: #8f9da7;
+    font-size: 14px;
+    margin-top: 15px;
+}
+
+/* Add some styles to the mini QRs inside buttons */
+.category-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.category-card .qr-mini {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    width: 60px;
+    height: 60px;
+    opacity: 0;
+    transition: 0.3s;
+    background: white;
+    padding: 2px;
+    border-radius: 4px;
+    pointer-events: none;
+}
+
+.category-card:hover .qr-mini {
+    opacity: 1;
+    transform: translate(-15px, 15px);
+}
+
+.scan-label {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(114, 234, 212, 0.2);
+    color: #72ead4;
+    padding: 2px 6px;
+    font-size: 10px;
+    border-radius: 4px;
+    letter-spacing: 1px;
+}

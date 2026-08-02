@@ -1,0 +1,154 @@
+const toast = document.getElementById('toast');
+let toastTimer;
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (typeof initStageTimer === 'function') {
+        initStageTimer(4);
+    }
+});
+
+let unlockedIndex = parseInt(localStorage.getItem('streamwave_qr_progress')) || 1;
+
+function notify(message) {
+  toast.textContent = message;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 2600);
+}
+
+function updateQrVisibility() {
+  document.querySelectorAll('[data-qr-index]').forEach(el => {
+    const idx = parseInt(el.getAttribute('data-qr-index'));
+    if (idx <= unlockedIndex) {
+      el.classList.remove('qr-locked');
+    } else {
+      el.classList.add('qr-locked');
+    }
+  });
+}
+
+// Initial visibility setup
+updateQrVisibility();
+
+document.querySelectorAll('.chip').forEach(chip => chip.addEventListener('click', () => {
+  document.querySelector('.chip.selected').classList.remove('selected');
+  chip.classList.add('selected');
+  notify(`${chip.textContent} picks loaded`);
+}));
+
+document.querySelectorAll('.category-card').forEach(category => category.addEventListener('click', event => {
+  if (category.dataset.qr) {
+    const index = parseInt(category.getAttribute('data-qr-index'));
+    if (index <= unlockedIndex) {
+      const bounds = category.getBoundingClientRect();
+      const insideSecretCorner = event.clientX > bounds.right - 52 && event.clientY < bounds.top + 55;
+      if (insideSecretCorner) {
+        openQr(category.dataset.qr, category.querySelector('.qr-mini').src, index);
+        return;
+      }
+    }
+  }
+  notify(`${category.dataset.category} collection loaded`);
+}));
+
+document.querySelectorAll('.poster').forEach(card => card.addEventListener('click', () => {
+  const title = card.querySelector('.card-title, .sport-info b')?.textContent || 'live stream';
+  notify(`Opening ${title}...`);
+}));
+
+document.getElementById('playHero').addEventListener('click', () => notify('Starting The Last Lighthouse...'));
+document.querySelector('.circle-button').addEventListener('click', () => notify('Added to My List'));
+
+const panel = document.getElementById('searchPanel');
+const input = document.getElementById('searchInput');
+document.getElementById('searchButton').addEventListener('click', () => {
+  panel.classList.add('open');
+  panel.setAttribute('aria-hidden', 'false');
+  setTimeout(() => input.focus(), 50);
+});
+document.getElementById('closeSearch').addEventListener('click', closeSearch);
+function closeSearch() {
+  panel.classList.remove('open');
+  panel.setAttribute('aria-hidden', 'true');
+}
+
+const qrModal = document.getElementById('qrModal');
+const qrTitle = document.getElementById('qrTitle');
+const qrLarge = document.getElementById('qrLarge');
+const qrHint = document.getElementById('qrHint');
+function openQr(title, src, index) {
+  qrTitle.textContent = title;
+  qrLarge.src = src.replace('size=110x110', 'size=300x300');
+  qrHint.textContent = 'Scan this code with your phone camera to reveal the next clue.';
+  qrModal.classList.add('open');
+  qrModal.setAttribute('aria-hidden', 'false');
+
+  if (index === unlockedIndex && unlockedIndex < 6) {
+    unlockedIndex++;
+    localStorage.setItem('streamwave_qr_progress', unlockedIndex);
+    updateQrVisibility();
+    notify("Next clue unlocked!");
+  } else if (index === 6) {
+    notify("Congratulations! You completed the hunt! 🎉");
+    
+    // ESCAPE THE ROOM INTEGRATION
+    const curLvl = parseInt(localStorage.getItem('escape_unlocked_level')) || 1;
+    if (curLvl < 5) {
+        localStorage.setItem('escape_unlocked_level', 5); // 5 = fully completed
+        
+        // Broadcast completion to Game Master
+        const teamId = localStorage.getItem('escape_team_id');
+        if (teamId) {
+            try {
+                const playerBroadcastChannel = new BroadcastChannel('escape_gm_channel');
+                playerBroadcastChannel.postMessage({
+                    type: 'PLAYER_UPDATE',
+                    teamId: teamId,
+                    stage: 5
+                });
+            } catch(e) {}
+        }
+    }
+  }
+}
+function closeQr() {
+  qrModal.classList.remove('open');
+  qrModal.setAttribute('aria-hidden', 'true');
+}
+document.querySelectorAll('.section-qr').forEach(button => button.addEventListener('click', () => {
+  const index = parseInt(button.getAttribute('data-qr-index'));
+  if (index <= unlockedIndex) {
+    openQr(button.dataset.qr, button.querySelector('img').src, index);
+  }
+}));
+document.querySelectorAll('.poster-qr').forEach(button => button.addEventListener('click', event => {
+  event.stopPropagation();
+  const index = parseInt(button.getAttribute('data-qr-index'));
+  if (index <= unlockedIndex) {
+    openQr(button.dataset.qr, button.querySelector('img').src, index);
+  }
+}));
+document.getElementById('closeQr').addEventListener('click', closeQr);
+qrModal.addEventListener('click', event => {
+  if (event.target === qrModal) closeQr();
+});
+
+document.querySelector('.profile').addEventListener('click', () => {
+  if (confirm("Reset the scavenger hunt progress?")) {
+    unlockedIndex = 1;
+    localStorage.setItem('streamwave_qr_progress', unlockedIndex);
+    updateQrVisibility();
+    notify("Hunt progress reset to start!");
+  }
+});
+
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape') {
+    closeSearch();
+    closeQr();
+  }
+  if (event.key === 'Enter' && document.activeElement === input && input.value.trim()) {
+    notify(`Searching for ${input.value.trim()}`);
+    closeSearch();
+  }
+});

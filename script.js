@@ -481,29 +481,49 @@ function renderProgressionState() {
         const badge = card.querySelector('.stage-badge');
         const btn = card.querySelector('.explore-btn');
 
-        if (i <= unlockedLevel) {
+        // STRICT ACCESS LOGIC: Only the CURRENT unlocked level is open. 
+        // Previously beaten levels are locked. (Unless unlockedLevel > 4 meaning they beat the game)
+        const isCurrentActive = (i === unlockedLevel);
+        const hasBeatenGame = (unlockedLevel > 4);
+        
+        if (isCurrentActive || hasBeatenGame) {
             card.className = 'activity-card unlocked';
             if (badge) {
                 badge.className = 'stage-badge';
-                badge.textContent = i < unlockedLevel ? `STAGE 0${i} — COMPLETED ✓` : `STAGE 0${i} — OPEN`;
+                badge.textContent = hasBeatenGame ? `STAGE 0${i} — COMPLETED ✓` : `STAGE 0${i} — OPEN`;
             }
             if (btn) {
                 btn.className = 'explore-btn unlocked-btn';
-                btn.innerHTML = `<span>${i < unlockedLevel ? 'RE-EXPLORE' : 'EXPLORE'}</span><span class="arrow">➔</span>`;
+                btn.innerHTML = `<span>${hasBeatenGame ? 'RE-EXPLORE' : 'EXPLORE'}</span><span class="arrow">➔</span>`;
                 const activityId = i;
+                
+                // NEW ROUTING: 1=Crossword, 2=Scavenger, 3=Cipher, 4=Vault
                 if (activityId === 1) {
-                    btn.textContent = "EXPLORE";
-                    btn.setAttribute('onclick', "window.location.href = 'scavenger-hunt.html'");
-                } else if (activityId === 2) {
-                    btn.textContent = "EXPLORE";
                     btn.setAttribute('onclick', "window.location.href = 'crossword.html'");
+                } else if (activityId === 2) {
+                    btn.setAttribute('onclick', "window.location.href = 'scavenger-hunt.html'");
                 } else if (activityId === 3) {
                     btn.setAttribute('onclick', "window.location.href = 'cipher-chase.html'");
+                } else if (activityId === 4) {
+                    btn.setAttribute('onclick', "window.location.href = 'vault.html'");
                 } else {
                     btn.setAttribute('onclick', `openChallengeModal(${i})`);
                 }
             }
+        } else if (i < unlockedLevel) {
+            // Already beaten but game not over
+            card.className = 'activity-card locked';
+            if (badge) {
+                badge.className = 'stage-badge locked-badge';
+                badge.textContent = `🔒 STAGE 0${i} — COMPLETED`;
+            }
+            if (btn) {
+                btn.className = 'explore-btn locked-btn';
+                btn.innerHTML = `<span class="lock-icon">🔒</span><span class="btn-label">FINISHED</span>`;
+                btn.setAttribute('onclick', "showNotification('You have already completed this stage. Focus on the current one!')");
+            }
         } else {
+            // Not reached yet
             card.className = 'activity-card locked';
             if (badge) {
                 badge.className = 'stage-badge locked-badge';
@@ -511,7 +531,7 @@ function renderProgressionState() {
             }
             if (btn) {
                 btn.className = 'explore-btn locked-btn';
-                btn.innerHTML = `<span class="lock-icon">🔒</span><span class="btn-label">LOCKED</span>`;
+                btn.innerHTML = `<span class="lock-icon">🔒</span><span class="btn-label">EXPLORE</span>`;
                 btn.setAttribute('onclick', `handleLockedClick(${i})`);
             }
         }
@@ -594,15 +614,30 @@ function syncWithGameMasterDb() {
                 if (foundKey) teamData = db[foundKey];
             }
             if (teamData) {
-                // Check Freeze status change
+                // Check Freeze or Timeout status change
                 const isNowFrozen = (teamData.status === 'frozen');
-                if (lastSyncedFreezeState !== isNowFrozen) {
-                    lastSyncedFreezeState = isNowFrozen;
+                const isNowTimeout = (teamData.status === 'timeout');
+                
+                const newStatus = isNowTimeout ? 'timeout' : (isNowFrozen ? 'frozen' : 'active');
+                
+                if (lastSyncedFreezeState !== newStatus) {
+                    lastSyncedFreezeState = newStatus;
                     const overlay = document.getElementById('gmFreezeOverlay');
                     if (overlay) {
-                        if (isNowFrozen) {
+                        if (isNowFrozen || isNowTimeout) {
                             overlay.classList.remove('hidden');
                             if (typeof playErrorSound === 'function') playErrorSound();
+                            
+                            const title = overlay.querySelector('h3');
+                            const text = overlay.querySelector('p');
+                            
+                            if (isNowTimeout) {
+                                if (title) title.textContent = "DISQUALIFIED";
+                                if (text) text.textContent = "Your time has expired. Please see the Game Master if you believe this is an error.";
+                            } else {
+                                if (title) title.textContent = "SYSTEM LOCKED";
+                                if (text) text.textContent = "Your connection has been frozen by the Game Master.";
+                            }
                         } else {
                             overlay.classList.add('hidden');
                             if (typeof playUnlockSound === 'function') playUnlockSound();
@@ -657,6 +692,101 @@ function processGmCommand(cmd) {
         const overlay = document.getElementById('gmFreezeOverlay');
         if (overlay) overlay.classList.add('hidden');
         showToast("🔥 ACCOUNT UNFROZEN", cmd.message || "Gameplay restored.");
+    } else if (cmd.type === 'REVIVE') {
+        playUnlockSound();
+        const overlay = document.getElementById('gmFreezeOverlay');
+        if (overlay) overlay.classList.add('hidden');
+        
+        // Add 5 minutes (300 seconds) to the current stage timer
+        const currentLocalStage = parseInt(localStorage.getItem('escape_unlocked_level') || '1', 10);
+        const myTeam = localStorage.getItem('escape_team_id') || 'UNKNOWN';
+        let stageName = '';
+        if (currentLocalStage === 1) stageName = 'crossword';
+        else if (currentLocalStage === 2) stageName = 'sh';
+        else if (currentLocalStage === 3) stageName = 'cipher';
+        else if (currentLocalStage === 4) stageName = 'vault';
+        
+        if (stageName) {
+            localStorage.setItem(`escape_${stageName}_timer_end_${myTeam}`, Date.now() + (5 * 60 * 1000));
+            // For scavenger hunt, it also uses sh_time
+            if (currentLocalStage === 2) {
+                localStorage.setItem('sh_time', '300');
+            }
+        }
+        
+        showToast("💚 TEAM REVIVED", cmd.message || "You have been granted 5 extra minutes!");
+    } else if (cmd.type === 'GAME_OVER') {
+        playErrorSound();
+        const podium = document.getElementById('podiumOverlay');
+        const freeze = document.getElementById('gmFreezeOverlay');
+        
+        if (podium && cmd.leaderboard) {
+            if (freeze) freeze.classList.add('hidden');
+            podium.classList.remove('hidden');
+            
+            const db = cmd.leaderboard;
+            const teamNames = Object.keys(db);
+            const sortedTeams = teamNames
+                .map(name => ({ name, ...db[name] }))
+                .sort((a, b) => {
+                    const stageA = a.stage || 1;
+                    const stageB = b.stage || 1;
+                    if (stageB !== stageA) return stageB - stageA;
+                    const scoreA = a.score || 0;
+                    const scoreB = b.score || 0;
+                    return scoreB - scoreA;
+                });
+            
+            // Populate Top 3
+            const top1 = sortedTeams[0];
+            const top2 = sortedTeams[1];
+            const top3 = sortedTeams[2];
+            
+            const p1 = document.getElementById('podium1');
+            if (p1 && top1) p1.querySelector('.podium-team').textContent = top1.name;
+            
+            const p2 = document.getElementById('podium2');
+            if (p2 && top2) p2.querySelector('.podium-team').textContent = top2.name;
+            
+            const p3 = document.getElementById('podium3');
+            if (p3 && top3) p3.querySelector('.podium-team').textContent = top3.name;
+            
+            // Populate the rest
+            const restTable = document.getElementById('podiumRestTable');
+            if (restTable) {
+                restTable.innerHTML = '';
+                sortedTeams.slice(3).forEach((team, idx) => {
+                    const rank = idx + 4;
+                    let statusHtml = '<span style="color:#50e3c2;">ACTIVE</span>';
+                    if (team.status === 'timeout') statusHtml = '<span style="color:#ff5555; font-weight:bold;">FAILED (TIMEOUT)</span>';
+                    else if (team.status === 'frozen') statusHtml = '<span style="color:#aaddff;">FROZEN</span>';
+                    else if (team.stage >= 5) statusHtml = '<span style="color:gold;">ESCAPED</span>';
+                    
+                    const tr = document.createElement('tr');
+                    tr.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+                    tr.innerHTML = `
+                        <td style="padding: 12px; text-align: center;">${rank}</td>
+                        <td style="padding: 12px; font-weight: 500;">${team.name}</td>
+                        <td style="padding: 12px; text-align: center;">Stage ${team.stage || 1}</td>
+                        <td style="padding: 12px; text-align: right; color: #ffd700;">${team.score || 0}</td>
+                        <td style="padding: 12px; text-align: center;">${statusHtml}</td>
+                    `;
+                    restTable.appendChild(tr);
+                });
+            }
+            
+            showToast("🏆 EVENT CONCLUDED", "Top 3 teams have escaped. Systems offline.");
+        } else {
+            // Fallback if no podium overlay exists
+            if (freeze) {
+                freeze.classList.remove('hidden');
+                const title = freeze.querySelector('h3');
+                if (title) title.textContent = "GAME OVER";
+                const text = freeze.querySelector('p');
+                if (text) text.textContent = "The Live Finale has concluded. The top 3 teams have already escaped!";
+            }
+            showToast("🏆 EVENT CONCLUDED", "Top 3 teams have escaped. Systems offline.");
+        }
     } else if (cmd.type === 'PROMOTE') {
         playUnlockSound();
         const cur = parseInt(localStorage.getItem('escape_unlocked_level') || '1', 10);

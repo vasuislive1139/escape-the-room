@@ -143,33 +143,6 @@
                         <footer class="login-footer">
                             <p class="footer-primary">Don’t have credentials yet?</p>
                             <p class="footer-secondary">Complete offline challenges to get access.</p>
-                            
-                            <!-- Demo Helpers for Quick Testing -->
-                            <div class="demo-hints" style="width: 100%; margin-top: 16px;">
-                                <button type="button" id="demoHintBtn" class="hint-toggle" style="width: 100%; justify-content: center; background: rgba(80, 227, 194, 0.15); border: 1px solid #50e3c2; color: #68fedb; padding: 10px; border-radius: 6px; font-weight: 800;">
-                                    <span>⚡ CLICK HERE: INSTANT DEMO LOGIN ACCOUNTS ➔</span>
-                                </button>
-                                <div id="demoHintContent" class="hint-content hidden" style="margin-top: 12px; padding: 16px; background: rgba(6, 12, 20, 0.95); border: 1px solid rgba(80, 227, 194, 0.4); border-radius: 8px;">
-                                    <p style="color: #ffe8b3; font-size: 0.85rem; margin-bottom: 10px; font-weight: 700;">🎯 One-Click Instant Login (Select Team):</p>
-                                    <div style="display: flex; flex-direction: column; gap: 8px;">
-                                        <button type="button" onclick="quickLoginAs('TEAM-ALPHA', 'ESCAPE2026')" style="background: rgba(30, 45, 60, 0.9); border: 1px solid #ffe8b3; color: #ffffff; padding: 10px; border-radius: 6px; font-weight: 700; cursor: pointer; text-align: left; display: flex; justify-content: space-between;">
-                                            <span>🚀 TEAM-ALPHA</span><small style="color:#ffe8b3;">Stage 1: Puzzle</small>
-                                        </button>
-                                        <button type="button" onclick="quickLoginAs('CYBER KNIGHTS', 'TATVAPASS1')" style="background: rgba(30, 45, 60, 0.9); border: 1px solid #68fedb; color: #ffffff; padding: 10px; border-radius: 6px; font-weight: 700; cursor: pointer; text-align: left; display: flex; justify-content: space-between;">
-                                            <span>⚡ CYBER KNIGHTS</span><small style="color:#68fedb;">Stage 2: Treasure</small>
-                                        </button>
-                                        <button type="button" onclick="quickLoginAs('PHOENIX-007', 'UNLOCKME')" style="background: rgba(30, 45, 60, 0.9); border: 1px solid #d9b3ff; color: #ffffff; padding: 10px; border-radius: 6px; font-weight: 700; cursor: pointer; text-align: left; display: flex; justify-content: space-between;">
-                                            <span>🔥 PHOENIX-007</span><small style="color:#d9b3ff;">Stage 3: Caesar</small>
-                                        </button>
-                                        <button type="button" onclick="quickLoginAs('SHERLOCK HOMIES', 'BAKER221')" style="background: rgba(30, 45, 60, 0.9); border: 1px solid #ffca68; color: #ffffff; padding: 10px; border-radius: 6px; font-weight: 700; cursor: pointer; text-align: left; display: flex; justify-content: space-between;">
-                                            <span>🏆 SHERLOCK HOMIES</span><small style="color:#ffca68;">Stage 4: Rewards</small>
-                                        </button>
-                                        <a href="admin.html" target="_blank" style="margin-top: 4px; background: linear-gradient(90deg, #50e3c2, #20d8ab); color: #000000; padding: 10px; border-radius: 6px; font-weight: 900; text-align: center; display: block; text-decoration: none; box-shadow: 0 0 15px rgba(80, 227, 194, 0.5);">
-                                            👑 OPEN GAME MASTER COMMAND CENTER ➔
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
                         </footer>
                     </div>
                 </div>
@@ -181,7 +154,7 @@
     <div id="unlockModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
         <div class="modal-content">
             <div class="lock-animation-box">
-                <svg class="unlock-svg" viewBox="0 0 64 64" fill="none" stroke="var(--gold-primary)" stroke-width="2.5">
+                <svg class="unlock-svg" viewBox="0 0 64 64" fill="none" stroke="var(--gold-primary)" stroke-width="2.5" style="overflow: visible;">
                     <rect x="12" y="28" width="40" height="28" rx="4" fill="rgba(20, 16, 12, 0.9)"/>
                     <path id="lockShackle" d="M20 28 V 16 A 12 12 0 0 1 44 16 V 28" stroke-linecap="round"/>
                     <circle cx="32" cy="40" r="4" fill="var(--gold-bright)"/>

@@ -168,30 +168,227 @@ body.admin-body .atmosphere-overlay {
 .admin-logout:hover { border-color: #ff6b6b; color: #ff6b6b; background: rgba(255, 107, 107, 0.15); }
 
 /* ==========================================================================
-   MAIN LAYOUT GRID (3 COLUMNS)
+   APP SHELL (SIDEBAR & MAIN VIEW)
    ========================================================================== */
-.admin-main-grid {
+.admin-shell {
     display: grid;
-    grid-template-columns: minmax(360px, 1fr) minmax(440px, 1.6fr);
-    grid-template-areas:
-        "cred actions"
-        "analytics analytics";
-    gap: 32px;
-    align-items: start;
+    grid-template-columns: 260px 1fr;
+    gap: 24px;
     margin-top: 24px;
+    align-items: start;
+    height: calc(100vh - 140px);
 }
-.cred-generator-panel { grid-area: cred; }
-.actions-panel { grid-area: actions; }
-.analytics-panel { grid-area: analytics; }
 
-@media (max-width: 1150px) {
-    .admin-main-grid {
-        grid-template-columns: 1fr;
-        grid-template-areas:
-            "cred"
-            "actions"
-            "analytics";
-    }
+.admin-sidebar {
+    background: rgba(10, 16, 26, 0.95);
+    border: 1px solid rgba(80, 227, 194, 0.2);
+    border-radius: 12px;
+    padding: 20px 12px;
+    height: 100%;
+    overflow-y: auto;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8), 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.nav-section {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.nav-section-title {
+    font-size: 0.7rem;
+    color: #68fedb;
+    letter-spacing: 0.15em;
+    font-weight: 800;
+    padding-left: 12px;
+    margin-bottom: 4px;
+    opacity: 0.7;
+}
+
+.nav-btn {
+    background: transparent;
+    border: none;
+    color: #c4d8e8;
+    text-align: left;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.nav-btn .icon {
+    font-size: 1.1rem;
+    opacity: 0.8;
+}
+
+.nav-btn:hover {
+    background: rgba(80, 227, 194, 0.1);
+    color: #ffffff;
+}
+
+.nav-btn.active {
+    background: rgba(80, 227, 194, 0.15);
+    color: #68fedb;
+    border-left: 4px solid #68fedb;
+}
+
+.admin-content-area {
+    background: rgba(14, 22, 34, 0.82);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(80, 227, 194, 0.22);
+    border-radius: 14px;
+    padding: 32px;
+    height: 100%;
+    overflow-y: auto;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75);
+}
+
+.admin-view {
+    display: none;
+    animation: fadeIn 0.4s ease;
+}
+
+.admin-view.active {
+    display: block;
+}
+
+.view-header {
+    border-bottom: 1px dashed rgba(80, 227, 194, 0.4);
+    padding-bottom: 16px;
+    margin-bottom: 24px;
+}
+
+.view-header h2 {
+    font-family: var(--font-heading);
+    font-size: 1.6rem;
+    color: #ffe8b3;
+    letter-spacing: 0.05em;
+    font-weight: 800;
+    text-shadow: 0 0 15px rgba(255, 232, 179, 0.2);
+}
+
+.flex-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Overview Cards */
+.overview-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.metric-card {
+    background: rgba(6, 12, 20, 0.9);
+    border: 1px solid rgba(80, 227, 194, 0.3);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.8);
+}
+
+.metric-title {
+    font-size: 0.8rem;
+    color: #a3c1db;
+    letter-spacing: 0.1em;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.metric-value {
+    font-family: var(--font-heading);
+    font-size: 2.2rem;
+    font-weight: 900;
+}
+
+.dashboard-split {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+}
+
+/* ==========================================================================
+   MODALS
+   ========================================================================== */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(4, 8, 14, 0.94);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(10px);
+}
+
+.modal-overlay.hidden {
+    display: none;
+}
+
+.modal-content {
+    width: 90%;
+    max-width: 600px;
+    background: radial-gradient(circle at center, rgba(20, 32, 48, 0.98), rgba(10, 16, 26, 0.98));
+    border: 2px solid var(--nexus-cyan-bright);
+    box-shadow: 0 0 70px rgba(80, 227, 194, 0.35), 0 20px 50px rgba(0, 0, 0, 0.95);
+    border-radius: 12px;
+    padding: 30px;
+    position: relative;
+    animation: fadeIn 0.3s ease;
+}
+
+.close-modal-btn {
+    background: transparent;
+    border: none;
+    color: #ff6b6b;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.close-modal-btn:hover {
+    color: #ff8e68;
+    transform: scale(1.1);
+}
+
+/* ==========================================================================
+   ROOM CONTROLS
+   ========================================================================== */
+.room-control-card {
+    border-top: 3px solid var(--nexus-cyan-bright);
+}
+
+.room-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.status-live {
+    background: #ff4f55;
+    color: #fff;
+    font-weight: bold;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.6; }
+    100% { opacity: 1; }
 }
 
 .admin-panel {

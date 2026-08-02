@@ -248,79 +248,303 @@ function getTeamsDb() {
 
 function saveTeamsDb(db) {
     localStorage.setItem('escape_teams_db', JSON.stringify(db));
-    renderAnalyticsAndRoster();
+    if (typeof renderAnalyticsAndRoster === 'function') renderAnalyticsAndRoster();
 }
 
-function initCredentialGenerator() {
-    const form = document.getElementById('createTeamForm');
-    const genBtn = document.getElementById('generatePassBtn');
-    const passInput = document.getElementById('newTeamPassword');
+function getSlotsDb() {
+    try { return JSON.parse(localStorage.getItem('escape_slots_db')) || []; } catch(e) { return []; }
+}
+function saveSlotsDb(db) {
+    localStorage.setItem('escape_slots_db', JSON.stringify(db));
+}
 
-    if (genBtn && passInput) {
-        genBtn.addEventListener('click', () => {
-            const words = ['CYBER', 'VAULT', 'TATVA', 'ENIGMA', 'SOLVE', 'HACK', 'QUEST', 'GOLD'];
-            const randomWord = words[Math.floor(Math.random() * words.length)];
-            const randomNum = Math.floor(1000 + Math.random() * 9000);
-            passInput.value = `${randomWord}${randomNum}`;
-        });
+function getVolunteersDb() {
+    try { return JSON.parse(localStorage.getItem('escape_volunteers_db')) || []; } catch(e) { return []; }
+}
+function saveVolunteersDb(db) {
+    localStorage.setItem('escape_volunteers_db', JSON.stringify(db));
+}
+
+function getSettingsDb() {
+    const defaultSettings = { eventName: "Escape The Room", eventDate: "", teamSizeLimit: 4, roomsCount: 4, timeLimit: 60 };
+    try { return JSON.parse(localStorage.getItem('escape_settings_db')) || defaultSettings; } catch(e) { return defaultSettings; }
+}
+function saveSettingsDb(db) {
+    localStorage.setItem('escape_settings_db', JSON.stringify(db));
+}
+
+function getLogsDb() {
+    try { return JSON.parse(localStorage.getItem('escape_logs_db')) || []; } catch(e) { return []; }
+}
+function saveLogsDb(db) {
+    localStorage.setItem('escape_logs_db', JSON.stringify(db));
+}
+
+function addDetailedLog(action, category = 'system', teamId = null, room = null) {
+    const logs = getLogsDb();
+    logs.unshift({
+        id: Date.now().toString(36) + Math.random().toString(36).substr(2),
+        timestamp: Date.now(),
+        action: action,
+        category: category,
+        teamId: teamId,
+        room: room
+    });
+    if (logs.length > 1000) logs.pop(); // keep last 1000
+    saveLogsDb(logs);
+    if (typeof renderLiveActivityFeed === 'function') {
+        renderLiveActivityFeed();
     }
+}
 
-    if (form) {
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const nameEl = document.getElementById('newTeamName');
-            const passEl = document.getElementById('newTeamPassword');
-            const stageEl = document.getElementById('startingStage');
+// Ensure the render is exported/called correctly where saveTeamsDb used to call it.
+// I will wrap saveTeamsDb to still call it if it exists.
+function saveTeamsDbAndRender(db) {
+    saveTeamsDb(db);
+    if (typeof renderAnalyticsAndRoster === 'function') renderAnalyticsAndRoster();
+}
 
-            const teamName = nameEl.value.trim().toUpperCase();
-            const teamPass = passEl.value.trim();
-            const stageNum = parseInt(stageEl.value, 10) || 1;
-
-            if (!teamName || !teamPass) return;
-
-            const db = getTeamsDb();
-            db[teamName] = { password: teamPass, stage: stageNum, status: 'active', warnings: 0 };
-            saveTeamsDb(db);
-
-            nameEl.value = '';
-            passEl.value = '';
-            showAdminToast("🎟️ Credential Created", `Team ${teamName} registered at Stage 0${stageNum}!`);
-            addLogItem(`Created credentials for [${teamName}] — Pass: ${teamPass}, Stage: ${stageNum}`, 'system');
-        });
+// --- SIDEBAR ARCHITECTURE ---
+function switchAdminView(viewId) {
+    // Hide all views
+    document.querySelectorAll('.admin-view').forEach(view => {
+        view.classList.remove('active');
+    });
+    // Remove active class from all nav buttons
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Show selected view
+    const selectedView = document.getElementById('view-' + viewId);
+    if (selectedView) {
+        selectedView.classList.add('active');
+    } else {
+        // Fallback to placeholder if view doesn't exist yet
+        const placeholder = document.getElementById('view-placeholder');
+        if (placeholder) placeholder.classList.add('active');
     }
+    
+    // Highlight active nav button
+    const activeBtn = document.querySelector(`.nav-btn[onclick="switchAdminView('${viewId}')"]`);
+    if (activeBtn) {
+        activeBtn.classList.add('active');
+    }
+}
 
-    renderAnalyticsAndRoster();
+// --- TEAM MANAGEMENT MODAL ---
+function openAddTeamModal() {
+    const modal = document.getElementById('addTeamModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        document.getElementById('modalTeamPassword').value = Math.random().toString(36).slice(-6).toUpperCase();
+    }
+}
 
+function handleAddNewTeam(e) {
+    e.preventDefault();
+    const nameInput = document.getElementById('modalTeamName').value.trim();
+    const membersInput = document.getElementById('modalTeamMembers').value.trim();
+    const passInput = document.getElementById('modalTeamPassword').value.trim();
+    const stageInput = parseInt(document.getElementById('modalTeamStage').value);
+    
+    if (!nameInput || !passInput) return;
+    
+    const db = getTeamsDb();
+    if (db[nameInput]) {
+        showAdminToast("⚠️ Error", "A team with this ID already exists!");
+        return;
+    }
+    
+    db[nameInput] = {
+        password: passInput,
+        stage: stageInput,
+        status: 'active', // can be registered, active, frozen
+        warnings: 0,
+        members: membersInput,
+        slotId: null,
+        score: 0,
+        entryTime: Date.now()
+    };
+    
+    saveTeamsDbAndRender(db);
+    addDetailedLog(`Team registered: ${nameInput}`, 'team', nameInput, `Room ${stageInput}`);
+    
+    // Close modal and reset form
+    document.getElementById('addTeamModal').classList.add('hidden');
+    document.getElementById('newTeamForm').reset();
+    showAdminToast("✅ Success", `Team ${nameInput} created successfully.`);
+}
+
+function openCreateSlotModal() {
+    document.getElementById('slotStartTime').value = '';
+    document.getElementById('slotEndTime').value = '';
+    document.getElementById('slotCapacity').value = '4';
+    document.getElementById('addSlotModal').classList.remove('hidden');
+}
+
+function handleCreateSlot(e) {
+    e.preventDefault();
+    const start = document.getElementById('slotStartTime').value;
+    const end = document.getElementById('slotEndTime').value;
+    const capacity = parseInt(document.getElementById('slotCapacity').value) || 4;
+    
+    if (!start || !end) return;
+    
+    const settings = getSettingsDb();
+    const slotId = 'slot_' + Date.now();
+    
+    settings.slots = settings.slots || {};
+    settings.slots[slotId] = {
+        id: slotId,
+        start,
+        end,
+        capacity,
+        teams: []
+    };
+    
+    saveSettingsDb(settings);
+    addDetailedLog(`Created new time slot: ${start} - ${end}`, 'system', 'Admin', 'Dashboard');
+    
+    document.getElementById('addSlotModal').classList.add('hidden');
+    document.getElementById('addSlotForm').reset();
+    showAdminToast("✅ Slot Created", `Slot ${start}-${end} added.`);
+    renderSlots();
+}
+
+function renderSlots() {
+    const tbody = document.getElementById('slotsTableBody');
+    if (!tbody) return;
+    
+    const settings = getSettingsDb();
+    const slots = settings.slots || {};
+    const slotKeys = Object.keys(slots).sort((a, b) => slots[a].start.localeCompare(slots[b].start));
+    
+    if (slotKeys.length === 0) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="5">No slots configured.</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = '';
+    
+    slotKeys.forEach(key => {
+        const slot = slots[key];
+        const tr = document.createElement('tr');
+        
+        const teamsStr = slot.teams && slot.teams.length > 0 ? slot.teams.join(', ') : 'None';
+        const isFull = slot.teams && slot.teams.length >= slot.capacity;
+        const statusBadge = isFull ? '<span class="badge" style="background:#ff4f55;">FULL</span>' : '<span class="badge" style="background:#50e3c2; color:#000;">OPEN</span>';
+        
+        tr.innerHTML = `
+            <td><strong>${slot.start} - ${slot.end}</strong></td>
+            <td>${(slot.teams && slot.teams.length) || 0} / ${slot.capacity}</td>
+            <td style="color:#a5b0bb;">${teamsStr}</td>
+            <td>${statusBadge}</td>
+            <td>
+                <button class="action-btn" onclick="deleteSlot('${key}')" title="Delete Slot">🗑️</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function deleteSlot(slotId) {
+    if(!confirm("Are you sure you want to delete this slot?")) return;
+    const settings = getSettingsDb();
+    if(settings.slots && settings.slots[slotId]) {
+        delete settings.slots[slotId];
+        saveSettingsDb(settings);
+        showAdminToast("🗑️ Slot Deleted", "Time slot removed.");
+        renderSlots();
+    }
+}
+
+function broadcastToRoom(roomNumber, action) {
+    const db = getTeamsDb();
+    const teamsInRoom = Object.keys(db).filter(t => (db[t].stage || 1) === roomNumber);
+    
+    if (teamsInRoom.length === 0) {
+        showAdminToast("⚠️ Empty Room", `No teams currently in Room ${roomNumber}.`);
+        return;
+    }
+    
+    let message = "";
+    if (action === 'PAUSE') message = "⏸️ Global Room Pause Triggered.";
+    else if (action === 'HINT') message = "💡 A hint has been broadcasted to your room.";
+    
+    teamsInRoom.forEach(teamId => {
+        transmitGmCommand(teamId, action, message, 'info');
+    });
+    
+    showAdminToast("📢 Room Broadcast", `${action} sent to ${teamsInRoom.length} teams in Room ${roomNumber}.`);
+    addDetailedLog(`Broadcasted ${action} to Room ${roomNumber}`, 'system', 'Admin', `Room ${roomNumber}`);
+}
+function initAdminListeners() {
     // Listen for live database changes or player stage completions
     window.addEventListener('storage', (e) => {
         if (e.key === 'escape_teams_db' || e.key === 'escape_unlocked_level') {
-            renderAnalyticsAndRoster();
+            updateDashboardMetrics();
+            renderFullTeamsList();
         }
     });
 
-    if (adminBroadcastChannel) {
+    if (typeof adminBroadcastChannel !== 'undefined' && adminBroadcastChannel) {
         adminBroadcastChannel.onmessage = (event) => {
             if (event.data && event.data.type === 'PLAYER_UPDATE') {
                 const { teamId, stage } = event.data;
                 const db = getTeamsDb();
                 if (db[teamId] && db[teamId].stage !== stage) {
                     db[teamId].stage = stage;
-                    saveTeamsDb(db);
+                    saveTeamsDbAndRender(db);
+                    addDetailedLog(`Team ${teamId} reached Room ${stage}`, 'system', teamId, `Room ${stage}`);
+
+                    // Live Finale Logic: 3-Winner Limit
+                    if (stage >= 5) {
+                        const settings = getSettingsDb();
+                        if (settings.gameMode === 'finale') {
+                            let winnersCount = 0;
+                            for (let key in db) {
+                                if (db[key].stage >= 5) winnersCount++;
+                            }
+                            if (winnersCount >= 3) {
+                                adminBroadcastChannel.postMessage({ type: 'GAME_OVER', leaderboard: db });
+                                showAdminToast("🏆 TOP 3 REACHED", "Live Finale has concluded. All other teams locked out.");
+                                addDetailedLog(`Finale Concluded: Top 3 Teams have finished.`, 'system', 'Admin', 'Global');
+                            }
+                        }
+                    }
+                }
+            } else if (event.data && event.data.type === 'PLAYER_TIMEOUT') {
+                const { teamId } = event.data;
+                const db = getTeamsDb();
+                if (db[teamId] && db[teamId].status !== 'timeout') {
+                    db[teamId].status = 'timeout';
+                    saveTeamsDbAndRender(db);
+                    addDetailedLog(`Team ${teamId} ran out of time!`, 'error', teamId, `Global`);
+                    showAdminToast("⏱️ TEAM TIMEOUT", `Team ${teamId} has been disqualified (Time Expired).`);
                 }
             }
         };
     }
+    
+    const slotForm = document.getElementById('addSlotForm');
+    if (slotForm) {
+        slotForm.addEventListener('submit', handleCreateSlot);
+    }
 }
 
-function injectDemoTeams() {
-    const db = {
-        'TEAM-ALPHA': { password: 'ESCAPE2026', stage: 1, status: 'active', warnings: 0 },
-        'CYBER KNIGHTS': { password: 'TATVAPASS1', stage: 2, status: 'active', warnings: 0 },
-        'PHOENIX-007': { password: 'UNLOCKME', stage: 3, status: 'active', warnings: 0 },
-        'SHERLOCK HOMIES': { password: 'BAKER221', stage: 4, status: 'active', warnings: 0 }
-    };
-    saveTeamsDb(db);
-    showAdminToast("📥 Demo Teams Injected", "Loaded 4 starter teams across all stages.");
+function toggleGameMode(mode) {
+    const settings = getSettingsDb();
+    settings.gameMode = mode; // 'demo' or 'finale'
+    saveSettingsDb(settings);
+    
+    // Broadcast the game mode update to all players
+    if (adminBroadcastChannel) {
+        adminBroadcastChannel.postMessage({ type: 'GAME_MODE_UPDATE', mode: mode });
+    }
+    
+    showAdminToast("🎮 Game Mode Updated", `System is now in ${mode.toUpperCase()} mode.`);
+    addDetailedLog(`Changed Game Mode to ${mode}`, 'system', 'Admin', 'Settings');
 }
 
 const STAGE3_WORDS = [
@@ -460,67 +684,80 @@ function clearAllTeams() {
    5. LIVE ANALYTICS, MATRIX PILLS & ROSTER TABLE
    ========================================================================== */
 function renderAnalyticsAndRoster() {
+    // Keep this function name for backwards compatibility, but have it call the new functions
+    updateDashboardMetrics();
+    renderFullTeamsList();
+    renderLeaderboard();
+    if(typeof renderSlots === 'function') renderSlots();
+    
+    // Also re-render the old targets in case they still exist (for Announcements etc)
     const db = getTeamsDb();
     const teamNames = Object.keys(db);
-    const totalCount = teamNames.length;
-
-    const totalEl = document.getElementById('totalTeamsCount');
-    const activeEl = document.getElementById('activePlayersCount');
-    if (totalEl) totalEl.textContent = totalCount;
-
-    let activeCount = 0;
-    const stageCounts = { 1: 0, 2: 0, 3: 0, 4: 0 };
-    const stageTeams = { 1: [], 2: [], 3: [], 4: [] };
-
-    teamNames.forEach(name => {
-        const t = db[name];
-        const s = Math.min(4, Math.max(1, t.stage || 1));
-        stageCounts[s]++;
-        stageTeams[s].push({ name, status: t.status, stage: s });
-        if (t.status === 'active') activeCount++;
-    });
-
-    if (activeEl) activeEl.textContent = activeCount;
-
-    for (let i = 1; i <= 4; i++) {
-        const countEl = document.getElementById(`countStage${i}`);
-        const barEl = document.getElementById(`barStage${i}`);
-        const pillsEl = document.getElementById(`pillsStage${i}`);
-
-        const count = stageCounts[i];
-        const pct = totalCount > 0 ? Math.round((count / totalCount) * 100) : 0;
-
-        if (countEl) countEl.textContent = `${count} Teams (${pct}%)`;
-        if (barEl) barEl.style.width = `${pct}%`;
-
-        if (pillsEl) {
-            pillsEl.innerHTML = '';
-            if (stageTeams[i].length === 0) {
-                pillsEl.innerHTML = `<span class="empty-pill">No teams currently inside Chamber 0${i}</span>`;
-            } else {
-                stageTeams[i].forEach(team => {
-                    const pill = document.createElement('span');
-                    let pillClass = 'team-pill';
-                    if (team.status === 'frozen') pillClass += ' frozen';
-                    if (team.stage === 4) pillClass += ' vip';
-                    pill.className = pillClass;
-                    pill.innerHTML = `${team.status === 'frozen' ? '❄️' : (team.stage === 4 ? '★' : '🎯')} ${team.name}`;
-                    pillsEl.appendChild(pill);
-                });
-            }
-        }
-    }
-
-    renderRosterTable(db, teamNames);
     populateTargetSelector(teamNames);
 }
 
-function renderRosterTable(db, teamNames) {
-    const tbody = document.getElementById('teamsRosterBody');
+function updateDashboardMetrics() {
+    const db = getTeamsDb();
+    const teamNames = Object.keys(db);
+    
+    let totalCount = teamNames.length;
+    let presentCount = 0;
+    let playingCount = 0;
+    let completedCount = 0;
+    
+    teamNames.forEach(name => {
+        const t = db[name];
+        if (t.status === 'active' || t.status === 'frozen') {
+            presentCount++;
+            if (t.stage < 4) playingCount++;
+            else completedCount++;
+        }
+    });
+    
+    const elTotal = document.getElementById('dashTotalTeams');
+    const elPresent = document.getElementById('dashPresentTeams');
+    const elPlaying = document.getElementById('dashPlayingTeams');
+    const elCompleted = document.getElementById('dashCompletedTeams');
+    
+    if (elTotal) elTotal.textContent = totalCount;
+    if (elPresent) elPresent.textContent = presentCount;
+    if (elPlaying) elPlaying.textContent = playingCount;
+    if (elCompleted) elCompleted.textContent = completedCount;
+    
+    renderLiveActivityFeed();
+}
+
+function renderLiveActivityFeed() {
+    const logs = getLogsDb();
+    const feed = document.getElementById('liveActivityFeed');
+    if (!feed) return;
+    
+    feed.innerHTML = '';
+    if (logs.length === 0) {
+        feed.innerHTML = '<div class="log-item system">System initialized. Awaiting activity...</div>';
+        return;
+    }
+    
+    // Display top 15 logs
+    logs.slice(0, 15).forEach(log => {
+        const d = new Date(log.timestamp);
+        const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        
+        const div = document.createElement('div');
+        div.className = `log-item ${log.category}`;
+        div.innerHTML = `<span class="time" style="color: #68fedb; font-size: 0.8rem; margin-right: 8px;">[${timeStr}]</span> ${log.action}`;
+        feed.appendChild(div);
+    });
+}
+
+function renderFullTeamsList() {
+    const db = getTeamsDb();
+    const teamNames = Object.keys(db);
+    const tbody = document.getElementById('fullTeamsListBody');
     if (!tbody) return;
 
     if (teamNames.length === 0) {
-        tbody.innerHTML = `<tr class="empty-row"><td colspan="6">No teams registered yet. Use form above to create credentials!</td></tr>`;
+        tbody.innerHTML = `<tr class="empty-row"><td colspan="7">No teams registered yet. Use form to create credentials!</td></tr>`;
         return;
     }
 
@@ -528,34 +765,68 @@ function renderRosterTable(db, teamNames) {
     teamNames.forEach(name => {
         const t = db[name];
         const stageNum = t.stage || 1;
-        const statusStr = t.status === 'frozen' ? '<span class="status-badge frozen">❄️ FROZEN</span>' : '<span class="status-badge active">🟢 ACTIVE</span>';
-        const warnCount = t.warnings || 0;
+        let statusStr = '';
+        if (t.status === 'timeout') {
+            statusStr = '<span class="status-badge" style="background:rgba(255,85,85,0.2);color:#ff5555;">⏱️ TIMEOUT</span>';
+        } else if (t.status === 'frozen') {
+            statusStr = '<span class="status-badge frozen">❄️ FROZEN</span>';
+        } else {
+            statusStr = '<span class="status-badge active">🟢 ACTIVE</span>';
+        }
+        
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><strong style="color:#ffffff;">${name}</strong><br><small class="mono" style="color:#888;">${t.password}</small></td>
+            <td>${t.members || 'Not assigned'}</td>
+            <td>${t.slotId || 'None'}</td>
+            <td>Stage ${stageNum}</td>
+            <td class="text-gold">${t.score || 0}</td>
+            <td>${statusStr}</td>
+            <td style="text-align:right;">
+                ${t.status === 'timeout' ? `<button type="button" class="row-btn" style="border-color:#50e3c2; color:#50e3c2;" onclick="quickAction('${name}', 'revive')" title="Revive Team">💚</button>` : ''}
+                <button type="button" class="row-btn" onclick="quickAction('${name}', 'freeze')" title="Toggle Freeze">❄️</button>
+                <button type="button" class="row-btn" onclick="quickAction('${name}', 'warn')" title="Issue Warning Pop-up">⚠️</button>
+                <button type="button" class="row-btn danger" onclick="quickAction('${name}', 'delete')" title="Delete Credential">🗑️</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function renderLeaderboard() {
+    const db = getTeamsDb();
+    const teamNames = Object.keys(db);
+    const tbody = document.getElementById('leaderboardBody');
+    if (!tbody) return;
+
+    if (teamNames.length === 0) {
+        tbody.innerHTML = `<tr class="empty-row"><td colspan="5">No active teams.</td></tr>`;
+        return;
+    }
+
+    // Sort by stage (descending), then score (descending)
+    const sortedTeams = teamNames
+        .map(name => ({ name, ...db[name] }))
+        .sort((a, b) => {
+            if ((b.stage || 1) !== (a.stage || 1)) return (b.stage || 1) - (a.stage || 1);
+            return (b.score || 0) - (a.score || 0);
+        });
+
+    tbody.innerHTML = '';
+    sortedTeams.forEach((team, index) => {
+        const rank = index + 1;
+        let rankHtml = `<strong>#${rank}</strong>`;
+        if (rank === 1) rankHtml = `<span style="color: gold; font-size: 1.2rem;">🥇 1st</span>`;
+        if (rank === 2) rankHtml = `<span style="color: silver; font-size: 1.2rem;">🥈 2nd</span>`;
+        if (rank === 3) rankHtml = `<span style="color: #cd7f32; font-size: 1.2rem;">🥉 3rd</span>`;
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td><strong style="color:#ffffff; font-size:0.95rem;">${name}</strong></td>
-            <td><code class="pass-code">${t.password}</code></td>
-            <td style="text-align:center;">
-                <div class="stage-control-group" style="gap:3px; flex-wrap:wrap; justify-content:center;">
-                    <button type="button" class="stage-btn demote" onclick="quickAction('${name}', 'demote')" title="Demote -1">⏪</button>
-                    <button type="button" class="stage-btn ${stageNum===1?'active-stage':''}" onclick="setStageDirectly('${name}', 1)" style="${stageNum===1?'background:#50e3c2;color:#000;font-weight:900;':''}" title="Directly set to Stage 1">S1</button>
-                    <button type="button" class="stage-btn ${stageNum===2?'active-stage':''}" onclick="setStageDirectly('${name}', 2)" style="${stageNum===2?'background:#50e3c2;color:#000;font-weight:900;':''}" title="Directly set to Stage 2">S2</button>
-                    <button type="button" class="stage-btn ${stageNum===3?'active-stage':''}" onclick="setStageDirectly('${name}', 3)" style="${stageNum===3?'background:#50e3c2;color:#000;font-weight:900;':''}" title="Directly set to Stage 3">S3</button>
-                    <button type="button" class="stage-btn vip ${stageNum===4?'active-stage':''}" onclick="setStageDirectly('${name}', 4)" style="${stageNum===4?'background:#ffe8b3;color:#000;font-weight:900;':''}" title="Directly set to Stage 4 (VIP)">★ S4</button>
-                    <button type="button" class="stage-btn promote" onclick="quickAction('${name}', 'promote')" title="Promote +1">⏩</button>
-                </div>
-            </td>
-            <td>${statusStr}</td>
-            <td style="text-align:center;">
-                <button type="button" class="stage-btn" style="padding:2px 6px;" onclick="quickAction('${name}', 'warn_minus')">-</button>
-                <span class="warn-badge" style="margin:0 6px;">⚠️ ${warnCount}</span>
-                <button type="button" class="stage-btn" style="padding:2px 6px;" onclick="quickAction('${name}', 'warn_plus')">+</button>
-            </td>
-            <td style="text-align:right;">
-                <button type="button" class="row-btn" onclick="quickAction('${name}', 'warn')" title="Issue Warning Pop-up">⚠️ Warn</button>
-                <button type="button" class="row-btn" onclick="quickAction('${name}', 'freeze')" title="Toggle Freeze">❄️ Freeze</button>
-                <button type="button" class="row-btn danger" onclick="quickAction('${name}', 'delete')" title="Delete Credential">🗑️</button>
-            </td>
+            <td>${rankHtml}</td>
+            <td><strong style="color:#ffffff;">${team.name}</strong></td>
+            <td>Stage ${team.stage || 1}</td>
+            <td class="text-gold">${team.score || 0}</td>
+            <td>${team.warnings || 0}</td>
         `;
         tbody.appendChild(tr);
     });
@@ -596,6 +867,7 @@ function transmitGmCommand(targetTeam, commandType, messageContent, extraType = 
 }
 
 function initCommandCenter() {
+    initAdminListeners();
     renderAnalyticsAndRoster();
 }
 
@@ -756,6 +1028,12 @@ function quickAction(teamName, actionType) {
         transmitGmCommand(teamName, isFrozen ? 'UNFREEZE' : 'FREEZE', isFrozen ? '🔥 Gameplay restored.' : '❄️ Progress frozen by Game Master.');
         showAdminToast(isFrozen ? `🔥 ${teamName} Unfrozen` : `❄️ ${teamName} Frozen`, `Account status updated.`);
         addLogItem(`Toggled freeze state of [${teamName}] to ${isFrozen ? 'ACTIVE' : 'FROZEN'}`, 'freeze');
+    } else if (actionType === 'revive') {
+        db[teamName].status = 'active';
+        saveTeamsDb(db);
+        transmitGmCommand(teamName, 'REVIVE', `💚 Game Master has revived your team with 5 extra minutes!`, 'info');
+        showAdminToast("💚 Team Revived", `${teamName} has been revived and granted 5 minutes.`);
+        addLogItem(`Revived [${teamName}] from timeout`, 'system');
     } else if (actionType === 'delete') {
         if (confirm(`Are you sure you want to remove team "${teamName}" from the database?`)) {
             delete db[teamName];

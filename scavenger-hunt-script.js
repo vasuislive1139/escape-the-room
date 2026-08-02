@@ -380,7 +380,9 @@ function saveState() {
     localStorage.setItem('sh_score', score);
     localStorage.setItem('sh_clue_index', currentClueIndex);
     localStorage.setItem('sh_hints', hintsLeft);
-    localStorage.setItem('sh_time', timeRemaining);
+    localStorage.setItem('sh_stage', currentFileStage);
+    const tr = (typeof currentStageTimeLeft !== 'undefined') ? currentStageTimeLeft : 600;
+    localStorage.setItem('sh_time', tr);
 }
 
 function updateTrackerUI() {
@@ -403,30 +405,16 @@ function updateTrackerUI() {
 
 // --- Timer ---
 function startTimer() {
-    if (timerInterval) clearInterval(timerInterval);
-    timerInterval = setInterval(() => {
-        timeRemaining--;
-        if (timeRemaining <= 0) timeRemaining = 0;
-        
-        const m = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
-        const s = (timeRemaining % 60).toString().padStart(2, '0');
-        document.getElementById('timerDisplay').textContent = `${m}:${s}`;
-        
-        if (timeRemaining % 5 === 0) saveState();
-        
-        if (timeRemaining <= 0) {
-            clearInterval(timerInterval);
-            alert("TIME EXPIRED! Systems locking down...");
-            window.location.href = 'home.html';
-        }
-    }, 1000);
+    if (typeof initStageTimer === 'function') {
+        initStageTimer(2);
+    }
 }
-
 // --- Completion ---
 function completeStage() {
-    if (timerInterval) clearInterval(timerInterval);
+    if (typeof stopTimer === 'function') stopTimer();
     
     // Bonus for time
+    const timeRemaining = (typeof currentStageTimeLeft !== 'undefined') ? currentStageTimeLeft : 0;
     const timeBonus = Math.floor(timeRemaining / 60) * 2; 
     const completionBonus = 20;
     score += completionBonus + timeBonus;
