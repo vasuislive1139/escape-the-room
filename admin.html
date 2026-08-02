@@ -74,7 +74,7 @@
                 </div>
             </div>
 
-            <div class="admin-header-stats">
+            <div class="admin-header-stats" style="flex-wrap: wrap; justify-content: flex-end; max-width: 700px;">
                 <div class="audio-control-container" style="margin-right: 8px;">
                     <button id="audioToggleBtn" class="audio-btn" style="padding: 6px 12px; font-size: 0.8rem;">
                         <span class="audio-label">🔊 Audio</span>
@@ -85,14 +85,30 @@
                     <span id="liveClock" class="stat-value mono">00:00:00</span>
                 </div>
                 <div class="header-stat-badge">
-                    <span class="stat-label">REGISTERED TEAMS:</span>
+                    <span class="stat-label">TEAMS:</span>
                     <span id="totalTeamsCount" class="stat-value text-gold">0</span>
                 </div>
                 <div class="header-stat-badge">
-                    <span class="stat-label">ACTIVE PLAYERS:</span>
+                    <span class="stat-label">ACTIVE:</span>
                     <span id="activePlayersCount" class="stat-value text-cyan">0</span>
                 </div>
-                <button type="button" class="logout-btn admin-logout" id="adminLogoutBtn" title="Exit Command Center">
+                <div class="header-stat-badge" style="background: rgba(80, 227, 194, 0.1); border-color: rgba(80, 227, 194, 0.3);">
+                    <span class="stat-label">S1:</span>
+                    <span id="stage1Count" class="stat-value">0</span>
+                </div>
+                <div class="header-stat-badge" style="background: rgba(255, 215, 0, 0.1); border-color: rgba(255, 215, 0, 0.3);">
+                    <span class="stat-label">S2:</span>
+                    <span id="stage2Count" class="stat-value">0</span>
+                </div>
+                <div class="header-stat-badge" style="background: rgba(255, 140, 0, 0.1); border-color: rgba(255, 140, 0, 0.3);">
+                    <span class="stat-label">S3:</span>
+                    <span id="stage3Count" class="stat-value">0</span>
+                </div>
+                <div class="header-stat-badge" style="background: rgba(255, 85, 85, 0.1); border-color: rgba(255, 85, 85, 0.3);">
+                    <span class="stat-label">S4:</span>
+                    <span id="stage4Count" class="stat-value">0</span>
+                </div>
+                <button type="button" class="logout-btn admin-logout" id="adminLogoutBtn" title="Exit Command Center" style="margin-left: 8px;">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                 </button>
             </div>
@@ -141,14 +157,8 @@
                     
                     <div class="nav-section">
                         <div class="nav-section-title">EVENT</div>
-                        <button class="nav-btn" onclick="switchAdminView('live-tracking')">
-                            <span class="icon">📡</span> Live Tracking
-                        </button>
-                        <button class="nav-btn" onclick="switchAdminView('leaderboard')">
-                            <span class="icon">🏆</span> Leaderboard
-                        </button>
                         <button class="nav-btn" onclick="switchAdminView('announcements')">
-                            <span class="icon">📢</span> Announcements
+                            <span class="icon">📢</span> Controls & Interventions
                         </button>
                         <button class="nav-btn" onclick="switchAdminView('volunteers')">
                             <span class="icon">👨‍💼</span> Volunteers
@@ -208,9 +218,24 @@
                             </div>
                         </div>
                         <div class="split-right">
-                            <div class="panel-header"><h3>Team Queue System</h3></div>
-                            <div class="queue-list" id="dashboardQueueList">
-                                <p style="color: #888; font-size: 0.9rem; padding: 10px;">No teams in queue.</p>
+                            <div class="panel-header flex-between">
+                                <h3>Live Leaderboard</h3>
+                                <button class="ornate-btn small-btn" onclick="renderLeaderboard()" style="padding: 2px 8px; font-size: 0.7rem;">🔄</button>
+                            </div>
+                            <div class="table-responsive" style="max-height: 300px; overflow-y: auto; margin-top: 10px; border: 1px solid rgba(80, 227, 194, 0.2); border-radius: 8px;">
+                                <table class="roster-table full-width" style="margin: 0; font-size: 0.85rem;">
+                                    <thead style="position: sticky; top: 0; background: #1a1a24; z-index: 1;">
+                                        <tr>
+                                            <th>RANK</th>
+                                            <th>TEAM</th>
+                                            <th>STAGE</th>
+                                            <th>SCORE</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="leaderboardBody">
+                                        <!-- JS Populated -->
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
@@ -243,28 +268,40 @@
                     </div>
                 </section>
                 
-                <!-- VIEW: LEADERBOARD -->
-                <section id="view-leaderboard" class="admin-view">
-                    <div class="view-header flex-between">
-                        <h2>Live Event Leaderboard</h2>
-                        <button class="ornate-btn small-btn" onclick="renderLeaderboard()">🔄 Refresh</button>
+                <!-- VIEW: ANNOUNCEMENTS & CONTROLS -->
+                <section id="view-announcements" class="admin-view">
+                    <div class="view-header">
+                        <h2>Live Game Interventions</h2>
                     </div>
                     
-                    <div class="table-responsive">
-                        <table class="roster-table full-width">
-                            <thead>
-                                <tr>
-                                    <th>RANK</th>
-                                    <th>TEAM ID</th>
-                                    <th>CURRENT STAGE</th>
-                                    <th>SCORE</th>
-                                    <th>HINTS USED</th>
-                                </tr>
-                            </thead>
-                            <tbody id="leaderboardBody">
-                                <!-- JS Populated -->
-                            </tbody>
-                        </table>
+                    <div class="admin-card gm-live-control-panel" style="margin-bottom: 20px;">
+                        <h3 style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-bottom: 15px; color: #50e3c2;">Global / Targeted Broadcasts</h3>
+                        <p style="font-size: 0.9rem; color: #aaa; margin-bottom: 15px;">Transmit real-time messages directly to player screens.</p>
+                        
+                        <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+                            <select id="targetTeamSelect" class="ornate-input" style="flex: 1; min-width: 250px;">
+                                <option value="ALL">🌐 BROADCAST TO ALL ACTIVE TEAMS</option>
+                            </select>
+                            
+                            <div class="msg-type-toggles" style="display: flex; gap: 10px;">
+                                <label><input type="radio" name="msgType" value="info" checked> Info</label>
+                                <label><input type="radio" name="msgType" value="hint"> Hint</label>
+                                <label><input type="radio" name="msgType" value="alert"> Alert</label>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" id="liveBroadcastMsg" class="ornate-input" placeholder="Enter broadcast message..." style="flex: 2;">
+                            <button class="ornate-btn small-btn" onclick="sendLiveBroadcast()" style="flex: 1;">📡 TRANSMIT</button>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-card gm-live-control-panel">
+                        <h3 style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-bottom: 15px; color: #ff5555;">Disciplinary Actions</h3>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <button class="row-btn danger" style="padding: 15px; font-size: 1rem; width: 100%;" onclick="issueWarningToTarget()">⚠️ Issue Warning Pop-up</button>
+                        </div>
                     </div>
                 </section>
                 
@@ -357,18 +394,32 @@
                 <!-- VIEW: SETTINGS -->
                 <section id="view-settings" class="admin-view">
                     <div class="view-header">
-                        <h2>Event Settings & Presets</h2>
+                        <h2>Event Settings & Game Mode</h2>
                     </div>
-                    <div class="quick-preset-box">
-                        <span class="preset-label">⚡ Database Setup & Presets:</span>
-                        <div class="preset-btn-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                            <select id="gameModeToggle" class="ornate-input" onchange="toggleGameMode(this.value)" style="grid-column: span 2; padding: 10px; background: rgba(30, 45, 60, 0.9); border: 1px solid #ff4f55; color: #ffffff;">
-                                <option value="demo">Game Mode: Demo (Testing)</option>
-                                <option value="finale">Game Mode: Live Finale (Max 3 Winners)</option>
-                            </select>
-                            <button type="button" class="preset-btn" onclick="generate24EventTeams()" style="border-color: #50e3c2; color: #50e3c2;">⚡ Generate 24 Teams</button>
-                            <button type="button" class="preset-btn" onclick="downloadCredentialsCSV()" style="border-color: #ffe8b3; color: #ffe8b3;">📥 Download CSV Key</button>
-                            <button type="button" class="preset-btn danger" onclick="clearAllTeams()">🗑️ Clear Database</button>
+                    
+                    <div class="admin-card gm-live-control-panel" style="margin-bottom: 20px;">
+                        <h3 style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-bottom: 15px; color: #50e3c2;">Select Game Mode</h3>
+                        <p style="font-size: 0.9rem; color: #aaa; margin-bottom: 15px;">Set the event mode. Both modes use the exact same teams in the Team Management tab. Live Finale strictly enforces the "Top 3 Winners" rule.</p>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                            <button id="btnModeDemo" class="row-btn" style="padding: 20px; font-size: 1.1rem; flex-direction: column;" onclick="setGameMode('demo')">
+                                <span style="font-size: 1.5rem; margin-bottom: 5px;">🧪</span>
+                                <strong>DEMO MODE</strong>
+                                <small style="display:block; margin-top: 5px; opacity: 0.7; font-weight: normal;">Testing & Infinite Winners</small>
+                            </button>
+                            <button id="btnModeFinale" class="row-btn" style="padding: 20px; font-size: 1.1rem; flex-direction: column;" onclick="setGameMode('finale')">
+                                <span style="font-size: 1.5rem; margin-bottom: 5px;">🏆</span>
+                                <strong>LIVE FINALE</strong>
+                                <small style="display:block; margin-top: 5px; opacity: 0.7; font-weight: normal;">Strict Top 3 Winners Limit</small>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-card gm-live-control-panel">
+                        <h3 style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-bottom: 15px; color: #ffe8b3;">Database Management</h3>
+                        <div class="preset-btn-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <button type="button" class="row-btn" onclick="downloadCredentialsCSV()" style="padding: 15px;">📥 Download Teams CSV</button>
+                            <button type="button" class="row-btn danger" onclick="clearAllTeams()" style="padding: 15px;">🗑️ Delete All Teams</button>
                         </div>
                     </div>
                 </section>
@@ -435,6 +486,55 @@
 
                 <button type="submit" class="ornate-btn create-btn" style="margin-top: 10px;">
                     <span>➕ REGISTER TEAM</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Team Modal -->
+    <div id="editTeamModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
+        <div class="modal-content admin-panel" style="max-width: 500px;">
+            <div class="panel-header flex-between">
+                <h3 class="panel-title"><span class="panel-icon">✏️</span> Edit Team</h3>
+                <button type="button" class="close-modal-btn" onclick="document.getElementById('editTeamModal').classList.add('hidden')">✖</button>
+            </div>
+            
+            <form id="editTeamForm" class="cred-form" onsubmit="handleEditTeam(event)" style="margin-top: 20px;">
+                <input type="hidden" id="editTeamIdOriginal">
+                
+                <div class="form-group">
+                    <label class="form-label">Team Name / ID</label>
+                    <input type="text" id="editTeamName" class="ornate-input bright-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Members (Comma separated, Optional)</label>
+                    <input type="text" id="editTeamMembers" class="ornate-input bright-input">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Reward Password</label>
+                    <div class="password-gen-wrapper">
+                        <input type="text" id="editTeamPassword" class="ornate-input bright-input" required>
+                        <button type="button" class="gen-pass-btn" onclick="document.getElementById('editTeamPassword').value = Math.random().toString(36).slice(-6).toUpperCase()">
+                            🎲 Gen
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Stage (Room)</label>
+                    <select id="editTeamStage" class="ornate-select bright-input">
+                        <option value="1">Room 1: Scavenger Hunt</option>
+                        <option value="2">Room 2: Treasure Hunt</option>
+                        <option value="3">Room 3: Caesar Cipher</option>
+                        <option value="4">Room 4: Final Vault</option>
+                        <option value="5">Finished (Escaped)</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="ornate-btn create-btn" style="margin-top: 10px;">
+                    <span>💾 SAVE CHANGES</span>
                 </button>
             </form>
         </div>

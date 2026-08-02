@@ -375,6 +375,61 @@ function handleAddNewTeam(e) {
     showAdminToast("✅ Success", `Team ${nameInput} created successfully.`);
 }
 
+function openEditTeamModal(teamId) {
+    const db = getTeamsDb();
+    const t = db[teamId];
+    if (!t) return;
+    
+    let modal = document.getElementById('editTeamModal');
+    if (!modal) {
+        // We will create the modal if it doesn't exist, or it should be added in admin.html.
+        // For now, assuming we add it in admin.html, we just populate it.
+    }
+    
+    if (modal) {
+        document.getElementById('editTeamIdOriginal').value = teamId;
+        document.getElementById('editTeamName').value = teamId;
+        document.getElementById('editTeamPassword').value = t.password || '';
+        document.getElementById('editTeamMembers').value = t.members || '';
+        document.getElementById('editTeamStage').value = t.stage || 1;
+        modal.classList.remove('hidden');
+    }
+}
+
+function handleEditTeam(e) {
+    e.preventDefault();
+    const originalId = document.getElementById('editTeamIdOriginal').value;
+    const newId = document.getElementById('editTeamName').value.trim().toUpperCase();
+    const membersInput = document.getElementById('editTeamMembers').value.trim();
+    const passInput = document.getElementById('editTeamPassword').value.trim();
+    const stageInput = parseInt(document.getElementById('editTeamStage').value);
+    
+    if (!newId || !passInput) return;
+    
+    const db = getTeamsDb();
+    const t = db[originalId];
+    if (!t) return;
+    
+    if (newId !== originalId && db[newId]) {
+        showAdminToast("⚠️ Error", "A team with this ID already exists!");
+        return;
+    }
+    
+    // Create new object with updated values
+    const updatedTeam = { ...t, password: passInput, members: membersInput, stage: stageInput };
+    
+    if (newId !== originalId) {
+        delete db[originalId];
+    }
+    db[newId] = updatedTeam;
+    
+    saveTeamsDbAndRender(db);
+    addDetailedLog(`Team updated: ${newId}`, 'team', newId, `Stage ${stageInput}`);
+    
+    document.getElementById('editTeamModal').classList.add('hidden');
+    showAdminToast("✅ Success", `Team ${newId} updated.`);
+}
+
 function openCreateSlotModal() {
     document.getElementById('slotStartTime').value = '';
     document.getElementById('slotEndTime').value = '';
@@ -532,7 +587,7 @@ function initAdminListeners() {
     }
 }
 
-function toggleGameMode(mode) {
+function setGameMode(mode) {
     const settings = getSettingsDb();
     settings.gameMode = mode; // 'demo' or 'finale'
     saveSettingsDb(settings);
@@ -540,6 +595,24 @@ function toggleGameMode(mode) {
     // Broadcast the game mode update to all players
     if (adminBroadcastChannel) {
         adminBroadcastChannel.postMessage({ type: 'GAME_MODE_UPDATE', mode: mode });
+    }
+    
+    // Update UI highlights
+    const btnDemo = document.getElementById('btnModeDemo');
+    const btnFinale = document.getElementById('btnModeFinale');
+    
+    if (btnDemo && btnFinale) {
+        if (mode === 'demo') {
+            btnDemo.style.borderColor = '#50e3c2';
+            btnDemo.style.background = 'rgba(80, 227, 194, 0.2)';
+            btnFinale.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+            btnFinale.style.background = 'rgba(30, 45, 60, 0.5)';
+        } else {
+            btnFinale.style.borderColor = '#ff4f55';
+            btnFinale.style.background = 'rgba(255, 79, 85, 0.2)';
+            btnDemo.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+            btnDemo.style.background = 'rgba(30, 45, 60, 0.5)';
+        }
     }
     
     showAdminToast("🎮 Game Mode Updated", `System is now in ${mode.toUpperCase()} mode.`);
@@ -623,24 +696,7 @@ function getStage3CiphersForTeam(teamName) {
 }
 window.getStage3CiphersForTeam = getStage3CiphersForTeam;
 
-function generate24EventTeams() {
-    if (confirm("This will overwrite the current database and generate 24 standard teams (TEAM-01 to TEAM-24) with secure randomized passwords. Proceed?")) {
-        const words = ['CYBER', 'VAULT', 'TATVA', 'ENIGMA', 'SOLVE', 'HACK', 'QUEST', 'GOLD', 'NEXUS', 'ALPHA', 'DELTA', 'CODE'];
-        const db = {};
-        for (let i = 1; i <= 24; i++) {
-            const teamNum = i.toString().padStart(2, '0');
-            const teamName = `TEAM-${teamNum}`;
-            const randomWord = words[Math.floor(Math.random() * words.length)];
-            const randomNum = Math.floor(1000 + Math.random() * 9000);
-            const password = `${randomWord}${randomNum}`;
-            db[teamName] = { password: password, stage: 1, status: 'active', warnings: 0 };
-        }
-        saveTeamsDb(db);
-        showAdminToast("🎟️ 24 Teams Generated", "Database populated with 24 teams starting at Stage 1.");
-        addLogItem("Bulk generated 24 participant credentials.", 'system');
-    }
-}
-window.generate24EventTeams = generate24EventTeams;
+
 
 function downloadCredentialsCSV() {
     const db = getTeamsDb();
@@ -703,25 +759,52 @@ function updateDashboardMetrics() {
     let presentCount = 0;
     let playingCount = 0;
     let completedCount = 0;
+    let stage1Count = 0;
+    let stage2Count = 0;
+    let stage3Count = 0;
+    let stage4Count = 0;
     
     teamNames.forEach(name => {
         const t = db[name];
-        if (t.status === 'active' || t.status === 'frozen') {
+        if (t.status === 'active' || t.status === 'frozen' || t.status === 'timeout') {
             presentCount++;
-            if (t.stage < 4) playingCount++;
+            const stage = t.stage || 1;
+            if (stage === 1) stage1Count++;
+            if (stage === 2) stage2Count++;
+            if (stage === 3) stage3Count++;
+            if (stage >= 4) stage4Count++;
+            
+            if (stage < 4) playingCount++;
             else completedCount++;
         }
     });
     
-    const elTotal = document.getElementById('dashTotalTeams');
-    const elPresent = document.getElementById('dashPresentTeams');
-    const elPlaying = document.getElementById('dashPlayingTeams');
-    const elCompleted = document.getElementById('dashCompletedTeams');
+    // Update Dashboard View Cards
+    const elDashTotal = document.getElementById('dashTotalTeams');
+    const elDashPresent = document.getElementById('dashPresentTeams');
+    const elDashPlaying = document.getElementById('dashPlayingTeams');
+    const elDashCompleted = document.getElementById('dashCompletedTeams');
     
-    if (elTotal) elTotal.textContent = totalCount;
-    if (elPresent) elPresent.textContent = presentCount;
-    if (elPlaying) elPlaying.textContent = playingCount;
-    if (elCompleted) elCompleted.textContent = completedCount;
+    if (elDashTotal) elDashTotal.textContent = totalCount;
+    if (elDashPresent) elDashPresent.textContent = presentCount;
+    if (elDashPlaying) elDashPlaying.textContent = playingCount;
+    if (elDashCompleted) elDashCompleted.textContent = completedCount;
+    
+    // Update Header Global Stats
+    const elTotalHeader = document.getElementById('totalTeamsCount');
+    const elActiveHeader = document.getElementById('activePlayersCount');
+    const elS1 = document.getElementById('stage1Count');
+    const elS2 = document.getElementById('stage2Count');
+    const elS3 = document.getElementById('stage3Count');
+    const elS4 = document.getElementById('stage4Count');
+    
+    if (elTotalHeader) elTotalHeader.textContent = totalCount;
+    // Assuming each team has an average of 4 players for the active player estimation
+    if (elActiveHeader) elActiveHeader.textContent = presentCount * (getSettingsDb().teamSizeLimit || 4);
+    if (elS1) elS1.textContent = stage1Count;
+    if (elS2) elS2.textContent = stage2Count;
+    if (elS3) elS3.textContent = stage3Count;
+    if (elS4) elS4.textContent = stage4Count;
     
     renderLiveActivityFeed();
 }
@@ -783,8 +866,10 @@ function renderFullTeamsList() {
             <td>${statusStr}</td>
             <td style="text-align:right;">
                 ${t.status === 'timeout' ? `<button type="button" class="row-btn" style="border-color:#50e3c2; color:#50e3c2;" onclick="quickAction('${name}', 'revive')" title="Revive Team">💚</button>` : ''}
+                <button type="button" class="row-btn" onclick="openEditTeamModal('${name}')" title="Edit Team">✏️</button>
+                <button type="button" class="row-btn" onclick="quickAction('${name}', 'promote')" title="Promote Stage">🔼</button>
+                <button type="button" class="row-btn" onclick="quickAction('${name}', 'demote')" title="Demote Stage">🔽</button>
                 <button type="button" class="row-btn" onclick="quickAction('${name}', 'freeze')" title="Toggle Freeze">❄️</button>
-                <button type="button" class="row-btn" onclick="quickAction('${name}', 'warn')" title="Issue Warning Pop-up">⚠️</button>
                 <button type="button" class="row-btn danger" onclick="quickAction('${name}', 'delete')" title="Delete Credential">🗑️</button>
             </td>
         `;
@@ -868,6 +953,11 @@ function transmitGmCommand(targetTeam, commandType, messageContent, extraType = 
 function initCommandCenter() {
     initAdminListeners();
     renderAnalyticsAndRoster();
+    
+    const settings = getSettingsDb();
+    if (settings.gameMode) {
+        setGameMode(settings.gameMode);
+    }
 }
 
 function sendLiveBroadcast() {
