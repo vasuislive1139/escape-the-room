@@ -26,15 +26,13 @@
 
 <body>
     <!-- Start Game Overlay -->
-    <div id="startOverlay" class="start-overlay">
-        <div class="start-content">
-            <h2>COMPONENT CROSSWORD</h2>
-            <p>Time Limit: 8 Minutes</p>
-            <p>Are you ready to begin? The timer will start immediately.</p>
-            <button id="startPlayingBtn" class="ornate-btn">
-                <span class="btn-text">START PLAYING</span>
-                <span class="btn-arrow">➔</span>
-                <div class="btn-shine"></div>
+    <div id="startOverlay" class="start-overlay" style="z-index: 100000; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0a0807; display: flex; justify-content: center; align-items: center; color: white;">
+        <div class="start-content" style="text-align: center; background: rgba(15, 12, 10, 0.95); padding: 40px; border: 2px solid #c5a059; border-radius: 12px; box-shadow: 0 0 30px rgba(197, 160, 89, 0.2);">
+            <h2 style="color: #e6c887; font-size: 2rem; margin-bottom: 10px; font-family: 'Cinzel', serif;">COMPONENT CROSSWORD</h2>
+            <p style="margin-bottom: 24px; font-size: 1.1rem; color: #a89f91;">Time Limit: 8 Minutes</p>
+            <p style="margin-bottom: 24px;">Are you ready to begin? The timer will start immediately.</p>
+            <button id="startPlayingBtn" style="background: #c5a059; color: #0a0807; padding: 12px 24px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1.1rem; font-family: 'Orbitron', sans-serif;">
+                START PLAYING ➔
             </button>
         </div>
     </div>
