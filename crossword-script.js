@@ -28,18 +28,19 @@ document.addEventListener('DOMContentLoaded', () => {
     
     renderCrossword(puzzleData);
     
-    // Timer Logic (Visual only, no server enforcement)
-    let startTime = parseInt(localStorage.getItem(`escape_crossword_start_${teamId}`));
-    if (!startTime) {
-        startTime = Date.now();
-        localStorage.setItem(`escape_crossword_start_${teamId}`, startTime);
+    // Timer Logic (8 minutes countdown)
+    let endTime = parseInt(localStorage.getItem(`escape_crossword_end_${teamId}`));
+    if (!endTime) {
+        endTime = Date.now() + (8 * 60 * 1000);
+        localStorage.setItem(`escape_crossword_end_${teamId}`, endTime);
     }
     
     const timerEl = document.getElementById('timer');
     setInterval(() => {
-        const elapsed = Math.floor((Date.now() - startTime) / 1000);
-        const m = Math.floor(elapsed / 60);
-        const s = elapsed % 60;
+        let remaining = Math.floor((endTime - Date.now()) / 1000);
+        if (remaining < 0) remaining = 0;
+        const m = Math.floor(remaining / 60);
+        const s = remaining % 60;
         if (timerEl) timerEl.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
     }, 1000);
     
@@ -53,15 +54,36 @@ function renderCrossword(puzzleData) {
     // Reset grid
     gridEl.innerHTML = '';
     gridEl.style.display = 'grid';
-    const gridSize = 25; // CROSSWORD_GENERATOR_SETTINGS.gridSize
-    gridEl.style.gridTemplateColumns = `repeat(${gridSize}, 40px)`;
-    gridEl.style.gridTemplateRows = `repeat(${gridSize}, 40px)`;
+    const gridSize = 25;
+    // Calculate bounding box of placed words
+    let minR = gridSize, maxR = 0, minC = gridSize, maxC = 0;
+    for (let r = 0; r < gridSize; r++) {
+        for (let c = 0; c < gridSize; c++) {
+            if (puzzleData.grid[r][c]) {
+                if (r < minR) minR = r;
+                if (r > maxR) maxR = r;
+                if (c < minC) minC = c;
+                if (c > maxC) maxC = c;
+            }
+        }
+    }
+    // Add 1 cell padding around the puzzle
+    minR = Math.max(0, minR - 1);
+    maxR = Math.min(gridSize - 1, maxR + 1);
+    minC = Math.max(0, minC - 1);
+    maxC = Math.min(gridSize - 1, maxC + 1);
+    
+    const rows = maxR - minR + 1;
+    const cols = maxC - minC + 1;
+    
+    gridEl.style.gridTemplateColumns = `repeat(${cols}, var(--cell-size, 52px))`;
+    gridEl.style.gridTemplateRows = `repeat(${rows}, var(--cell-size, 52px))`;
     
     let cellMap = {};
     window.crosswordCellMap = cellMap; // Expose for validation
     
-    for (let r = 0; r < gridSize; r++) {
-        for (let c = 0; c < gridSize; c++) {
+    for (let r = minR; r <= maxR; r++) {
+        for (let c = minC; c <= maxC; c++) {
             const char = puzzleData.grid[r][c];
             
             const cell = document.createElement('div');
@@ -73,6 +95,10 @@ function renderCrossword(puzzleData) {
                 input.maxLength = 1;
                 input.dataset.row = r;
                 input.dataset.col = c;
+                // Add transparent background and relative z-index to input to not hide number
+                input.style.background = 'transparent';
+                input.style.position = 'relative';
+                input.style.zIndex = '2';
                 
                 // Allow navigating between inputs via arrows
                 input.addEventListener('keyup', handleInputNavigation);
@@ -88,10 +114,12 @@ function renderCrossword(puzzleData) {
                     label.className = 'cell-number';
                     label.textContent = labelNum;
                     label.style.position = 'absolute';
-                    label.style.top = '2px';
-                    label.style.left = '2px';
-                    label.style.fontSize = '10px';
-                    label.style.color = '#e6c887';
+                    label.style.top = '3px';
+                    label.style.left = '4px';
+                    label.style.fontSize = '12px';
+                    label.style.fontWeight = 'bold';
+                    label.style.color = '#fff';
+                    label.style.zIndex = '1';
                     label.style.pointerEvents = 'none';
                     cell.style.position = 'relative';
                     cell.appendChild(label);

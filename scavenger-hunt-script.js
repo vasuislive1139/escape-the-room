@@ -16,7 +16,7 @@ let activeTeamName = "TEAM-ALPHA";
 let currentClueIndex = 0;
 let score = 0;
 let hintsLeft = 3;
-let timeRemaining = 20 * 60; // 20 minutes in seconds
+let timeRemaining = 10 * 60; // 10 minutes in seconds
 let timerInterval = null;
 let typingTimeout = null;
 
