@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
         puzzleData = JSON.parse(puzzleDataStr);
     } else {
         // Generate new puzzle using global generateCrossword function (from crossword-logic.js)
-        puzzleData = generateCrossword(5);
+        puzzleData = generateCrossword();
         if (!puzzleData || !puzzleData.grid) {
             alert("Failed to generate crossword. Please refresh the page to try again.");
             return;
