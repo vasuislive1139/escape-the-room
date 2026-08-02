@@ -178,3 +178,76 @@ input[type="range"]::-webkit-slider-thumb {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(-45deg) translate(-2px, -6px); }
 }
+
+/* ==========================================================================
+   DIGITAL COUNTDOWN TIMER & HINTS
+   ========================================================================== */
+.cipher-timer-widget {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(18, 15, 12, 0.95);
+    border: 1px solid rgba(80, 227, 194, 0.35);
+    border-radius: 6px;
+    padding: 8px 14px;
+    color: #50e3c2;
+    box-shadow: 0 0 10px rgba(80, 227, 194, 0.15);
+    transition: all 0.3s ease;
+}
+
+.timer-blink-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #50e3c2;
+    box-shadow: 0 0 6px #50e3c2;
+    animation: blinkTimerDot 1s infinite ease-in-out;
+}
+@keyframes blinkTimerDot {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+}
+
+.timer-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    opacity: 0.8;
+}
+
+.timer-value {
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-shadow: 0 0 8px rgba(80, 227, 194, 0.4);
+}
+
+/* Low Time Flash Warning (under 1 minute) */
+.cipher-timer-widget.low-time {
+    border-color: #ff5555;
+    color: #ff5555;
+    background: rgba(40, 10, 10, 0.9);
+    box-shadow: 0 0 15px rgba(255, 85, 85, 0.3);
+    animation: pulseLowTime 1s infinite alternate ease-in-out;
+}
+.cipher-timer-widget.low-time .timer-blink-dot {
+    background: #ff5555;
+    box-shadow: 0 0 8px #ff5555;
+}
+.cipher-timer-widget.low-time .timer-value {
+    text-shadow: 0 0 8px rgba(255, 85, 85, 0.6);
+}
+@keyframes pulseLowTime {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.03); }
+}
+
+/* Hint Button styling override */
+.hint-btn {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.hint-btn:hover {
+    background: rgba(80, 227, 194, 0.15) !important;
+    border-color: #50e3c2 !important;
+    box-shadow: 0 0 12px rgba(80, 227, 194, 0.25);
+}

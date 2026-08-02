@@ -351,11 +351,20 @@ function getStage3CiphersForTeam(teamName) {
     const w2Index = (teamIndex * 3 + 1) % STAGE3_WORDS.length;
     const w3Index = (teamIndex * 3 + 2) % STAGE3_WORDS.length;
     
-    const word1 = STAGE3_WORDS[w1Index];
-    const word2 = STAGE3_WORDS[w2Index];
-    const word3 = STAGE3_WORDS[w3Index];
+    const word1 = STAGE3_WORDS[w1Index]; // Correct Solution Word
     
-    const caesarShift = ((teamIndex * 7 + 3) % 20) + 3;
+    // Find a decoy word of the exact same length
+    const sameLengthWords = STAGE3_WORDS.filter(w => w.length === word1.length && w !== word1);
+    let word1Decoy = STAGE3_WORDS[w2Index];
+    if (sameLengthWords.length > 0) {
+        word1Decoy = sameLengthWords[teamIndex % sameLengthWords.length];
+    }
+    
+    const word2 = STAGE3_WORDS[w2Index]; // Atbash Word
+    const word3 = STAGE3_WORDS[w3Index]; // ROT13 Word
+    
+    const caesarShift = ((teamIndex * 7 + 3) % 15) + 3;
+    const caesarDecoyShift = ((teamIndex * 11 + 7) % 8) + 18;
     
     let caesarCiphertext = "";
     for (let i = 0; i < word1.length; i++) {
@@ -384,7 +393,7 @@ function getStage3CiphersForTeam(teamName) {
     }
     
     return {
-        c1: { plaintext: word1, ciphertext: caesarCiphertext, shift: caesarShift },
+        c1: { plaintext: word1, ciphertext: caesarCiphertext, shift: caesarShift, decoytext: word1Decoy, decoyshift: caesarDecoyShift },
         c2: { plaintext: word2, ciphertext: atbashCiphertext },
         c3: { plaintext: word3, ciphertext: rot13Ciphertext }
     };
@@ -418,11 +427,11 @@ function downloadCredentialsCSV() {
         return;
     }
     
-    let csvContent = "TEAM NAME,PASSWORD,S3 CAESAR CIPHER,S3 CAESAR ANSWER,S3 ATBASH CIPHER,S3 ATBASH ANSWER,S3 ROT13 CIPHER,S3 ROT13 ANSWER,INITIAL STAGE,STATUS\r\n";
+    let csvContent = "TEAM NAME,PASSWORD,S3 CAESAR CIPHER,S3 CAESAR CORRECT ANSWER,S3 CAESAR DECOY ANSWER,S3 ATBASH CIPHER,S3 ATBASH ANSWER,S3 ROT13 CIPHER,S3 ROT13 ANSWER,INITIAL STAGE,STATUS\r\n";
     keys.forEach(name => {
         const t = db[name];
         const ciphers = getStage3CiphersForTeam(name);
-        csvContent += `${name},${t.password},${ciphers.c1.ciphertext},${ciphers.c1.plaintext},${ciphers.c2.ciphertext},${ciphers.c2.plaintext},${ciphers.c3.ciphertext},${ciphers.c3.plaintext},Stage ${t.stage},${t.status}\r\n`;
+        csvContent += `${name},${t.password},${ciphers.c1.ciphertext},${ciphers.c1.plaintext},${ciphers.c1.decoytext},${ciphers.c2.ciphertext},${ciphers.c2.plaintext},${ciphers.c3.ciphertext},${ciphers.c3.plaintext},Stage ${t.stage},${t.status}\r\n`;
     });
     
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });

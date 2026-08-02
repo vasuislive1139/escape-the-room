@@ -15,6 +15,7 @@ try {
 let activeTeamName = "TEAM-ALPHA";
 let currentTeamCiphers = null;
 let currentSubStage = 1; // 1: Caesar, 2: Atbash, 3: ROT13
+let countdownIntervalId = null;
 
 const STAGE3_WORDS = [
     'CYBER', 'ENIGMA', 'MATRIX', 'KERNEL', 
@@ -30,6 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initEmbersCanvas();
     initAudioEngine();
     initCipherForm();
+    initCountdownTimer();
     
     // Start background Game Master monitoring loop (150ms)
     // Automatically redirect back to home if level changes or resets
@@ -84,12 +86,22 @@ function getStage3CiphersForTeam(teamName) {
     const w2Index = (teamIndex * 3 + 1) % STAGE3_WORDS.length;
     const w3Index = (teamIndex * 3 + 2) % STAGE3_WORDS.length;
     
-    const word1 = STAGE3_WORDS[w1Index];
-    const word2 = STAGE3_WORDS[w2Index];
-    const word3 = STAGE3_WORDS[w3Index];
+    const word1 = STAGE3_WORDS[w1Index]; // Correct Solution Word
     
-    // Caesar Shift Key (unique to team index, 3 to 22)
-    const caesarShift = ((teamIndex * 7 + 3) % 20) + 3;
+    // Find a decoy word of the exact same length
+    const sameLengthWords = STAGE3_WORDS.filter(w => w.length === word1.length && w !== word1);
+    let word1Decoy = STAGE3_WORDS[w2Index];
+    if (sameLengthWords.length > 0) {
+        word1Decoy = sameLengthWords[teamIndex % sameLengthWords.length];
+    }
+    
+    const word2 = STAGE3_WORDS[w2Index]; // Atbash Word
+    const word3 = STAGE3_WORDS[w3Index]; // ROT13 Word
+    
+    // Caesar Shift Key (unique to team index, 3 to 17)
+    const caesarShift = ((teamIndex * 7 + 3) % 15) + 3;
+    // Caesar Decoy Shift Key (unique to team index, 18 to 25)
+    const caesarDecoyShift = ((teamIndex * 11 + 7) % 8) + 18;
     
     // Encrypt Caesar (Word 1)
     let caesarCiphertext = "";
@@ -121,7 +133,7 @@ function getStage3CiphersForTeam(teamName) {
     }
     
     return {
-        c1: { plaintext: word1, ciphertext: caesarCiphertext, shift: caesarShift },
+        c1: { plaintext: word1, ciphertext: caesarCiphertext, shift: caesarShift, decoytext: word1Decoy, decoyshift: caesarDecoyShift },
         c2: { plaintext: word2, ciphertext: atbashCiphertext },
         c3: { plaintext: word3, ciphertext: rot13Ciphertext }
     };
@@ -261,6 +273,12 @@ function updateCaesarDecryption() {
     
     const currentShift = parseInt(shiftDial.value, 10);
     if (shiftValEl) shiftValEl.textContent = currentShift;
+    
+    // Decoy word override (render secondary meaningful decoy if shift matches)
+    if (currentShift === currentTeamCiphers.c1.decoyshift) {
+        outputEl.textContent = currentTeamCiphers.c1.decoytext.toUpperCase();
+        return;
+    }
     
     let decrypted = "";
     for (let i = 0; i < ciphertext.length; i++) {
@@ -410,6 +428,10 @@ function triggerGlobalSuccessFlow() {
     setTimeout(() => {
         if (progressBar) progressBar.style.width = "100%";
     }, 100);
+
+    // Clear countdown timer state
+    if (countdownIntervalId) clearInterval(countdownIntervalId);
+    localStorage.removeItem('escape_cipher_timer_end');
 
     // Save progression stage 4 to database
     localStorage.setItem('escape_unlocked_level', '4');
@@ -730,3 +752,109 @@ function playErrorSound() {
         osc.stop(audioCtx.currentTime + 0.35);
     } catch(e) {}
 }
+
+/* ==========================================================================
+   8. PERSISTENT COUNTDOWN TIMER & FAILURE RED-OUTS
+   ========================================================================== */
+function initCountdownTimer() {
+    let endTimeStr = localStorage.getItem('escape_cipher_timer_end');
+    let endTime;
+    
+    if (!endTimeStr) {
+        // Set new 10 minute end timestamp
+        endTime = Date.now() + 10 * 60 * 1000;
+        localStorage.setItem('escape_cipher_timer_end', endTime.toString());
+    } else {
+        endTime = parseInt(endTimeStr, 10);
+    }
+    
+    const countdownEl = document.getElementById('cipherCountdown');
+    const timerBox = document.getElementById('cipherTimerBox');
+    
+    function updateClock() {
+        const remaining = endTime - Date.now();
+        
+        if (remaining <= 0) {
+            clearInterval(countdownIntervalId);
+            if (countdownEl) countdownEl.textContent = "00:00";
+            
+            // Trigger lockdown sequence
+            triggerLockdownFailure();
+            return;
+        }
+        
+        const totalSecs = Math.ceil(remaining / 1000);
+        const mins = Math.floor(totalSecs / 60);
+        const secs = totalSecs % 60;
+        
+        const displayMins = mins.toString().padStart(2, '0');
+        const displaySecs = secs.toString().padStart(2, '0');
+        
+        if (countdownEl) countdownEl.textContent = `${displayMins}:${displaySecs}`;
+        
+        // Low time check (under 60 seconds)
+        if (totalSecs <= 60) {
+            if (timerBox) timerBox.classList.add('low-time');
+        } else {
+            if (timerBox) timerBox.classList.remove('low-time');
+        }
+    }
+    
+    updateClock();
+    countdownIntervalId = setInterval(updateClock, 1000);
+}
+
+function triggerLockdownFailure() {
+    playErrorSound();
+    
+    // Open failure timeout overlay
+    const timeoutModal = document.getElementById('timeoutModal');
+    const bar = document.getElementById('timeoutProgressBar');
+    
+    if (timeoutModal) {
+        timeoutModal.classList.remove('hidden');
+        setTimeout(() => {
+            if (bar) bar.style.width = "100%";
+        }, 100);
+    }
+    
+    // Clear timer and active sub-stages
+    localStorage.removeItem('escape_cipher_timer_end');
+    localStorage.removeItem('escape_cipher_substage');
+    
+    // Redirect back to home after 3s
+    setTimeout(() => {
+        window.location.href = 'home.html';
+    }, 3000);
+}
+
+/* ==========================================================================
+   9. DYNAMIC HINT PANEL
+   ========================================================================== */
+function showChamberHint() {
+    playClickSound();
+    
+    const modal = document.getElementById('hintModal');
+    const hintTextEl = document.getElementById('hintText');
+    if (!modal || !hintTextEl) return;
+    
+    let hint = "";
+    if (currentSubStage === 1) {
+        hint = "💡 Caesar shifts each character by a constant offset key. Slide the dial to rotate the letters until they form a recognizable cybersecurity word (e.g. CYBER, KERNEL, SYSTEM).";
+    } else if (currentSubStage === 2) {
+        hint = "💡 Atbash mirrors the alphabet (A ↔ Z, B ↔ Y, C ↔ X). Examine the encrypted key (e.g. VMRTNZ), type letters into the Interactive Workbench below to check their mirrors, and solve by hand.";
+    } else if (currentSubStage === 3) {
+        hint = "💡 ROT13 rotates each character by 13 positions forward or backward (A ↔ N, B ↔ O). Type words or letters into the interactive workbench to test rotation offsets and reveal the override key.";
+    }
+    
+    hintTextEl.innerHTML = hint;
+    modal.classList.remove('hidden');
+}
+window.showChamberHint = showChamberHint;
+
+function closeChamberHint() {
+    playClickSound();
+    const modal = document.getElementById('hintModal');
+    if (modal) modal.classList.add('hidden');
+}
+window.closeChamberHint = closeChamberHint;
