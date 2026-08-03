@@ -948,6 +948,7 @@ function renderFullTeamsList() {
                 <button type="button" class="row-btn" onclick="quickAction('${name}', 'demote')" title="Demote Stage">🔽</button>
                 <button type="button" class="row-btn" onclick="quickAction('${name}', 'freeze')" title="Toggle Freeze">❄️</button>
                 <button type="button" class="row-btn" style="border-color:#ffd700; color:#ffd700;" onclick="handleAddTime('${name}')" title="Add Time">⏳</button>
+                <button type="button" class="row-btn" style="border-color:#ff9800; color:#ff9800;" onclick="handleResetProgress('${name}')" title="Reset Progress">🔄</button>
                 <button type="button" class="row-btn danger" onclick="quickAction('${name}', 'delete')" title="Delete Credential">🗑️</button>
             </td>
         `;
@@ -1002,6 +1003,7 @@ function renderLeaderboard() {
                 <button type="button" class="row-btn" style="padding: 2px 6px;" onclick="quickAction('${team.name}', 'warn')" title="Issue Warning">⚠️</button>
                 <button type="button" class="row-btn" style="padding: 2px 6px;" onclick="quickAction('${team.name}', 'freeze')" title="Toggle Freeze">❄️</button>
                 <button type="button" class="row-btn" style="border-color:#ffd700; color:#ffd700; padding: 2px 6px;" onclick="handleAddTime('${team.name}')" title="Add Time">⏳</button>
+                <button type="button" class="row-btn" style="border-color:#ff9800; color:#ff9800; padding: 2px 6px;" onclick="handleResetProgress('${team.name}')" title="Reset Progress">🔄</button>
             </td>
         `;
         tbody.appendChild(tr);
@@ -1227,6 +1229,36 @@ async function handleAddTime(teamName) {
             addDetailedLog(`Added ${minutes}m to ${teamName} (Stage ${stage})`, 'game', 'Admin', 'Timer');
         } else {
             showAdminToast("Error", "Failed to add time");
+        }
+    } catch (e) {
+        showAdminToast("Error", "Network error");
+    }
+}
+
+async function handleResetProgress(teamName) {
+    const scopeInput = prompt(`RESET TEAM ${teamName}\nType 'ALL' to completely reset the team to Stage 1.\nType 'CURRENT' to reset only their current stage.\nType 'CANCEL' to abort.`, "CURRENT");
+    
+    if (!scopeInput) return;
+    const scopeStr = scopeInput.trim().toUpperCase();
+    if (scopeStr !== 'ALL' && scopeStr !== 'CURRENT') return;
+    
+    const confirmMsg = scopeStr === 'ALL' 
+        ? `WARNING: This will wipe ALL progress for ${teamName} and send them back to Stage 1. Are you sure?`
+        : `This will reset ${teamName}'s current stage. Are you sure?`;
+        
+    if (!confirm(confirmMsg)) return;
+
+    try {
+        const response = await fetch(`/api/teams/${teamName}/reset`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ scope: scopeStr.toLowerCase() })
+        });
+        if (response.ok) {
+            showAdminToast("Reset Successful", `Reset ${teamName} progress (${scopeStr})`);
+            addDetailedLog(`Reset ${teamName} progress. Scope: ${scopeStr}`, 'game', 'Admin', 'System');
+        } else {
+            showAdminToast("Error", "Failed to reset progress");
         }
     } catch (e) {
         showAdminToast("Error", "Network error");

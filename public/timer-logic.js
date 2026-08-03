@@ -143,6 +143,44 @@ setInterval(async () => {
                     if (typeof updateTimerDisplay === 'function') updateTimerDisplay();
                 }
             }
+            
+            if (team.resetEvents && team.resetEvents.length > 0) {
+                let processedResets = JSON.parse(localStorage.getItem('escape_processed_reset_events') || '[]');
+                
+                for (const event of team.resetEvents) {
+                    if (!processedResets.includes(event.id)) {
+                        processedResets.push(event.id);
+                        localStorage.setItem('escape_processed_reset_events', JSON.stringify(processedResets));
+                        
+                        if (event.scope === 'all') {
+                            const keysToRemove = [];
+                            for (let i = 0; i < localStorage.length; i++) {
+                                const k = localStorage.key(i);
+                                if (k !== 'escape_team_id' && k !== 'escape_processed_reset_events' && (k.startsWith('escape_') || k.startsWith('streamwave_') || k.startsWith('sh_'))) {
+                                    keysToRemove.push(k);
+                                }
+                            }
+                            keysToRemove.forEach(k => localStorage.removeItem(k));
+                            window.location.href = 'home.html';
+                            return;
+                        } else if (event.scope === 'current') {
+                            const stage = event.stage;
+                            const keysToRemove = [];
+                            for (let i = 0; i < localStorage.length; i++) {
+                                const k = localStorage.key(i);
+                                if (k.startsWith(`escape_timer_${team.id}_stage_${stage}`)) keysToRemove.push(k);
+                                if (stage === 1 && k.startsWith(`escape_crossword_${team.id}`)) keysToRemove.push(k);
+                                if (stage === 2 && k.startsWith('sh_')) keysToRemove.push(k);
+                                if (stage === 3 && k.startsWith('escape_cipher_')) keysToRemove.push(k);
+                                if (stage === 4 && k.startsWith('streamwave_qr_')) keysToRemove.push(k);
+                            }
+                            keysToRemove.forEach(k => localStorage.removeItem(k));
+                            window.location.reload();
+                            return;
+                        }
+                    }
+                }
+            }
 
             if (team.status === 'frozen' || team.status === 'timeout') {
                 if (typeof showLocalOverlay === 'function') showLocalOverlay(team.status);
@@ -228,6 +266,44 @@ if (!window.puzzlePollInterval) {
                     if (newlyAdded) {
                         localStorage.setItem('escape_processed_time_events', JSON.stringify(processedEvents));
                         if (typeof updateTimerDisplay === 'function') updateTimerDisplay();
+                    }
+                }
+                
+                if (team.resetEvents && team.resetEvents.length > 0) {
+                    let processedResets = JSON.parse(localStorage.getItem('escape_processed_reset_events') || '[]');
+                    
+                    for (const event of team.resetEvents) {
+                        if (!processedResets.includes(event.id)) {
+                            processedResets.push(event.id);
+                            localStorage.setItem('escape_processed_reset_events', JSON.stringify(processedResets));
+                            
+                            if (event.scope === 'all') {
+                                const keysToRemove = [];
+                                for (let i = 0; i < localStorage.length; i++) {
+                                    const k = localStorage.key(i);
+                                    if (k !== 'escape_team_id' && k !== 'escape_processed_reset_events' && (k.startsWith('escape_') || k.startsWith('streamwave_') || k.startsWith('sh_'))) {
+                                        keysToRemove.push(k);
+                                    }
+                                }
+                                keysToRemove.forEach(k => localStorage.removeItem(k));
+                                window.location.href = 'home.html';
+                                return;
+                            } else if (event.scope === 'current') {
+                                const stage = event.stage;
+                                const keysToRemove = [];
+                                for (let i = 0; i < localStorage.length; i++) {
+                                    const k = localStorage.key(i);
+                                    if (k.startsWith(`escape_timer_${team.id}_stage_${stage}`)) keysToRemove.push(k);
+                                    if (stage === 1 && k.startsWith(`escape_crossword_${team.id}`)) keysToRemove.push(k);
+                                    if (stage === 2 && k.startsWith('sh_')) keysToRemove.push(k);
+                                    if (stage === 3 && k.startsWith('escape_cipher_')) keysToRemove.push(k);
+                                    if (stage === 4 && k.startsWith('streamwave_qr_')) keysToRemove.push(k);
+                                }
+                                keysToRemove.forEach(k => localStorage.removeItem(k));
+                                window.location.reload();
+                                return;
+                            }
+                        }
                     }
                 }
 

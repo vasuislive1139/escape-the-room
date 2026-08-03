@@ -37,7 +37,8 @@ const TeamSchema = new mongoose.Schema({
     stageTimes: { type: mongoose.Schema.Types.Mixed, default: {} },
     totalTime: { type: Number, default: 0 },
     vaultFinishRank: { type: Number, default: 0 },
-    timeEvents: { type: Array, default: [] }
+    timeEvents: { type: Array, default: [] },
+    resetEvents: { type: Array, default: [] }
 });
 
 const SettingSchema = new mongoose.Schema({
@@ -332,6 +333,52 @@ app.post(['/api/teams/:id/add-time', '/teams/:id/add-time'], async (req, res) =>
             category: 'system',
             teamId: teamId,
             details: `Added ${timeEvent.minutes} minutes to stage ${timeEvent.stage}`
+        });
+
+        res.json({ success: true, team });
+    } catch (err) {
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+// Admin Reset Action
+app.post(['/api/teams/:id/reset', '/teams/:id/reset'], async (req, res) => {
+    const { scope } = req.body;
+    const teamId = req.params.id;
+    try {
+        const team = await Team.findOne({ id: teamId });
+        if (!team) return res.status(404).json({ error: "Team not found" });
+
+        const eventId = Math.random().toString(36).substr(2, 9);
+        const resetEvent = {
+            id: eventId,
+            scope: scope === 'all' ? 'all' : 'current',
+            stage: team.stage,
+            timestamp: Date.now()
+        };
+
+        if (!team.resetEvents) team.resetEvents = [];
+        team.resetEvents.push(resetEvent);
+        
+        team.status = 'active';
+
+        if (scope === 'all') {
+            team.stage = 1;
+            team.score = 0;
+            team.totalTime = 0;
+            team.stageTimes = {};
+            team.warnings = 0;
+            team.timeEvents = [];
+        }
+
+        await team.save();
+
+        await Log.create({
+            timestamp: Date.now(),
+            action: `GM Action: RESET`,
+            category: 'system',
+            teamId: teamId,
+            details: `Reset progress. Scope: ${scope}`
         });
 
         res.json({ success: true, team });
