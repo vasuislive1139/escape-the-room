@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         ]);
         const teamsData = await teamsRes.json();
         if (teamsData.error) {
-            showAdminToast("⚠️ Database Error", "Please configure MONGODB_URI in Vercel.");
+            showAdminToast("⚠️ Database Error", teamsData.error);
         } else {
             window.GLOBAL_TEAMS_DB = teamsData;
             window.GLOBAL_SETTINGS = await settingsRes.json();
@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (teamsData.error) {
                 if (!window.dbErrorShown) {
-                    showAdminToast("⚠️ Database Error", "Could not connect to MongoDB. Check MONGODB_URI in Vercel.");
+                    showAdminToast("⚠️ Database Error", teamsData.error);
                     window.dbErrorShown = true;
                 }
                 return;
