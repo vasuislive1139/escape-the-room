@@ -120,15 +120,12 @@ const qrHint = document.getElementById('qrHint');
 function openQr(title, src, index) {
   qrTitle.textContent = title;
   qrLarge.src = src.replace('size=110x110', 'size=300x300');
-  
-  if (index === 6) {
-      qrHint.textContent = "🏆 You found the final QR! Processing your victory...";
-  } else {
-      const nextLocId = qrSequence[index]; // next index in 0-indexed sequence
-      const nextLocName = LOCATION_NAMES[nextLocId];
-      qrHint.innerHTML = `🎉 <strong>Congratulations!</strong> You found QR ${index}.<br><br>📍 <strong>NEXT LOCATION:</strong> Go to the <em>${nextLocName}</em>.`;
-      
-      // Mini confetti celebration!
+    if (index === 6) {
+        qrHint.textContent = "🏆 You found the final QR! Processing your victory...";
+    } else {
+        qrHint.innerHTML = `🎉 <strong>Congratulations!</strong> You found QR ${index}.<br><br>📱 <strong>Scan this QR code with your phone to reveal the location of the next clue!</strong>`;
+        
+        // Mini confetti celebration!
       if (typeof confetti === 'function') {
           confetti({
               particleCount: 100,
@@ -270,10 +267,11 @@ document.querySelectorAll('.navlinks a').forEach(link => {
   });
 });
 
-// Dev win button handler
-const devWinBtn = document.getElementById('devWinBtn');
-if (devWinBtn) {
-  devWinBtn.addEventListener('click', () => {
-    openQr("QR 6: Winner!", "https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=" + encodeURIComponent("Congratulations! You're the winner!"), 6);
-  });
+function checkTimerStatus() {
+  if (typeof currentStageTimeLeft !== 'undefined' && currentStageTimeLeft <= 0) {
+    if (typeof handleTimeExpired === 'function') {
+      handleTimeExpired();
+    }
+  }
 }
+setInterval(checkTimerStatus, 1000);
