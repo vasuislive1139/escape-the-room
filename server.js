@@ -22,8 +22,8 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 const fs = require('fs');
-// Initialize Database
-const dbPath = process.env.DB_PATH || path.join(__dirname, 'database.sqlite');
+// Initialize Database (Glitch uses .data/ for persistent storage automatically)
+const dbPath = process.env.DB_PATH || path.join(__dirname, '.data', 'database.sqlite');
 try {
     fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 } catch (err) {
