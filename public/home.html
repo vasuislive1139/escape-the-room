@@ -16,6 +16,21 @@
     <canvas id="embersCanvas"></canvas>
     <div class="atmosphere-overlay"></div>
 
+    <!-- ANTI-SPOILER OVERLAY -->
+    <div id="antiSpoilerOverlay" class="gm-freeze-overlay" style="z-index: 10000; background: rgba(10, 15, 20, 0.95); backdrop-filter: blur(20px);">
+        <div class="freeze-box" style="border-color: #e6c887; box-shadow: 0 0 40px rgba(230, 200, 135, 0.2);">
+            <span class="freeze-icon" style="color: #e6c887; animation: none;">⏳</span>
+            <h2 class="freeze-title" style="color: #e6c887; margin-bottom: 25px;">ARE YOU READY?</h2>
+            <p class="freeze-desc" style="font-size: 1.1rem; color: #a5b0bb; margin-bottom: 40px;">
+                Your team is securely logged in and synced to the Command Center.<br><br>Please wait for the Game Master to announce the start of the event before proceeding to avoid spoilers.
+            </p>
+            <button class="ornate-btn" onclick="document.getElementById('antiSpoilerOverlay').style.display='none'; playClickSound();" style="width: 100%; max-width: 300px; margin: 0 auto; display: block;">
+                <span class="btn-text">START PLAYING</span>
+                <div class="btn-shine"></div>
+            </button>
+        </div>
+    </div>
+
     <!-- GAME MASTER LIVE FROSTED FREEZE OVERLAY (Hidden until Admin freezes team) -->
     <div id="gmFreezeOverlay" class="gm-freeze-overlay hidden" role="alert">
         <div class="freeze-box">
