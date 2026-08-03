@@ -4,6 +4,7 @@
   "description": "An immersive, high-stakes interactive Escape Room web application tailored for tech symposiums, coding competitions, and live student events. Featuring a state-of-the-art **Game Master Nexus Command Center** for event organizers and judges to monitor, synchronize, broadcast, and control all participating teams in real-time.",
   "main": "admin-script.js",
   "scripts": {
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
