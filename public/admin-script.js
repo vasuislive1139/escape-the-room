@@ -190,7 +190,7 @@ function initAdminAuth() {
     const uInput = document.getElementById('adminUsername');
     const pInput = document.getElementById('adminPassword');
 
-    if (sessionStorage.getItem('escape_gm_authenticated') === 'true') {
+    if (localStorage.getItem('escape_gm_authenticated') === 'true') {
         if (modal) {
             modal.classList.add('hidden');
             modal.style.setProperty('display', 'none', 'important');
@@ -217,7 +217,7 @@ function initAdminAuth() {
 
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
-            sessionStorage.removeItem('escape_gm_authenticated');
+            localStorage.removeItem('escape_gm_authenticated');
             window.location.reload();
         });
     }
@@ -226,7 +226,7 @@ function initAdminAuth() {
 function unlockGameMasterNexus(e) {
     if (e && e.preventDefault) e.preventDefault();
     try {
-        sessionStorage.setItem('escape_gm_authenticated', 'true');
+        localStorage.setItem('escape_gm_authenticated', 'true');
     } catch(err) {}
 
     const modal = document.getElementById('adminLoginModal');

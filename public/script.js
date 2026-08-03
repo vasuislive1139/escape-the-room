@@ -309,7 +309,7 @@ function initFormControls() {
             }
 
             if (teamId === 'TATVAADMIN' && password === 'Tatva2026!') {
-                sessionStorage.setItem('escape_gm_authenticated', 'true');
+                localStorage.setItem('escape_gm_authenticated', 'true');
                 if (loginSubmitBtn) {
                     loginSubmitBtn.disabled = false;
                     loginSubmitBtn.innerHTML = originalBtnText;
@@ -464,14 +464,14 @@ function initHomeProgression() {
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
-            sessionStorage.removeItem('escape_gm_authenticated');
+            localStorage.removeItem('escape_gm_authenticated');
             localStorage.removeItem('escape_team_id');
             window.location.href = 'index.html';
         });
     }
 
     const adminNavBtn = document.getElementById('adminNavButton');
-    if (adminNavBtn && sessionStorage.getItem('escape_gm_authenticated') === 'true') {
+    if (adminNavBtn && localStorage.getItem('escape_gm_authenticated') === 'true') {
         adminNavBtn.style.display = 'inline-block';
     }
 
