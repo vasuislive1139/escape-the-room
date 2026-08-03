@@ -27,34 +27,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.GLOBAL_LOGS = await logsRes.json();
     } catch(e) { console.error('Failed to fetch initial state:', e); }
 
-    // Init Socket.io
-    if (typeof io !== 'undefined') {
-        socket = io();
-        socket.on('team_update', (team) => {
-            window.GLOBAL_TEAMS_DB[team.id] = team;
+    // Polling for real-time updates
+    setInterval(async () => {
+        try {
+            const [teamsRes, settingsRes, logsRes] = await Promise.all([
+                fetch('/api/teams'),
+                fetch('/api/settings'),
+                fetch('/api/logs')
+            ]);
+            window.GLOBAL_TEAMS_DB = await teamsRes.json();
+            window.GLOBAL_SETTINGS = await settingsRes.json();
+            window.GLOBAL_LOGS = await logsRes.json();
+            
             if (typeof renderAnalyticsAndRoster === 'function') renderAnalyticsAndRoster();
-        });
-        socket.on('bulk_teams_update', async () => {
-            const res = await fetch('/api/teams');
-            window.GLOBAL_TEAMS_DB = await res.json();
-            if (typeof renderAnalyticsAndRoster === 'function') renderAnalyticsAndRoster();
-        });
-        socket.on('team_delete', (id) => {
-            delete window.GLOBAL_TEAMS_DB[id];
-            if (typeof renderAnalyticsAndRoster === 'function') renderAnalyticsAndRoster();
-        });
-        socket.on('database_cleared', () => {
-            window.GLOBAL_TEAMS_DB = {};
-            if (typeof renderAnalyticsAndRoster === 'function') renderAnalyticsAndRoster();
-        });
-        socket.on('settings_update', (settings) => {
-            Object.assign(window.GLOBAL_SETTINGS, settings);
-        });
-        socket.on('logs_update', (logs) => {
-            window.GLOBAL_LOGS = logs;
             if (typeof renderLiveActivityFeed === 'function') renderLiveActivityFeed();
-        });
-    }
+        } catch(e) {}
+    }, 3000);
 
     initCommandCenter();
 });
@@ -1023,18 +1011,13 @@ function populateTargetSelector(teamNames) {
    6. REAL-TIME GAME MASTER INTERVENTIONS & BROADCAST TRANSMISSIONS
    ========================================================================== */
 function transmitGmCommand(targetTeam, commandType, messageContent, extraType = 'info', targetStage = null) {
-    const payload = {
-        id: 'gm_cmd_' + Date.now() + '_' + Math.floor(Math.random()*1000),
-        target: targetTeam,
-        type: commandType,
-        message: messageContent,
-        category: extraType,
-        stage: targetStage,
-        timestamp: new Date().toLocaleTimeString()
-    };
-
-    if (typeof socket !== 'undefined' && socket) {
-        socket.emit('gm_command', payload);
+    if (targetTeam === 'ALL') {
+        const payload = Date.now() + ":" + messageContent;
+        fetch('/api/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ globalMessage: payload })
+        });
     }
 }
 
@@ -1158,67 +1141,48 @@ function quickAction(teamName, actionType) {
     const db = getTeamsDb();
     if (!db[teamName]) return;
 
-    if (actionType === 'promote') {
-        const cur = db[teamName].stage || 1;
-        if (cur < 4) {
-            db[teamName].stage = cur + 1;
-            saveTeamsDb(db);
-            transmitGmCommand(teamName, 'PROMOTE', `⏩ Game Master promoted you to Stage 0${cur + 1}!`, 'info', cur + 1);
-            showAdminToast("⏩ Stage Promoted", `${teamName} advanced to Stage 0${cur + 1}.`);
-            addLogItem(`Promoted [${teamName}] to Stage 0${cur + 1}`, 'system');
-        } else {
-            showAdminToast("ℹ️ Already Max Stage", `${teamName} is already at Stage 04.`);
-        }
-    } else if (actionType === 'demote') {
-        const cur = db[teamName].stage || 1;
-        if (cur > 1) {
-            db[teamName].stage = cur - 1;
-            saveTeamsDb(db);
-            transmitGmCommand(teamName, 'DEMOTE', `⏪ Game Master moved you back to Stage 0${cur - 1}.`, 'info', cur - 1);
-            showAdminToast("⏪ Stage Demoted", `${teamName} demoted to Stage 0${cur - 1}.`);
-            addLogItem(`Demoted [${teamName}] to Stage 0${cur - 1}`, 'warn');
-        } else {
-            showAdminToast("ℹ️ Already Stage 1", `${teamName} is already at Stage 01.`);
-        }
-    } else if (actionType === 'vip') {
-        db[teamName].stage = 4;
-        saveTeamsDb(db);
-        transmitGmCommand(teamName, 'PROMOTE', `★ VIP ACCESS GRANTED: All 4 chambers unlocked by Game Master!`, 'info', 4);
-        showAdminToast("★ VIP Granted", `${teamName} given Stage 4 All-Access.`);
-        addLogItem(`Granted VIP Stage 4 access to [${teamName}]`, 'system');
-    } else if (actionType === 'warn') {
-        transmitGmCommand(teamName, 'WARNING', `⚠️ RULE WARNING for ${teamName}: Please maintain decorum and do not attempt unauthorized code injection!`);
+    let endpoint = `/api/teams/${teamName}/action`;
+    let actionMap = {
+        'freeze': 'FREEZE',
+        'warn': 'WARN',
+        'revive': 'REVIVE',
+        'delete': 'LOGOUT'
+    };
+    
+    // For promote/demote/vip we use standard update
+    if (['promote', 'demote', 'vip'].includes(actionType)) {
+        let newStage = db[teamName].stage || 1;
+        if (actionType === 'promote' && newStage < 4) newStage++;
+        if (actionType === 'demote' && newStage > 1) newStage--;
+        if (actionType === 'vip') newStage = 4;
+        
+        fetch('/api/teams', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: teamName, stage: newStage })
+        });
+        showAdminToast("Action Processed", `Team ${teamName} stage updated.`);
+        return;
+    }
+
+    if (actionType === 'warn_plus') {
         db[teamName].warnings = (db[teamName].warnings || 0) + 1;
         saveTeamsDb(db);
-        showAdminToast("⚠️ Warning Sent", `Warning issued to ${teamName}.`);
-        addLogItem(`Issued warning to [${teamName}]`, 'warn');
-    } else if (actionType === 'warn_plus') {
-        db[teamName].warnings = (db[teamName].warnings || 0) + 1;
-        saveTeamsDb(db);
-    } else if (actionType === 'warn_minus') {
+        return;
+    }
+    if (actionType === 'warn_minus') {
         db[teamName].warnings = Math.max(0, (db[teamName].warnings || 0) - 1);
         saveTeamsDb(db);
-    } else if (actionType === 'freeze') {
-        const isFrozen = db[teamName].status === 'frozen';
-        db[teamName].status = isFrozen ? 'active' : 'frozen';
-        saveTeamsDb(db);
-        transmitGmCommand(teamName, isFrozen ? 'UNFREEZE' : 'FREEZE', isFrozen ? '🔥 Gameplay restored.' : '❄️ Progress frozen by Game Master.');
-        showAdminToast(isFrozen ? `🔥 ${teamName} Unfrozen` : `❄️ ${teamName} Frozen`, `Account status updated.`);
-        addLogItem(`Toggled freeze state of [${teamName}] to ${isFrozen ? 'ACTIVE' : 'FROZEN'}`, 'freeze');
-    } else if (actionType === 'revive') {
-        db[teamName].status = 'active';
-        saveTeamsDb(db);
-        transmitGmCommand(teamName, 'REVIVE', `💚 Game Master has revived your team with 5 extra minutes!`, 'info');
-        showAdminToast("💚 Team Revived", `${teamName} has been revived and granted 5 minutes.`);
-        addLogItem(`Revived [${teamName}] from timeout`, 'system');
-    } else if (actionType === 'delete') {
-        if (confirm(`Are you sure you want to remove team "${teamName}" from the database?`)) {
-            delete db[teamName];
-            saveTeamsDb(db);
-            transmitGmCommand(teamName, 'LOGOUT', 'Your credentials have been revoked.');
-            showAdminToast("🗑️ Team Deleted", `${teamName} removed from database.`);
-            addLogItem(`Deleted team [${teamName}] from database.`, 'alert');
-        }
+        return;
+    }
+
+    if (actionMap[actionType]) {
+        fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: actionMap[actionType] })
+        });
+        showAdminToast("Action Processed", `Applied ${actionType} to team ${teamName}`);
     }
 }
 

@@ -599,38 +599,65 @@ let lastSyncedFreezeState = null;
 let lastSyncedStage = null;
 let socket = null;
 
+let pollInterval = null;
+
 function initGameMasterListener() {
-    if (typeof io !== 'undefined') {
-        window.socket = window.socket || io();
+    const myTeam = (localStorage.getItem('escape_team_id') || '').toUpperCase();
+    if (!myTeam) return;
+
+    // Fetch initial state immediately
+    pollTeamState(myTeam);
+
+    // Start short-polling every 3 seconds
+    if (pollInterval) clearInterval(pollInterval);
+    pollInterval = setInterval(() => {
+        pollTeamState(myTeam);
+    }, 3000);
+}
+
+async function pollTeamState(teamId) {
+    try {
+        const [teamRes, settingsRes] = await Promise.all([
+            fetch(`/api/teams/${teamId}`),
+            fetch(`/api/settings`)
+        ]);
         
-        window.socket.on('gm_command', (cmd) => {
-            processGmCommand(cmd);
-        });
-        
-        window.socket.on('team_update', (team) => {
-            const myTeam = (localStorage.getItem('escape_team_id') || '').toUpperCase();
-            if (team.id === myTeam) {
-                processTeamStateChange(team);
+        if (settingsRes.ok) {
+            const settings = await settingsRes.json();
+            if (settings.globalMessage && settings.globalMessage !== window.lastGlobalMessage) {
+                window.lastGlobalMessage = settings.globalMessage;
+                // Format is timestamp:message
+                const msgParts = settings.globalMessage.split(':');
+                msgParts.shift(); // remove timestamp
+                const msg = msgParts.join(':');
+                if (msg) showNotification(msg);
             }
-        });
+        }
         
-        window.socket.on('database_cleared', () => {
+        if (teamRes.ok) {
+            const teamData = await teamRes.json();
+            
+            // Handle force logout
+            if (teamData.status === 'logged_out') {
+                localStorage.removeItem('escape_team_id');
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            processTeamStateChange(teamData);
+            
+            // Check warnings
+            if (teamData.warnings > (window.lastWarningCount || 0)) {
+                window.lastWarningCount = teamData.warnings;
+                showWarningOverlay(`⚠️ GAME MASTER WARNING (${teamData.warnings})`);
+            }
+        } else if (teamRes.status === 404) {
+            // Team deleted from database
             localStorage.removeItem('escape_team_id');
             window.location.href = 'index.html';
-        });
-
-        // Fetch initial state
-        const myTeam = (localStorage.getItem('escape_team_id') || '').toUpperCase();
-        if (myTeam) {
-            fetch('/api/teams')
-                .then(res => res.json())
-                .then(teams => {
-                    if (teams[myTeam]) {
-                        processTeamStateChange(teams[myTeam]);
-                    }
-                })
-                .catch(err => console.error(err));
         }
+    } catch (err) {
+        console.error("Polling error:", err);
     }
 }
 

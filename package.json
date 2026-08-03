@@ -4,7 +4,7 @@
   "description": "An immersive, high-stakes interactive Escape Room web application tailored for tech symposiums, coding competitions, and live student events. Featuring a state-of-the-art **Game Master Nexus Command Center** for event organizers and judges to monitor, synchronize, broadcast, and control all participating teams in real-time.",
   "main": "admin-script.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node api/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -24,8 +24,8 @@
   "homepage": "https://github.com/vasuislive1139/escape-the-room#readme",
   "dependencies": {
     "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "socket.io": "^4.8.3",
-    "sqlite3": "^6.0.1"
+    "mongoose": "^9.9.1"
   }
 }

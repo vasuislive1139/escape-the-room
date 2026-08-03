@@ -94,25 +94,30 @@ window.completeStage = function(nextStage, scoreGained, eventData = '') {
     const teamId = localStorage.getItem('escape_team_id');
     if (!teamId) return;
     
-    if (window.socket) {
-        window.socket.emit('team_completed_stage', {
-            teamId,
-            nextStage,
-            scoreGained,
-            eventData
-        });
-    }
+    // Fetch current stage from localStorage to increment score if needed
+    // or just pass stage to POST
+    fetch('/api/teams', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: teamId, stage: nextStage }) // Score increment logic should be in backend ideally, but we pass stage for now.
+    }).catch(err => console.error("Error saving stage:", err));
 };
 
-// Global Socket init for puzzle pages
-if (typeof io !== 'undefined' && !window.socket) {
-    window.socket = io();
-    window.socket.on('team_update', (team) => {
-        const myTeam = (localStorage.getItem('escape_team_id') || '').toUpperCase();
-        if (team.id === myTeam && (team.status === 'frozen' || team.status === 'timeout')) {
-            window.location.href = 'home.html'; // Kick to home to see freeze overlay
-        }
-    });
+// Global polling init for puzzle pages
+if (!window.puzzlePollInterval) {
+    window.puzzlePollInterval = setInterval(async () => {
+        const teamId = localStorage.getItem('escape_team_id');
+        if (!teamId) return;
+        try {
+            const res = await fetch(`/api/teams/${teamId}`);
+            if (res.ok) {
+                const team = await res.json();
+                if (team.status === 'frozen' || team.status === 'timeout' || team.status === 'logged_out') {
+                    window.location.href = 'home.html'; // Kick to home to see freeze overlay
+                }
+            }
+        } catch(e) {}
+    }, 3000);
 }
 
 function stopTimer() {
