@@ -124,6 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupUIEvents();
     buildFileTree(FILE_SYSTEM.children, document.getElementById('fileTree'), 0);
     setInterval(syncWithGameMasterDb, 150);
+    if (typeof initStageTimer === 'function') initStageTimer(2);
 });
 
 // --- Auth & Setup ---
@@ -166,12 +167,11 @@ function setupUIEvents() {
         document.getElementById('rulesModal').classList.add('hidden');
     });
     
-    document.getElementById('startBtn').addEventListener('click', () => {
+    window.onStageStart = function() {
         document.getElementById('heroSection').classList.add('hidden');
         document.getElementById('workspaceSection').classList.remove('hidden');
-        startTimer();
         loadClue(currentClueIndex);
-    });
+    };
     
     document.getElementById('submitAnswerBtn').addEventListener('click', handleAnswerSubmit);
     document.getElementById('answerInput').addEventListener('keypress', (e) => {
@@ -403,12 +403,7 @@ function updateTrackerUI() {
     }
 }
 
-// --- Timer ---
-function startTimer() {
-    if (typeof initStageTimer === 'function') {
-        initStageTimer(2);
-    }
-}
+// Timer logic handled by global timer-logic.js
 // --- Completion ---
 function completeStage() {
     if (typeof stopTimer === 'function') stopTimer();
