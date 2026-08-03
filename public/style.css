@@ -504,4 +504,59 @@ body.home-body { justify-content: flex-start; background-image: url('assets/home
     box-shadow: 0 0 30px rgba(197, 160, 89, 0.2);
 }
 .start-content h2 { color: var(--gold-bright); margin-bottom: 10px; font-family: var(--font-title); font-size: 2rem; }
-.start-content p { color: var(--text-secondary); margin-bottom: 24px; font-size: 1.1rem; }
+.start-content p { color: var(--text-secondary); margin-bottom: 24px; font-size: 1.1rem; }/* FAILURE OVERLAY (BLACK SCREEN) */
+.failure-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: #000;
+    z-index: 30000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+.failure-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    animation: zoomIn 0.5s ease forwards;
+}
+.failure-title {
+    color: #ff3333;
+    font-size: 5rem;
+    font-weight: 900;
+    letter-spacing: 10px;
+    margin: 0;
+    text-shadow: 0 0 20px rgba(255,51,51,0.5);
+    font-family: 'Cinzel Decorative', serif;
+}
+.failure-reason {
+    color: #fff;
+    font-size: 1.5rem;
+    margin-bottom: 30px;
+}
+.failure-stats {
+    display: flex;
+    gap: 50px;
+    background: rgba(20, 20, 20, 0.8);
+    padding: 30px 50px;
+    border-radius: 12px;
+    border: 1px solid #333;
+}
+.failure-stats .stat-group {
+    display: flex;
+    flex-direction: column;
+}
+.failure-stats .stat-label {
+    color: #888;
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+}
+.failure-stats .stat-value {
+    color: #fff;
+    font-size: 2.5rem;
+    font-weight: bold;
+    font-family: monospace;
+}

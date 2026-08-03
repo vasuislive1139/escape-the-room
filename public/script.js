@@ -646,28 +646,53 @@ function processTeamStateChange(teamData) {
     
     if (lastSyncedFreezeState !== newStatus) {
         lastSyncedFreezeState = newStatus;
-        const overlay = document.getElementById('gmFreezeOverlay');
-        if (overlay) {
-            if (isNowFrozen || isNowTimeout) {
-                overlay.classList.remove('hidden');
-                if (typeof playErrorSound === 'function') playErrorSound();
+        const failOverlay = document.getElementById('failureOverlay');
+        const freezeOverlay = document.getElementById('gmFreezeOverlay');
+        
+        if (isNowFrozen || isNowTimeout) {
+            if (typeof playErrorSound === 'function') playErrorSound();
+            
+            // If they are on home page, use the new failure overlay. Otherwise, fallback to freeze overlay.
+            if (failOverlay) {
+                if (freezeOverlay) freezeOverlay.classList.add('hidden');
+                failOverlay.classList.remove('hidden');
                 
-                const title = overlay.querySelector('h3');
-                const text = overlay.querySelector('p');
-                            
-                            if (isNowTimeout) {
-                                if (title) title.textContent = "DISQUALIFIED";
-                                if (text) text.textContent = "Your time has expired. Please see the Game Master if you believe this is an error.";
-                            } else {
-                                if (title) title.textContent = "SYSTEM LOCKED";
-                                if (text) text.textContent = "Your connection has been frozen by the Game Master.";
-                            }
-                        } else {
-                            overlay.classList.add('hidden');
-                            if (typeof playUnlockSound === 'function') playUnlockSound();
-                        }
-                    }
+                const reasonText = document.getElementById('failureReasonText');
+                const scoreText = document.getElementById('failureScore');
+                const timeText = document.getElementById('failureTime');
+                
+                if (reasonText) reasonText.textContent = isNowTimeout ? "TIME EXPIRED" : "ADMIN DISQUALIFICATION";
+                if (scoreText) scoreText.textContent = teamData.score || 0;
+                
+                if (timeText) {
+                    const t = teamData.totalTime || 0;
+                    const m = Math.floor(t / 60).toString().padStart(2, '0');
+                    const s = (t % 60).toString().padStart(2, '0');
+                    timeText.textContent = `${m}:${s}`;
                 }
+                
+                if (typeof startRestartCooldown === 'function') {
+                    startRestartCooldown('failureCooldownTimer', 'failureRestartBtn', 'failureCooldownContainer');
+                }
+            } else if (freezeOverlay) {
+                freezeOverlay.classList.remove('hidden');
+                const title = freezeOverlay.querySelector('h3') || freezeOverlay.querySelector('.freeze-title');
+                const text = freezeOverlay.querySelector('p') || freezeOverlay.querySelector('.freeze-desc');
+                
+                if (isNowTimeout) {
+                    if (title) title.textContent = "DISQUALIFIED";
+                    if (text) text.textContent = "Your time has expired. Please see the Game Master if you believe this is an error.";
+                } else {
+                    if (title) title.textContent = "SYSTEM LOCKED";
+                    if (text) text.textContent = "Your connection has been frozen by the Game Master.";
+                }
+            }
+        } else {
+            if (failOverlay) failOverlay.classList.add('hidden');
+            if (freezeOverlay) freezeOverlay.classList.add('hidden');
+            if (typeof playUnlockSound === 'function') playUnlockSound();
+        }
+    }
 
                 // Check Stage promotion or demotion change
                 const currentLocalStage = parseInt(localStorage.getItem('escape_unlocked_level') || '1', 10);
@@ -954,4 +979,159 @@ function showNotification(msg) {
     showToast("🔔 Event Notification", msg);
 }
 
+// --- Cooldown and Restart Logic ---
+window.startRestartCooldown = function(timerId, btnId, containerId) {
+    const timerEl = document.getElementById(timerId);
+    const btnEl = document.getElementById(btnId);
+    const containerEl = document.getElementById(containerId);
+    if (!timerEl || !btnEl) return;
+    
+    let timeLeft = 100;
+    timerEl.textContent = timeLeft;
+    
+    // Reset state if called multiple times
+    btnEl.classList.add('hidden');
+    if (containerEl) containerEl.classList.remove('hidden');
+    
+    const interval = setInterval(() => {
+        timeLeft--;
+        if (timeLeft <= 0) {
+            clearInterval(interval);
+            btnEl.classList.remove('hidden');
+            if (containerEl) containerEl.classList.add('hidden');
+        } else {
+            timerEl.textContent = timeLeft;
+        }
+    }, 1000);
+};
 
+window.resetTeamProgress = async function() {
+    const teamId = localStorage.getItem('escape_team_id');
+    if (!teamId) return;
+    
+    try {
+        // We'll use the existing /api/teams endpoint to reset stats
+        await fetch('/api/teams', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                id: teamId,
+                stage: 1,
+                status: 'active',
+                score: 0
+            })
+        });
+        
+        // Clean local storage
+        localStorage.removeItem('escape_unlocked_level');
+        localStorage.removeItem(`escape_timer_${teamId}_stage_1`);
+        localStorage.removeItem(`escape_timer_${teamId}_stage_2`);
+        localStorage.removeItem(`escape_timer_${teamId}_stage_3`);
+        localStorage.removeItem(`escape_timer_${teamId}_stage_4`);
+        localStorage.removeItem('sh_time');
+        localStorage.removeItem('escape_final_leaderboard');
+        
+        window.location.href = 'index.html'; // Go back to start
+    } catch(err) {
+    } catch(err) {
+        console.error("Reset failed", err);
+    }
+};
+
+// --- Global Leaderboard Takeover Logic ---
+window.triggerGameOver = function(db) {
+    const podium = document.getElementById('podiumOverlay');
+    const freeze = document.getElementById('gmFreezeOverlay');
+    const failOverlay = document.getElementById('failureOverlay');
+    
+    if (podium && db) {
+        if (freeze) freeze.classList.add('hidden');
+        if (failOverlay) failOverlay.classList.add('hidden');
+        podium.classList.remove('hidden');
+        
+        // Fire Confetti!
+        if (typeof confetti === 'function') {
+            const duration = 15 * 1000;
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 10000 };
+            
+            const interval = setInterval(function() {
+                const timeLeft = animationEnd - Date.now();
+                if (timeLeft <= 0) {
+                    return clearInterval(interval);
+                }
+                const particleCount = 50 * (timeLeft / duration);
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: Math.random(), y: Math.random() - 0.2 } }));
+            }, 250);
+        }
+        
+        const teamNames = Object.keys(db);
+        const sortedTeams = teamNames
+            .map(name => ({ name, ...db[name] }))
+            .sort((a, b) => {
+                const stageA = a.stage || 1;
+                const stageB = b.stage || 1;
+                if (stageB !== stageA) return stageB - stageA;
+                const scoreA = a.score || 0;
+                const scoreB = b.score || 0;
+                return scoreB - scoreA;
+            });
+        
+        // Populate Top 3
+        const top1 = sortedTeams[0];
+        const top2 = sortedTeams[1];
+        const top3 = sortedTeams[2];
+        
+        const p1 = document.getElementById('podium1');
+        if (p1 && top1) p1.querySelector('.podium-team').textContent = top1.name;
+        
+        const p2 = document.getElementById('podium2');
+        if (p2 && top2) p2.querySelector('.podium-team').textContent = top2.name;
+        
+        const p3 = document.getElementById('podium3');
+        if (p3 && top3) p3.querySelector('.podium-team').textContent = top3.name;
+        
+        // Populate the rest
+        const restTable = document.getElementById('podiumRestTable');
+        if (restTable) {
+            restTable.innerHTML = '';
+            sortedTeams.slice(3).forEach((team, idx) => {
+                const rank = idx + 4;
+                let statusHtml = '<span style="color:#50e3c2;">ACTIVE</span>';
+                if (team.status === 'timeout') statusHtml = '<span style="color:#ff5555; font-weight:bold;">FAILED (TIMEOUT)</span>';
+                else if (team.status === 'frozen') statusHtml = '<span style="color:#aaddff;">FROZEN</span>';
+                else if (team.stage >= 5) statusHtml = '<span style="color:gold;">ESCAPED</span>';
+                
+                const tr = document.createElement('tr');
+                tr.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+                tr.innerHTML = `
+                    <td style="padding: 12px; text-align: center; font-weight: bold; color: ${rank <= 3 ? '#ffd700' : '#888'};">${rank}</td>
+                    <td style="padding: 12px; font-family: monospace; font-size: 1.1rem; color: #fff;">${team.name}</td>
+                    <td style="padding: 12px; text-align: center; color: #4dc2ff;">Stage ${team.stage || 1}</td>
+                    <td style="padding: 12px; text-align: right; font-weight: bold; color: #ffb84d;">${team.score || 0}</td>
+                    <td style="padding: 12px; text-align: center;">${statusHtml}</td>
+                `;
+                restTable.appendChild(tr);
+            });
+        }
+        
+        showToast("🏆 EVENT CONCLUDED", "Top 3 teams have escaped. Systems offline.");
+        
+        if (typeof startRestartCooldown === 'function') {
+            startRestartCooldown('podiumCooldownTimer', 'podiumRestartBtn', 'podiumCooldownContainer');
+        }
+    } else if (db) {
+        // Not on home.html, save to localStorage and redirect!
+        localStorage.setItem('escape_final_leaderboard', JSON.stringify(db));
+        window.location.href = 'home.html';
+    } else {
+        // Fallback if no podium overlay exists
+        if (freeze) {
+            const title = freeze.querySelector('h3') || freeze.querySelector('.freeze-title');
+            if (title) title.textContent = "GAME OVER";
+            const text = freeze.querySelector('p') || freeze.querySelector('.freeze-desc');
+            if (text) text.textContent = "The Live Finale has concluded. The top 3 teams have already escaped!";
+            freeze.classList.remove('hidden');
+        }
+    }
+};
