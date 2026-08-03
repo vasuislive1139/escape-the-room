@@ -169,6 +169,7 @@ document.querySelectorAll('.poster-qr').forEach(button => button.addEventListene
 document.getElementById('closeQr').addEventListener('click', closeQr);
 qrModal.addEventListener('click', event => {
   if (event.target === qrModal) closeQr();
+});
 document.addEventListener('keydown', event => {
   if (event.key === 'Escape') {
     closeSearch();
