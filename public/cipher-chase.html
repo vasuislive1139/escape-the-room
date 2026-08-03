@@ -145,8 +145,9 @@
                         <!-- Back Button navigation & Hint button -->
                         <div style="margin-top: 24px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(197, 160, 89, 0.15); padding-top: 16px;">
                             <a href="home.html" class="back-link" onclick="playClickSound()">&larr; Return to Portal</a>
-                            <button type="button" class="audio-btn hint-btn" onclick="showChamberHint()" style="border-color: rgba(80, 227, 194, 0.4); color: #50e3c2; padding: 6px 14px; font-weight: 700;">
+                            <button type="button" id="hintBtn" class="audio-btn hint-btn" onclick="showChamberHint()" style="border-color: rgba(80, 227, 194, 0.4); color: #50e3c2; padding: 6px 14px; font-weight: 700; display: flex; flex-direction: column; align-items: center; gap: 2px;">
                                 <span>💡 REQUEST HINT</span>
+                                <small id="hintsRemainingText" style="font-size: 0.7rem; font-weight: 400; opacity: 0.8;">(2 Remaining)</small>
                             </button>
                         </div>
                     </div>

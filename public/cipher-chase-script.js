@@ -52,52 +52,70 @@ function initAuthAndCipher() {
     currentSubStage = parseInt(localStorage.getItem('escape_cipher_substage') || '1', 10);
     if (currentSubStage < 1 || currentSubStage > 3) currentSubStage = 1;
 
-    // Generate unique cipher combinations ( Caesar / Atbash / ROT13 ) for the team
+    // Generate unique cipher combinations
     currentTeamCiphers = getStage3CiphersForTeam(activeTeamName);
+
+    // Initialize Hint Counter
+    let hintsUsed = parseInt(localStorage.getItem('escape_cipher_hints_used') || '0', 10);
+    updateHintButtonUI(hintsUsed);
 
     // Initial render
     renderSubStageUI();
 }
 
-function getStage3CiphersForTeam(teamName) {
-    const cleanName = (teamName || 'TEAM-ALPHA').trim().toUpperCase();
-    let teamIndex = 0;
+function updateHintButtonUI(hintsUsed) {
+    const hintBtn = document.getElementById('hintBtn');
+    const hintsText = document.getElementById('hintsRemainingText');
+    if (!hintBtn || !hintsText) return;
     
-    // Extract team number if TEAM-XX pattern
-    const match = cleanName.match(/TEAM-0*(\d+)/);
-    if (match) {
-        const num = parseInt(match[1], 10);
-        teamIndex = (num - 1) % 24;
+    let remaining = 2 - hintsUsed;
+    if (remaining <= 0) {
+        hintsText.textContent = "(HINTS EXHAUSTED)";
+        hintsText.style.color = "#ff4f55";
+        hintBtn.style.opacity = "0.5";
+        hintBtn.style.cursor = "not-allowed";
+        hintBtn.style.borderColor = "rgba(255, 79, 85, 0.4)";
+        hintBtn.style.color = "#ff4f55";
     } else {
-        // Fallback hash
-        let hash = 0;
-        for (let i = 0; i < cleanName.length; i++) {
-            hash = cleanName.charCodeAt(i) + ((hash << 5) - hash);
-        }
-        teamIndex = Math.abs(hash) % 24;
+        hintsText.textContent = `(${remaining} Remaining)`;
+    }
+}
+
+function getStage3CiphersForTeam(teamName) {
+    let seed = localStorage.getItem('escape_cipher_seed');
+    if (!seed) {
+        seed = Math.floor(Math.random() * 1000000);
+        localStorage.setItem('escape_cipher_seed', seed);
+    }
+    seed = parseInt(seed, 10);
+    
+    // Simple pseudo-random function based on seed
+    function randomInt(max) {
+        seed = (seed * 9301 + 49297) % 233280;
+        return Math.floor((seed / 233280) * max);
     }
     
-    // Index mapping (guarantees disjoint combinations for 24 teams)
-    const w1Index = (teamIndex * 3 + 0) % STAGE3_WORDS.length;
-    const w2Index = (teamIndex * 3 + 1) % STAGE3_WORDS.length;
-    const w3Index = (teamIndex * 3 + 2) % STAGE3_WORDS.length;
+    const w1Index = randomInt(STAGE3_WORDS.length);
+    const w2Index = randomInt(STAGE3_WORDS.length);
+    const w3Index = randomInt(STAGE3_WORDS.length);
+    const w4Index = randomInt(STAGE3_WORDS.length);
+    const w5Index = randomInt(STAGE3_WORDS.length);
     
-    const word1 = STAGE3_WORDS[w1Index]; // Correct Solution Word
+    const word1 = STAGE3_WORDS[w1Index]; // Caesar
+    const phrase2 = STAGE3_WORDS[w2Index] + " " + STAGE3_WORDS[w3Index]; // Atbash (2 words)
+    const phrase3 = STAGE3_WORDS[w4Index] + " " + STAGE3_WORDS[w5Index]; // ROT13 (2 words)
     
-    // Find a decoy word of the exact same length
+    // Find a decoy word of the exact same length for Caesar
     const sameLengthWords = STAGE3_WORDS.filter(w => w.length === word1.length && w !== word1);
-    let word1Decoy = STAGE3_WORDS[w2Index];
+    let word1Decoy = STAGE3_WORDS[(w1Index + 1) % STAGE3_WORDS.length];
     if (sameLengthWords.length > 0) {
-        word1Decoy = sameLengthWords[teamIndex % sameLengthWords.length];
+        word1Decoy = sameLengthWords[randomInt(sameLengthWords.length)];
     }
     
-    const word2 = STAGE3_WORDS[w2Index]; // Atbash Word
-    const word3 = STAGE3_WORDS[w3Index]; // ROT13 Word
-    
-    // Caesar Shift Key (unique to team index, 3 to 17)
-    const caesarShift = ((teamIndex * 7 + 3) % 15) + 3;
-    // Caesar Decoy Shift Key (unique to team index, 18 to 25)
-    const caesarDecoyShift = ((teamIndex * 11 + 7) % 8) + 18;
+    // Caesar Shift Key (3 to 17)
+    const caesarShift = randomInt(15) + 3;
+    // Caesar Decoy Shift Key (18 to 25)
+    const caesarDecoyShift = randomInt(8) + 18;
     
     // Encrypt Caesar (Word 1)
     let caesarCiphertext = "";
@@ -106,32 +124,32 @@ function getStage3CiphersForTeam(teamName) {
         caesarCiphertext += String.fromCharCode(((code + caesarShift) % 26) + 65);
     }
     
-    // Encrypt Atbash (Word 2)
+    // Encrypt Atbash (Phrase 2)
     let atbashCiphertext = "";
-    for (let i = 0; i < word2.length; i++) {
-        let code = word2.charCodeAt(i);
+    for (let i = 0; i < phrase2.length; i++) {
+        let code = phrase2.charCodeAt(i);
         if (code >= 65 && code <= 90) {
             atbashCiphertext += String.fromCharCode(90 - (code - 65));
         } else {
-            atbashCiphertext += word2.charAt(i);
+            atbashCiphertext += phrase2.charAt(i); // preserves spaces
         }
     }
     
-    // Encrypt ROT13 (Word 3)
+    // Encrypt ROT13 (Phrase 3)
     let rot13Ciphertext = "";
-    for (let i = 0; i < word3.length; i++) {
-        let code = word3.charCodeAt(i);
+    for (let i = 0; i < phrase3.length; i++) {
+        let code = phrase3.charCodeAt(i);
         if (code >= 65 && code <= 90) {
             rot13Ciphertext += String.fromCharCode(((code - 65 + 13) % 26) + 65);
         } else {
-            rot13Ciphertext += word3.charAt(i);
+            rot13Ciphertext += phrase3.charAt(i); // preserves spaces
         }
     }
     
     return {
         c1: { plaintext: word1, ciphertext: caesarCiphertext, shift: caesarShift, decoytext: word1Decoy, decoyshift: caesarDecoyShift },
-        c2: { plaintext: word2, ciphertext: atbashCiphertext },
-        c3: { plaintext: word3, ciphertext: rot13Ciphertext }
+        c2: { plaintext: phrase2, ciphertext: atbashCiphertext },
+        c3: { plaintext: phrase3, ciphertext: rot13Ciphertext }
     };
 }
 
@@ -184,6 +202,8 @@ function renderSubStageUI() {
     if (currentSubStage === 1) {
         // Caesar Sub-stage
         if (sliderContainer) sliderContainer.style.display = 'block';
+        if (resultLabel) resultLabel.style.display = 'block';
+        if (decryptedOutput) decryptedOutput.style.display = 'block';
         
         if (instTitle) instTitle.textContent = "SUB-STAGE 01: CAESAR CIPHER VAULT";
         if (instDesc) instDesc.textContent = "Slide the decryption key dial below to shift the characters in real-time. Find the key shift value that reveals a meaningful English word, then submit it below.";
@@ -207,34 +227,26 @@ function renderSubStageUI() {
     } else if (currentSubStage === 2) {
         // Atbash Sub-stage
         if (sliderContainer) sliderContainer.style.display = 'none';
+        if (resultLabel) resultLabel.style.display = 'none';
+        if (decryptedOutput) decryptedOutput.style.display = 'none';
         
         if (instTitle) instTitle.textContent = "SUB-STAGE 02: ATBASH VAULT (MIRROR)";
-        if (instDesc) instDesc.textContent = "This vault is locked with the Atbash alphabet mirror. Look at the encrypted key and decipher it manually (A ↔ Z, B ↔ Y, C ↔ X, ...).";
+        if (instDesc) instDesc.textContent = "This vault is locked with the Atbash mirror. Look at the encrypted key and decipher it manually to reveal the passcode phrase.";
         if (cipherLabel) cipherLabel.textContent = "🔒 ENCRYPTED KEY (ATBASH):";
-        if (resultLabel) resultLabel.textContent = "🟢 DECRYPTED STRING STATUS:";
         
         if (ciphertextDisplay) ciphertextDisplay.textContent = currentTeamCiphers.c2.ciphertext;
-        if (decryptedOutput) {
-            decryptedOutput.textContent = "• ".repeat(currentTeamCiphers.c2.ciphertext.length).trim();
-            decryptedOutput.style.color = 'var(--text-secondary)';
-            decryptedOutput.style.textShadow = 'none';
-        }
 
     } else if (currentSubStage === 3) {
         // ROT13 Sub-stage
         if (sliderContainer) sliderContainer.style.display = 'none';
+        if (resultLabel) resultLabel.style.display = 'none';
+        if (decryptedOutput) decryptedOutput.style.display = 'none';
         
         if (instTitle) instTitle.textContent = "SUB-STAGE 03: ROT13 VAULT (ROTATION)";
-        if (instDesc) instDesc.textContent = "The final lock utilizes ROT13 symmetric shift. Decipher the key by rotating each character by 13 positions forward or backward.";
+        if (instDesc) instDesc.textContent = "The final lock utilizes ROT13 symmetric shift. Decipher the key manually to reveal the final passcode phrase.";
         if (cipherLabel) cipherLabel.textContent = "🔒 ENCRYPTED KEY (ROT13):";
-        if (resultLabel) resultLabel.textContent = "🟢 DECRYPTED STRING STATUS:";
         
         if (ciphertextDisplay) ciphertextDisplay.textContent = currentTeamCiphers.c3.ciphertext;
-        if (decryptedOutput) {
-            decryptedOutput.textContent = "• ".repeat(currentTeamCiphers.c3.ciphertext.length).trim();
-            decryptedOutput.style.color = 'var(--text-secondary)';
-            decryptedOutput.style.textShadow = 'none';
-        }
     }
 
     if (answerInput) setTimeout(() => answerInput.focus(), 100);
@@ -294,7 +306,7 @@ function initCipherForm() {
             e.preventDefault();
             if (!currentTeamCiphers) return;
 
-            const userAns = answerInput.value.trim().toUpperCase();
+            const userAns = answerInput.value.trim().replace(/\s+/g, ' ').toUpperCase();
             
             // Get correct answer for active sub-stage
             let correctAns = "";
@@ -688,9 +700,20 @@ function triggerLockdownFailure() {
 function showChamberHint() {
     playClickSound();
     
+    let hintsUsed = parseInt(localStorage.getItem('escape_cipher_hints_used') || '0', 10);
+    if (hintsUsed >= 2) {
+        return; // Locked out
+    }
+    
     const modal = document.getElementById('hintModal');
     const hintTextEl = document.getElementById('hintText');
     if (!modal || !hintTextEl) return;
+    
+    // Only increment if they haven't seen THIS substage's hint yet. 
+    // Wait, simpler: just increment on click. If they click it, they use it.
+    hintsUsed++;
+    localStorage.setItem('escape_cipher_hints_used', hintsUsed.toString());
+    updateHintButtonUI(hintsUsed);
     
     let hint = "";
     if (currentSubStage === 1) {
