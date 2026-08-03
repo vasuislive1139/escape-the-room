@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initEmbersCanvas();
     initAudioEngine();
     initFormControls();
-    initDemoHelpers();
+
     initHomeProgression();
     initGameMasterListener();
 });
@@ -393,55 +393,7 @@ function handleSuccessfulLogin(teamId, startingStage = 1) {
     }, 2500);
 }
 
-function initDemoHelpers() {
-    const demoHintBtn = document.getElementById('demoHintBtn');
-    const demoHintContent = document.getElementById('demoHintContent');
-    if (demoHintBtn && demoHintContent) {
-        demoHintBtn.addEventListener('click', () => {
-            demoHintContent.classList.toggle('hidden');
-            playClickSound();
-        });
-    }
-}
 
-function quickLoginAs(teamId, password) {
-    const teamIdInput = document.getElementById('teamIdInput');
-    const passwordInput = document.getElementById('passwordInput');
-    const loginSubmitBtn = document.getElementById('loginSubmitBtn');
-
-    if (teamIdInput && passwordInput) {
-        teamIdInput.value = teamId;
-        passwordInput.value = password;
-        if (typeof playClickSound === 'function') playClickSound();
-
-        const stages = { 'TEAM-ALPHA': 1, 'CYBER KNIGHTS': 2, 'PHOENIX-007': 3, 'SHERLOCK HOMIES': 4 };
-        
-        fetch('/api/teams', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                id: teamId.toUpperCase(),
-                password: password,
-                stage: stages[teamId] || 1,
-                status: 'active',
-                warnings: 0,
-                members: '',
-                score: 0,
-                entryTime: Date.now(),
-                slotId: ''
-            })
-        }).then(() => {
-            setTimeout(() => {
-                if (loginSubmitBtn) {
-                    loginSubmitBtn.click();
-                } else {
-                    handleSuccessfulLogin(teamId, stages[teamId] || 1);
-                }
-            }, 100);
-        });
-    }
-}
-window.quickLoginAs = quickLoginAs;
 
 /* ==========================================================================
    4. HOME PAGE PROGRESSION & REAL-TIME GAME MASTER INTERVENTIONS

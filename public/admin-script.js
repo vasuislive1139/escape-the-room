@@ -670,37 +670,6 @@ function initAdminListeners() {
     }
 }
 
-function setGameMode(mode) {
-    const settings = getSettingsDb();
-    settings.gameMode = mode; // 'demo' or 'finale'
-    saveSettingsDb(settings);
-    
-    if (typeof socket !== 'undefined' && socket) {
-        socket.emit('gm_command', { type: 'GAME_MODE_UPDATE', mode: mode });
-    }
-    
-    // Update UI highlights
-    const btnDemo = document.getElementById('btnModeDemo');
-    const btnFinale = document.getElementById('btnModeFinale');
-    
-    if (btnDemo && btnFinale) {
-        if (mode === 'demo') {
-            btnDemo.style.borderColor = '#50e3c2';
-            btnDemo.style.background = 'rgba(80, 227, 194, 0.2)';
-            btnFinale.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-            btnFinale.style.background = 'rgba(30, 45, 60, 0.5)';
-        } else {
-            btnFinale.style.borderColor = '#ff4f55';
-            btnFinale.style.background = 'rgba(255, 79, 85, 0.2)';
-            btnDemo.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-            btnDemo.style.background = 'rgba(30, 45, 60, 0.5)';
-        }
-    }
-    
-    showAdminToast("🎮 Game Mode Updated", `System is now in ${mode.toUpperCase()} mode.`);
-    addDetailedLog(`Changed Game Mode to ${mode}`, 'system', 'Admin', 'Settings');
-}
-
 const STAGE3_WORDS = [
     'CYBER', 'ENIGMA', 'MATRIX', 'KERNEL', 
     'BINARY', 'SECURE', 'NEXUS', 'BUFFER', 

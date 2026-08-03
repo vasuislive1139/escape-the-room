@@ -35,19 +35,17 @@
                 </div>
                 <div class="input-wrapper">
                     <span class="input-icon">👤</span>
-                    <input type="text" id="adminUsername" class="ornate-input" placeholder="Admin Username (e.g. TatvaAdmin)" value="TatvaAdmin">
+                    <input type="text" id="adminUsername" class="ornate-input" placeholder="Admin Username (e.g. TatvaAdmin)">
                 </div>
                 <div class="input-wrapper">
                     <span class="input-icon">🔑</span>
-                    <input type="password" id="adminPassword" class="ornate-input" placeholder="Admin Password (e.g. Tatva2026!)" value="Tatva2026!">
+                    <input type="password" id="adminPassword" class="ornate-input" placeholder="Admin Password (e.g. Tatva2026!)">
                 </div>
                 <button type="button" id="adminLoginBtn" class="ornate-btn admin-submit-btn" onclick="unlockGameMasterNexus()">
                     <span>ACCESS COMMAND CENTER ➔</span>
                 </button>
             </div>
-            <div class="demo-hints" style="margin-top: 16px; text-align: center;">
-                <span style="font-size: 0.85rem; color: #68fedb;">💡 Default Credentials: <strong>TatvaAdmin</strong> / <strong>Tatva2026!</strong></span>
-            </div>
+
         </div>
     </div>
 
@@ -412,23 +410,7 @@
                         <h2>Event Settings & Game Mode</h2>
                     </div>
                     
-                    <div class="admin-card gm-live-control-panel" style="margin-bottom: 20px;">
-                        <h3 style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-bottom: 15px; color: #50e3c2;">Select Game Mode</h3>
-                        <p style="font-size: 0.9rem; color: #aaa; margin-bottom: 15px;">Set the event mode. Both modes use the exact same teams in the Team Management tab. Live Finale strictly enforces the "Top 3 Winners" rule.</p>
-                        
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-                            <button id="btnModeDemo" class="row-btn" style="padding: 20px; font-size: 1.1rem; flex-direction: column;" onclick="setGameMode('demo')">
-                                <span style="font-size: 1.5rem; margin-bottom: 5px;">🧪</span>
-                                <strong>DEMO MODE</strong>
-                                <small style="display:block; margin-top: 5px; opacity: 0.7; font-weight: normal;">Testing & Infinite Winners</small>
-                            </button>
-                            <button id="btnModeFinale" class="row-btn" style="padding: 20px; font-size: 1.1rem; flex-direction: column;" onclick="setGameMode('finale')">
-                                <span style="font-size: 1.5rem; margin-bottom: 5px;">🏆</span>
-                                <strong>LIVE FINALE</strong>
-                                <small style="display:block; margin-top: 5px; opacity: 0.7; font-weight: normal;">Strict Top 3 Winners Limit</small>
-                            </button>
-                        </div>
-                    </div>
+
                     
                     <div class="admin-card gm-live-control-panel">
                         <h3 style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-bottom: 15px; color: #ffe8b3;">Database Management</h3>
