@@ -890,6 +890,13 @@ function toggleAllTeams() {
     });
 }
 
+function formatTimeFromSeconds(totalSec) {
+    if (!totalSec || totalSec <= 0) return '—';
+    const m = Math.floor(totalSec / 60).toString().padStart(2, '0');
+    const s = (totalSec % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+}
+
 function renderFullTeamsList() {
     const db = getTeamsDb();
     const teamNames = Object.keys(db);
@@ -897,7 +904,7 @@ function renderFullTeamsList() {
     if (!tbody) return;
 
     if (teamNames.length === 0) {
-        tbody.innerHTML = `<tr class="empty-row"><td colspan="8">No teams registered yet. Use form to create credentials!</td></tr>`;
+        tbody.innerHTML = `<tr class="empty-row"><td colspan="9">No teams registered yet. Use form to create credentials!</td></tr>`;
         return;
     }
 
@@ -913,6 +920,16 @@ function renderFullTeamsList() {
         } else {
             statusStr = '<span class="status-badge active">🟢 ACTIVE</span>';
         }
+
+        const totalTimeStr = formatTimeFromSeconds(t.totalTime);
+        let timeBreakdown = '';
+        if (t.stageTimes && typeof t.stageTimes === 'object') {
+            const parts = [];
+            for (let i = 1; i <= 4; i++) {
+                if (t.stageTimes[i]) parts.push(`S${i}: ${formatTimeFromSeconds(t.stageTimes[i])}`);
+            }
+            if (parts.length > 0) timeBreakdown = `<br><small style="color:#888;">${parts.join(' | ')}</small>`;
+        }
         
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -922,6 +939,7 @@ function renderFullTeamsList() {
             <td>${t.slotId || 'None'}</td>
             <td>Stage ${stageNum}</td>
             <td class="text-gold">${t.score || 0}</td>
+            <td class="mono" style="color:#50e3c2;">${totalTimeStr}${timeBreakdown}</td>
             <td>${statusStr}</td>
             <td style="text-align:right;">
                 ${t.status === 'timeout' ? `<button type="button" class="row-btn" style="border-color:#50e3c2; color:#50e3c2;" onclick="quickAction('${name}', 'revive')" title="Revive Team">💚</button>` : ''}
@@ -943,16 +961,17 @@ function renderLeaderboard() {
     if (!tbody) return;
 
     if (teamNames.length === 0) {
-        tbody.innerHTML = `<tr class="empty-row"><td colspan="5">No active teams.</td></tr>`;
+        tbody.innerHTML = `<tr class="empty-row"><td colspan="6">No active teams.</td></tr>`;
         return;
     }
 
-    // Sort by stage (descending), then score (descending)
+    // Sort by stage (descending), then score (descending), then totalTime (ascending - faster is better)
     const sortedTeams = teamNames
         .map(name => ({ name, ...db[name] }))
         .sort((a, b) => {
             if ((b.stage || 1) !== (a.stage || 1)) return (b.stage || 1) - (a.stage || 1);
-            return (b.score || 0) - (a.score || 0);
+            if ((b.score || 0) !== (a.score || 0)) return (b.score || 0) - (a.score || 0);
+            return (a.totalTime || 0) - (b.totalTime || 0);
         });
 
     tbody.innerHTML = '';
@@ -963,12 +982,15 @@ function renderLeaderboard() {
         if (rank === 2) rankHtml = `<span style="color: silver; font-size: 1.2rem;">🥈 2nd</span>`;
         if (rank === 3) rankHtml = `<span style="color: #cd7f32; font-size: 1.2rem;">🥉 3rd</span>`;
 
+        const totalTimeStr = formatTimeFromSeconds(team.totalTime);
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${rankHtml}</td>
             <td><strong style="color:#ffffff;">${team.name}</strong></td>
             <td>Stage ${team.stage || 1}</td>
             <td class="text-gold">${team.score || 0}</td>
+            <td class="mono" style="color:#50e3c2;">${totalTimeStr}</td>
             <td style="text-align: right; white-space: nowrap;">
                 ${team.status === 'timeout' ? `<button type="button" class="row-btn" style="border-color:#50e3c2; color:#50e3c2; padding: 2px 6px;" onclick="quickAction('${team.name}', 'revive')" title="Revive">💚</button>` : ''}
                 <button type="button" class="row-btn" style="padding: 2px 6px;" onclick="quickAction('${team.name}', 'warn')" title="Issue Warning">⚠️</button>

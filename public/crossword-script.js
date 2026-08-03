@@ -243,7 +243,10 @@ function setupValidation(puzzleData, teamId) {
                 if (successModal) {
                     document.getElementById('completeTeam').textContent = teamId;
                     // Timer text
-                    const elapsed = Math.floor((Date.now() - parseInt(localStorage.getItem(`escape_crossword_start_${teamId}`))) / 1000);
+                    let elapsed = 0;
+                    if (typeof window.getTimeTaken === 'function') {
+                        elapsed = window.getTimeTaken();
+                    }
                     const m = Math.floor(elapsed / 60);
                     const s = elapsed % 60;
                     document.getElementById('completeTime').textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;

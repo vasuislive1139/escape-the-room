@@ -123,7 +123,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initMatrixCanvas();
     setupUIEvents();
     buildFileTree(FILE_SYSTEM.children, document.getElementById('fileTree'), 0);
-    setInterval(syncWithGameMasterDb, 150);
     if (typeof initStageTimer === 'function') initStageTimer(2);
 });
 
@@ -415,11 +414,16 @@ function completeStage() {
     score += completionBonus + timeBonus;
     saveState();
     
-    const m = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
-    const s = (timeRemaining % 60).toString().padStart(2, '0');
+    let timeTaken = 0;
+    if (typeof window.getTimeTaken === 'function') {
+        timeTaken = window.getTimeTaken();
+    }
+    
+    const m = Math.floor(timeTaken / 60).toString().padStart(2, '0');
+    const s = (timeTaken % 60).toString().padStart(2, '0');
     
     document.getElementById('finalScore').textContent = score;
-    document.getElementById('finalTime').textContent = `${m}:${s} remaining`;
+    document.getElementById('finalTime').textContent = `${m}:${s} taken`;
     
     document.getElementById('workspaceSection').classList.add('hidden');
     document.getElementById('completionOverlay').classList.remove('hidden');

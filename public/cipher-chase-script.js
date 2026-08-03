@@ -452,6 +452,18 @@ function triggerGlobalSuccessFlow() {
     // Show unlocked Modal
     const modal = document.getElementById('successModal');
     const progressBar = document.getElementById('successProgressBar');
+    
+    let timeTaken = 0;
+    if (typeof window.getTimeTaken === 'function') {
+        timeTaken = window.getTimeTaken();
+    }
+    const m = Math.floor(timeTaken / 60).toString().padStart(2, '0');
+    const s = (timeTaken % 60).toString().padStart(2, '0');
+    const timeTakenEl = document.getElementById('cipherTimeTaken');
+    if (timeTakenEl) {
+        timeTakenEl.textContent = `Time Taken: ${m}:${s}`;
+    }
+    
     if (modal) modal.classList.remove('hidden');
     setTimeout(() => {
         if (progressBar) progressBar.style.width = "100%";

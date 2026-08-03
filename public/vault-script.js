@@ -89,7 +89,14 @@ function openQr(title, src, index) {
     updateQrVisibility();
     notify("Next clue unlocked!");
   } else if (index === 6) {
-    notify("Congratulations! You completed the hunt! 🎉");
+    let timeTakenStr = "";
+    if (typeof window.getTimeTaken === 'function') {
+        const t = window.getTimeTaken();
+        const m = Math.floor(t / 60).toString().padStart(2, '0');
+        const s = (t % 60).toString().padStart(2, '0');
+        timeTakenStr = ` (Time: ${m}:${s})`;
+    }
+    notify("Congratulations! You completed the hunt! 🎉" + timeTakenStr);
     
     // ESCAPE THE ROOM INTEGRATION
     const curLvl = parseInt(localStorage.getItem('escape_unlocked_level')) || 1;

@@ -33,7 +33,9 @@ const TeamSchema = new mongoose.Schema({
     members: { type: String },
     score: { type: Number, default: 0 },
     entryTime: { type: Number },
-    slotId: { type: String }
+    slotId: { type: String },
+    stageTimes: { type: mongoose.Schema.Types.Mixed, default: {} },
+    totalTime: { type: Number, default: 0 }
 });
 
 const SettingSchema = new mongoose.Schema({
@@ -131,7 +133,7 @@ app.get(['/api/teams/:id', '/teams/:id'], async (req, res) => {
 });
 
 app.post(['/api/teams', '/teams'], async (req, res) => {
-    const { id, password, stage, status, warnings, members, score, entryTime, slotId } = req.body;
+    const { id, password, stage, status, warnings, members, score, entryTime, slotId, timeTaken, currentStageId } = req.body;
     if (!id) return res.status(400).json({ error: "Missing team id" });
     
     try {
@@ -145,11 +147,22 @@ app.post(['/api/teams', '/teams'], async (req, res) => {
         if (entryTime !== undefined) updateData.entryTime = entryTime;
         if (slotId !== undefined) updateData.slotId = slotId;
 
-        const team = await Team.findOneAndUpdate(
-            { id: id },
-            { $set: updateData },
-            { new: true, upsert: true }
-        );
+        const team = await Team.findOne({ id: id });
+        if (!team) {
+            return res.status(404).json({ error: "Team not found" });
+        }
+
+        // Handle time recording
+        if (timeTaken !== undefined && currentStageId !== undefined) {
+            if (!team.stageTimes) team.stageTimes = {};
+            team.stageTimes[currentStageId] = timeTaken;
+            team.markModified('stageTimes');
+            team.totalTime = (team.totalTime || 0) + timeTaken;
+        }
+
+        // Apply other updates
+        Object.assign(team, updateData);
+        await team.save();
         
         // Log progression if stage changed
         if (stage !== undefined) {

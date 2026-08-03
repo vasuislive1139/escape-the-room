@@ -94,12 +94,22 @@ window.completeStage = function(nextStage, scoreGained, eventData = '') {
     const teamId = localStorage.getItem('escape_team_id');
     if (!teamId) return;
     
+    let timeTaken = 0;
+    if (typeof window.getTimeTaken === 'function') {
+        timeTaken = window.getTimeTaken();
+    }
+    
     // Fetch current stage from localStorage to increment score if needed
     // or just pass stage to POST
     fetch('/api/teams', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: teamId, stage: nextStage }) // Score increment logic should be in backend ideally, but we pass stage for now.
+        body: JSON.stringify({ 
+            id: teamId, 
+            stage: nextStage,
+            timeTaken: timeTaken,
+            currentStageId: currentStageId
+        }) 
     }).catch(err => console.error("Error saving stage:", err));
 };
 
@@ -123,6 +133,11 @@ if (!window.puzzlePollInterval) {
 function stopTimer() {
     if (activityTimerInterval) clearInterval(activityTimerInterval);
 }
+
+window.getTimeTaken = function() {
+    if (!currentStageId || !STAGE_TIMES[currentStageId]) return 0;
+    return STAGE_TIMES[currentStageId] - currentStageTimeLeft;
+};
 
 // Pause timer when navigating away or closing tab
 window.addEventListener('beforeunload', () => {
