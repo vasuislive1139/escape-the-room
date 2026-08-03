@@ -157,7 +157,18 @@
   <div class="qr-modal" id="qrModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="qrTitle">
     <div class="qr-dialog"><button class="qr-close" id="closeQr" aria-label="Close QR code">×</button><p class="eyebrow">SCAN TRAIL</p><h2 id="qrTitle">Scan to watch</h2><img id="qrLarge" alt="QR code"><p id="qrHint">Open your phone camera and scan this code to continue.</p></div>
   </div>
+  <div id="victoryOverlay" class="victory-overlay hidden">
+    <div class="victory-content">
+      <div class="victory-rank" id="victoryRankText">1st</div>
+      <h2>WINNER!</h2>
+      <p>Congratulations on completing the StreamWave Vault.</p>
+    </div>
+  </div>
+
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <!-- Confetti Script -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 
   <!-- Game Master Sync Script -->
     <script src="script.js"></script>

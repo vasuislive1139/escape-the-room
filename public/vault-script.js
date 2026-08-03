@@ -144,7 +144,54 @@ function openQr(title, src, index) {
     if (curLvl < 5) {
         localStorage.setItem('escape_unlocked_level', 5); // 5 = fully completed
         if (typeof window.completeStage === 'function') {
-            window.completeStage(5, 1000, 'StreamWave Vault Completed (Game Beaten!)');
+            window.completeStage(5, 1000, 'StreamWave Vault Completed (Game Beaten!)').then(async res => {
+                if (res && res.success && res.team) {
+                    const rank = res.team.vaultFinishRank || 1; // Default to 1 if missing for some reason
+                    
+                    // Show Victory Overlay
+                    const overlay = document.getElementById('victoryOverlay');
+                    const rankText = document.getElementById('victoryRankText');
+                    
+                    if (rank === 1) rankText.textContent = '1st';
+                    else if (rank === 2) rankText.textContent = '2nd';
+                    else if (rank === 3) rankText.textContent = '3rd';
+                    else rankText.textContent = rank + 'th';
+                    
+                    qrModal.classList.remove('open');
+                    overlay.classList.remove('hidden');
+                    
+                    // Fire Confetti!
+                    if (typeof confetti === 'function') {
+                        const duration = 15 * 1000;
+                        const animationEnd = Date.now() + duration;
+                        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 10000 };
+                        
+                        const interval = setInterval(function() {
+                            const timeLeft = animationEnd - Date.now();
+                            if (timeLeft <= 0) {
+                                return clearInterval(interval);
+                            }
+                            const particleCount = 50 * (timeLeft / duration);
+                            confetti(Object.assign({}, defaults, { particleCount, origin: { x: Math.random(), y: Math.random() - 0.2 } }));
+                        }, 250);
+                    }
+                    
+                    // If rank is 3, start 15s countdown then trigger GAME_OVER for everyone!
+                    if (rank === 3) {
+                        setTimeout(async () => {
+                            try {
+                                const dbRes = await fetch('/api/teams');
+                                if (dbRes.ok) {
+                                    const db = await dbRes.json();
+                                    if (window.socket) {
+                                        window.socket.emit('gm_command', { type: 'GAME_OVER', leaderboard: db });
+                                    }
+                                }
+                            } catch(e) { console.error(e); }
+                        }, 15000);
+                    }
+                }
+            });
         }
     }
   }

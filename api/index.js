@@ -35,7 +35,8 @@ const TeamSchema = new mongoose.Schema({
     entryTime: { type: Number },
     slotId: { type: String },
     stageTimes: { type: mongoose.Schema.Types.Mixed, default: {} },
-    totalTime: { type: Number, default: 0 }
+    totalTime: { type: Number, default: 0 },
+    vaultFinishRank: { type: Number, default: 0 }
 });
 
 const SettingSchema = new mongoose.Schema({
@@ -162,6 +163,13 @@ app.post(['/api/teams', '/teams'], async (req, res) => {
 
         // Apply other updates
         Object.assign(team, updateData);
+
+        // Assign vaultFinishRank if completing Stage 4 (stage becomes 5)
+        if (team.stage >= 5 && (!team.vaultFinishRank || team.vaultFinishRank === 0)) {
+            const finishedTeamsCount = await Team.countDocuments({ stage: { $gte: 5 } });
+            team.vaultFinishRank = finishedTeamsCount + 1;
+        }
+
         await team.save();
         
         // Log progression if stage changed

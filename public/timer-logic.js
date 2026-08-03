@@ -101,7 +101,7 @@ window.completeStage = function(nextStage, scoreGained, eventData = '') {
     
     // Fetch current stage from localStorage to increment score if needed
     // or just pass stage to POST
-    fetch('/api/teams', {
+    return fetch('/api/teams', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -110,7 +110,10 @@ window.completeStage = function(nextStage, scoreGained, eventData = '') {
             timeTaken: timeTaken,
             currentStageId: currentStageId
         }) 
-    }).catch(err => console.error("Error saving stage:", err));
+    }).then(res => res.json()).catch(err => {
+        console.error("Error saving stage:", err);
+        return null;
+    });
 };
 
 // Global polling init for puzzle pages

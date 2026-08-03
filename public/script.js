@@ -15,7 +15,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initHomeProgression();
     initGameMasterListener();
+    initGlobalLeaderboardCheck();
 });
+
+function initGlobalLeaderboardCheck() {
+    const saved = localStorage.getItem('escape_final_leaderboard');
+    if (saved) {
+        const podium = document.getElementById('podiumOverlay');
+        if (podium) {
+            try {
+                const db = JSON.parse(saved);
+                // Call render locally without emitting to server
+                if (typeof window.triggerGameOver === 'function') {
+                    window.triggerGameOver(db);
+                }
+            } catch(e) {}
+            localStorage.removeItem('escape_final_leaderboard');
+        }
+    }
+}
 
 /* ==========================================================================
    1. EMBERS & GOLD DUST PARTICLE CANVAS
@@ -719,76 +737,8 @@ function processGmCommand(cmd) {
         
         showToast("💚 TEAM REVIVED", cmd.message || "You have been granted 5 extra minutes!");
     } else if (cmd.type === 'GAME_OVER') {
-        playErrorSound();
-        const podium = document.getElementById('podiumOverlay');
-        const freeze = document.getElementById('gmFreezeOverlay');
-        
-        if (podium && cmd.leaderboard) {
-            if (freeze) freeze.classList.add('hidden');
-            podium.classList.remove('hidden');
-            
-            const db = cmd.leaderboard;
-            const teamNames = Object.keys(db);
-            const sortedTeams = teamNames
-                .map(name => ({ name, ...db[name] }))
-                .sort((a, b) => {
-                    const stageA = a.stage || 1;
-                    const stageB = b.stage || 1;
-                    if (stageB !== stageA) return stageB - stageA;
-                    const scoreA = a.score || 0;
-                    const scoreB = b.score || 0;
-                    return scoreB - scoreA;
-                });
-            
-            // Populate Top 3
-            const top1 = sortedTeams[0];
-            const top2 = sortedTeams[1];
-            const top3 = sortedTeams[2];
-            
-            const p1 = document.getElementById('podium1');
-            if (p1 && top1) p1.querySelector('.podium-team').textContent = top1.name;
-            
-            const p2 = document.getElementById('podium2');
-            if (p2 && top2) p2.querySelector('.podium-team').textContent = top2.name;
-            
-            const p3 = document.getElementById('podium3');
-            if (p3 && top3) p3.querySelector('.podium-team').textContent = top3.name;
-            
-            // Populate the rest
-            const restTable = document.getElementById('podiumRestTable');
-            if (restTable) {
-                restTable.innerHTML = '';
-                sortedTeams.slice(3).forEach((team, idx) => {
-                    const rank = idx + 4;
-                    let statusHtml = '<span style="color:#50e3c2;">ACTIVE</span>';
-                    if (team.status === 'timeout') statusHtml = '<span style="color:#ff5555; font-weight:bold;">FAILED (TIMEOUT)</span>';
-                    else if (team.status === 'frozen') statusHtml = '<span style="color:#aaddff;">FROZEN</span>';
-                    else if (team.stage >= 5) statusHtml = '<span style="color:gold;">ESCAPED</span>';
-                    
-                    const tr = document.createElement('tr');
-                    tr.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
-                    tr.innerHTML = `
-                        <td style="padding: 12px; text-align: center;">${rank}</td>
-                        <td style="padding: 12px; font-weight: 500;">${team.name}</td>
-                        <td style="padding: 12px; text-align: center;">Stage ${team.stage || 1}</td>
-                        <td style="padding: 12px; text-align: right; color: #ffd700;">${team.score || 0}</td>
-                        <td style="padding: 12px; text-align: center;">${statusHtml}</td>
-                    `;
-                    restTable.appendChild(tr);
-                });
-            }
-            
-            showToast("🏆 EVENT CONCLUDED", "Top 3 teams have escaped. Systems offline.");
-        } else {
-            // Fallback if no podium overlay exists
-            if (freeze) {
-                freeze.classList.remove('hidden');
-                const title = freeze.querySelector('h3');
-                if (title) title.textContent = "GAME OVER";
-                const text = freeze.querySelector('p');
-                if (text) text.textContent = "The Live Finale has concluded. The top 3 teams have already escaped!";
-            }
-            showToast("🏆 EVENT CONCLUDED", "Top 3 teams have escaped. Systems offline.");
+        if (typeof window.triggerGameOver === 'function') {
+            window.triggerGameOver(cmd.leaderboard);
         }
     } else if (cmd.type === 'PROMOTE') {
         playUnlockSound();
