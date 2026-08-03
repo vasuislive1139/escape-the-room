@@ -17,10 +17,7 @@ async function connectToDatabase() {
         throw new Error('Please define the MONGODB_URI environment variable inside Vercel');
     }
     
-    const db = await mongoose.connect(process.env.MONGODB_URI, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true
-    });
+    const db = await mongoose.connect(process.env.MONGODB_URI);
     
     cachedDb = db;
     return db;
