@@ -1102,12 +1102,15 @@ window.triggerGameOver = function(db) {
                 else if (team.status === 'frozen') statusHtml = '<span style="color:#aaddff;">FROZEN</span>';
                 else if (team.stage >= 5) statusHtml = '<span style="color:gold;">ESCAPED</span>';
                 
+                let stageDisplay = `Stage ${team.stage || 1}`;
+                if (team.stage >= 5) stageDisplay = `<span style="color: gold; font-weight: bold; text-shadow: 0 0 5px rgba(255,215,0,0.5);">ESCAPED</span>`;
+
                 const tr = document.createElement('tr');
                 tr.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
                 tr.innerHTML = `
                     <td style="padding: 12px; text-align: center; font-weight: bold; color: ${rank <= 3 ? '#ffd700' : '#888'};">${rank}</td>
                     <td style="padding: 12px; font-family: monospace; font-size: 1.1rem; color: #fff;">${team.name}</td>
-                    <td style="padding: 12px; text-align: center; color: #4dc2ff;">Stage ${team.stage || 1}</td>
+                    <td style="padding: 12px; text-align: center; color: #4dc2ff;">${stageDisplay}</td>
                     <td style="padding: 12px; text-align: right; font-weight: bold; color: #ffb84d;">${team.score || 0}</td>
                     <td style="padding: 12px; text-align: center;">${statusHtml}</td>
                 `;

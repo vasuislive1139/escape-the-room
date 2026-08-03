@@ -984,11 +984,16 @@ function renderLeaderboard() {
 
         const totalTimeStr = formatTimeFromSeconds(team.totalTime);
 
+        let stageHtml = `Stage ${team.stage || 1}`;
+        if (team.stage >= 5) {
+            stageHtml = `<span style="color: gold; font-weight: bold; text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);">ESCAPED</span>`;
+        }
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${rankHtml}</td>
             <td><strong style="color:#ffffff;">${team.name}</strong></td>
-            <td>Stage ${team.stage || 1}</td>
+            <td>${stageHtml}</td>
             <td class="text-gold">${team.score || 0}</td>
             <td class="mono" style="color:#50e3c2;">${totalTimeStr}</td>
             <td style="text-align: right; white-space: nowrap;">

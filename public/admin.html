@@ -218,7 +218,7 @@
                         <div class="split-right">
                             <div class="panel-header flex-between">
                                 <h3>Live Leaderboard</h3>
-                                <button class="ornate-btn small-btn" onclick="renderLeaderboard()" style="padding: 2px 8px; font-size: 0.7rem;">🔄</button>
+                                <button onclick="renderLeaderboard()" style="background: transparent; border: none; cursor: pointer; font-size: 1.2rem; filter: grayscale(0.5); transition: 0.2s;" onmouseover="this.style.filter='grayscale(0)'" onmouseout="this.style.filter='grayscale(0.5)'" title="Refresh Leaderboard">🔄</button>
                             </div>
                             <div class="table-responsive" style="max-height: 300px; overflow-y: auto; margin-top: 10px; border: 1px solid rgba(80, 227, 194, 0.2); border-radius: 8px;">
                                 <table class="roster-table full-width" style="margin: 0; font-size: 0.85rem;">
