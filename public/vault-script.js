@@ -9,48 +9,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 let unlockedIndex = parseInt(localStorage.getItem('streamwave_qr_progress')) || 1;
 
-// --- QR RANDOMIZATION LOGIC ---
-const LOCATION_NAMES = {
-    1: "Action category",
-    2: "Live sports section",
-    3: "Binge-worthy series section",
-    4: "Horror category",
-    5: "Tokyo Signal movie card in Stories from around the world",
-    6: "Moon and Me movie card in Kids and family favourites"
-};
-
-let qrSequence = JSON.parse(localStorage.getItem('streamwave_qr_sequence'));
-if (!qrSequence) {
-    qrSequence = [1, 2, 3, 4, 5, 6];
-    // Fisher-Yates shuffle
-    for (let i = qrSequence.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [qrSequence[i], qrSequence[j]] = [qrSequence[j], qrSequence[i]];
-    }
-    localStorage.setItem('streamwave_qr_sequence', JSON.stringify(qrSequence));
-}
-
-// Populate the DOM with the randomized sequence
-qrSequence.forEach((locId, zeroBasedIndex) => {
-    const qrIndex = zeroBasedIndex + 1; // 1 to 6
-    const el = document.querySelector(`.secret-qr-spot[data-loc-id="${locId}"]`);
-    if (el) {
-        el.setAttribute('data-qr-index', qrIndex);
-        
-        const img = el.querySelector('img');
-        if (qrIndex === 6) {
-            el.setAttribute('data-qr', 'QR 6: Winner!');
-            if (img) img.src = "https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=" + encodeURIComponent("Congratulations! You're the winner!");
-        } else {
-            const nextLocId = qrSequence[qrIndex]; // qrSequence is 0-indexed, so index qrIndex is the next item
-            const nextLocName = LOCATION_NAMES[nextLocId];
-            el.setAttribute('data-qr', `QR ${qrIndex}: Found clue!`);
-            if (img) img.src = "https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=" + encodeURIComponent(`LOCATION OF QR ${qrIndex+1}: ${nextLocName}`);
-        }
-    }
-});
-// ------------------------------
-
 function notify(message) {
   toast.textContent = message;
   toast.classList.add('show');
@@ -59,8 +17,7 @@ function notify(message) {
 }
 
 function updateQrVisibility() {
-  document.querySelectorAll('.secret-qr-spot').forEach(el => {
-    if (!el.hasAttribute('data-qr-index')) return;
+  document.querySelectorAll('[data-qr-index]').forEach(el => {
     const idx = parseInt(el.getAttribute('data-qr-index'));
     if (idx <= unlockedIndex) {
       el.classList.remove('qr-locked');
@@ -171,17 +128,6 @@ document.querySelectorAll('.poster-qr').forEach(button => button.addEventListene
 document.getElementById('closeQr').addEventListener('click', closeQr);
 qrModal.addEventListener('click', event => {
   if (event.target === qrModal) closeQr();
-});
-
-document.querySelector('.profile').addEventListener('click', () => {
-  if (confirm("Reset the scavenger hunt progress and randomize locations?")) {
-    unlockedIndex = 1;
-    localStorage.removeItem('streamwave_qr_progress');
-    localStorage.removeItem('streamwave_qr_sequence');
-    location.reload();
-  }
-});
-
 document.addEventListener('keydown', event => {
   if (event.key === 'Escape') {
     closeSearch();
