@@ -4,22 +4,58 @@
  * stage chamber matrix pills, countdown timers, and instant interventions across browser tabs.
  */
 
-const ADMIN_GM_CHANNEL = 'escape_gm_channel';
-let adminBroadcastChannel = null;
-try {
-    adminBroadcastChannel = new BroadcastChannel(ADMIN_GM_CHANNEL);
-} catch (e) {
-    console.warn("BroadcastChannel not supported in this browser.");
-}
+let socket = null;
 
 let roundTimerInterval = null;
 let roundSecondsRemaining = 1800; // Default 30 mins
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     initEmbersCanvas();
     initAdminClock();
     initAdminAudio();
     initAdminAuth();
+    
+    // Fetch initial backend state
+    try {
+        const [teamsRes, settingsRes, logsRes] = await Promise.all([
+            fetch('/api/teams'),
+            fetch('/api/settings'),
+            fetch('/api/logs')
+        ]);
+        window.GLOBAL_TEAMS_DB = await teamsRes.json();
+        window.GLOBAL_SETTINGS = await settingsRes.json();
+        window.GLOBAL_LOGS = await logsRes.json();
+    } catch(e) { console.error('Failed to fetch initial state:', e); }
+
+    // Init Socket.io
+    if (typeof io !== 'undefined') {
+        socket = io();
+        socket.on('team_update', (team) => {
+            window.GLOBAL_TEAMS_DB[team.id] = team;
+            if (typeof renderAnalyticsAndRoster === 'function') renderAnalyticsAndRoster();
+        });
+        socket.on('bulk_teams_update', async () => {
+            const res = await fetch('/api/teams');
+            window.GLOBAL_TEAMS_DB = await res.json();
+            if (typeof renderAnalyticsAndRoster === 'function') renderAnalyticsAndRoster();
+        });
+        socket.on('team_delete', (id) => {
+            delete window.GLOBAL_TEAMS_DB[id];
+            if (typeof renderAnalyticsAndRoster === 'function') renderAnalyticsAndRoster();
+        });
+        socket.on('database_cleared', () => {
+            window.GLOBAL_TEAMS_DB = {};
+            if (typeof renderAnalyticsAndRoster === 'function') renderAnalyticsAndRoster();
+        });
+        socket.on('settings_update', (settings) => {
+            Object.assign(window.GLOBAL_SETTINGS, settings);
+        });
+        socket.on('logs_update', (logs) => {
+            window.GLOBAL_LOGS = logs;
+            if (typeof renderLiveActivityFeed === 'function') renderLiveActivityFeed();
+        });
+    }
+
     initCommandCenter();
 });
 
@@ -228,25 +264,21 @@ window.handleAdminLoginSubmit = unlockGameMasterNexus;
 /* ==========================================================================
    4. CREDENTIAL GENERATOR & TEAM DATABASE MANAGEMENT
    ========================================================================== */
+window.GLOBAL_TEAMS_DB = {};
+window.GLOBAL_SETTINGS = {};
+window.GLOBAL_LOGS = [];
+
 function getTeamsDb() {
-    const raw = localStorage.getItem('escape_teams_db');
-    if (!raw) {
-        const defaultDb = {
-            'TEAM-ALPHA': { password: 'ESCAPE2026', stage: 1, status: 'active', warnings: 0 },
-            'MYSTERY-007': { password: 'UNLOCKME', stage: 2, status: 'active', warnings: 0 },
-            'CYBER-SQUAD': { password: 'ENIGMA99', stage: 3, status: 'active', warnings: 0 },
-            'SHERLOCK': { password: 'BAKER221', stage: 4, status: 'active', warnings: 0 }
-        };
-        localStorage.setItem('escape_teams_db', JSON.stringify(defaultDb));
-        return defaultDb;
-    }
-    try {
-        return JSON.parse(raw);
-    } catch(e) { return {}; }
+    return window.GLOBAL_TEAMS_DB;
 }
 
 function saveTeamsDb(db) {
-    localStorage.setItem('escape_teams_db', JSON.stringify(db));
+    window.GLOBAL_TEAMS_DB = db;
+    fetch('/api/teams/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(db)
+    }).catch(e => console.error(e));
     if (typeof renderAnalyticsAndRoster === 'function') renderAnalyticsAndRoster();
 }
 
@@ -265,35 +297,30 @@ function saveVolunteersDb(db) {
 }
 
 function getSettingsDb() {
-    const defaultSettings = { eventName: "Escape The Room", eventDate: "", teamSizeLimit: 4, roomsCount: 4, timeLimit: 60 };
-    try { return JSON.parse(localStorage.getItem('escape_settings_db')) || defaultSettings; } catch(e) { return defaultSettings; }
+    return window.GLOBAL_SETTINGS;
 }
 function saveSettingsDb(db) {
-    localStorage.setItem('escape_settings_db', JSON.stringify(db));
+    window.GLOBAL_SETTINGS = db;
+    fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(db)
+    }).catch(e => console.error(e));
 }
 
 function getLogsDb() {
-    try { return JSON.parse(localStorage.getItem('escape_logs_db')) || []; } catch(e) { return []; }
+    return window.GLOBAL_LOGS;
 }
 function saveLogsDb(db) {
-    localStorage.setItem('escape_logs_db', JSON.stringify(db));
+    // Just for local mocking if needed, but we rely on addDetailedLog
 }
 
 function addDetailedLog(action, category = 'system', teamId = null, room = null) {
-    const logs = getLogsDb();
-    logs.unshift({
-        id: Date.now().toString(36) + Math.random().toString(36).substr(2),
-        timestamp: Date.now(),
-        action: action,
-        category: category,
-        teamId: teamId,
-        room: room
-    });
-    if (logs.length > 1000) logs.pop(); // keep last 1000
-    saveLogsDb(logs);
-    if (typeof renderLiveActivityFeed === 'function') {
-        renderLiveActivityFeed();
-    }
+    fetch('/api/logs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, category, teamId, details: room ? `Room: ${room}` : '' })
+    }).catch(e => console.error(e));
 }
 
 // Ensure the render is exported/called correctly where saveTeamsDb used to call it.
@@ -593,51 +620,43 @@ function broadcastToRoom(roomNumber, action) {
     addDetailedLog(`Broadcasted ${action} to Room ${roomNumber}`, 'system', 'Admin', `Room ${roomNumber}`);
 }
 function initAdminListeners() {
-    // Listen for live database changes or player stage completions
-    window.addEventListener('storage', (e) => {
-        if (e.key === 'escape_teams_db' || e.key === 'escape_unlocked_level') {
-            updateDashboardMetrics();
-            renderFullTeamsList();
-        }
-    });
+    if (typeof socket !== 'undefined' && socket) {
+        socket.on('player_update', (data) => {
+            const { teamId, stage } = data;
+            const db = getTeamsDb();
+            if (db[teamId] && db[teamId].stage !== stage) {
+                db[teamId].stage = stage;
+                saveTeamsDbAndRender(db);
+                addDetailedLog(`Team ${teamId} reached Room ${stage}`, 'system', teamId, `Room ${stage}`);
 
-    if (typeof adminBroadcastChannel !== 'undefined' && adminBroadcastChannel) {
-        adminBroadcastChannel.onmessage = (event) => {
-            if (event.data && event.data.type === 'PLAYER_UPDATE') {
-                const { teamId, stage } = event.data;
-                const db = getTeamsDb();
-                if (db[teamId] && db[teamId].stage !== stage) {
-                    db[teamId].stage = stage;
-                    saveTeamsDbAndRender(db);
-                    addDetailedLog(`Team ${teamId} reached Room ${stage}`, 'system', teamId, `Room ${stage}`);
-
-                    // Live Finale Logic: 3-Winner Limit
-                    if (stage >= 5) {
-                        const settings = getSettingsDb();
-                        if (settings.gameMode === 'finale') {
-                            let winnersCount = 0;
-                            for (let key in db) {
-                                if (db[key].stage >= 5) winnersCount++;
-                            }
-                            if (winnersCount >= 3) {
-                                adminBroadcastChannel.postMessage({ type: 'GAME_OVER', leaderboard: db });
-                                showAdminToast("🏆 TOP 3 REACHED", "Live Finale has concluded. All other teams locked out.");
-                                addDetailedLog(`Finale Concluded: Top 3 Teams have finished.`, 'system', 'Admin', 'Global');
-                            }
+                // Live Finale Logic: 3-Winner Limit
+                if (stage >= 5) {
+                    const settings = getSettingsDb();
+                    if (settings.gameMode === 'finale') {
+                        let winnersCount = 0;
+                        for (let key in db) {
+                            if (db[key].stage >= 5) winnersCount++;
+                        }
+                        if (winnersCount >= 3) {
+                            socket.emit('gm_command', { type: 'GAME_OVER', leaderboard: db });
+                            showAdminToast("🏆 TOP 3 REACHED", "Live Finale has concluded. All other teams locked out.");
+                            addDetailedLog(`Finale Concluded: Top 3 Teams have finished.`, 'system', 'Admin', 'Global');
                         }
                     }
                 }
-            } else if (event.data && event.data.type === 'PLAYER_TIMEOUT') {
-                const { teamId } = event.data;
-                const db = getTeamsDb();
-                if (db[teamId] && db[teamId].status !== 'timeout') {
-                    db[teamId].status = 'timeout';
-                    saveTeamsDbAndRender(db);
-                    addDetailedLog(`Team ${teamId} ran out of time!`, 'error', teamId, `Global`);
-                    showAdminToast("⏱️ TEAM TIMEOUT", `Team ${teamId} has been disqualified (Time Expired).`);
-                }
             }
-        };
+        });
+        
+        socket.on('player_timeout', (data) => {
+            const { teamId } = data;
+            const db = getTeamsDb();
+            if (db[teamId] && db[teamId].status !== 'timeout') {
+                db[teamId].status = 'timeout';
+                saveTeamsDbAndRender(db);
+                addDetailedLog(`Team ${teamId} ran out of time!`, 'error', teamId, `Global`);
+                showAdminToast("⏱️ TEAM TIMEOUT", `Team ${teamId} has been disqualified (Time Expired).`);
+            }
+        });
     }
     
     const slotForm = document.getElementById('addSlotForm');
@@ -651,9 +670,8 @@ function setGameMode(mode) {
     settings.gameMode = mode; // 'demo' or 'finale'
     saveSettingsDb(settings);
     
-    // Broadcast the game mode update to all players
-    if (adminBroadcastChannel) {
-        adminBroadcastChannel.postMessage({ type: 'GAME_MODE_UPDATE', mode: mode });
+    if (typeof socket !== 'undefined' && socket) {
+        socket.emit('gm_command', { type: 'GAME_MODE_UPDATE', mode: mode });
     }
     
     // Update UI highlights
@@ -1016,10 +1034,9 @@ function transmitGmCommand(targetTeam, commandType, messageContent, extraType = 
         timestamp: new Date().toLocaleTimeString()
     };
 
-    if (adminBroadcastChannel) {
-        adminBroadcastChannel.postMessage(payload);
+    if (typeof socket !== 'undefined' && socket) {
+        socket.emit('gm_command', payload);
     }
-    localStorage.setItem('escape_gm_live_cmd', JSON.stringify(payload));
 }
 
 function initCommandCenter() {

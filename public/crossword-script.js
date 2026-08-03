@@ -271,31 +271,12 @@ function setupValidation(puzzleData, teamId) {
 function triggerStage2Completion(teamId) {
     const currentLevel = parseInt(localStorage.getItem('escape_unlocked_level') || '1', 10);
     
-    // Unlock stage 3
-    if (currentLevel < 3) {
-        localStorage.setItem('escape_unlocked_level', '3');
-        
-        // Update database
-        const rawDb = localStorage.getItem('escape_teams_db');
-        if (rawDb && teamId) {
-            try {
-                const db = JSON.parse(rawDb);
-                if (db[teamId] && (db[teamId].stage || 1) < 3) {
-                    db[teamId].stage = 3;
-                    localStorage.setItem('escape_teams_db', JSON.stringify(db));
-                }
-            } catch(e) {}
+    // Unlock stage 2 locally for instant UI update
+    if (currentLevel < 2) {
+        localStorage.setItem('escape_unlocked_level', '2');
+        if (typeof window.completeStage === 'function') {
+            window.completeStage(2, 250, 'Crossword Complete');
         }
-        
-        // Broadcast to Game Master
-        try {
-            const playerBroadcastChannel = new BroadcastChannel('escape_gm_channel');
-            playerBroadcastChannel.postMessage({
-                type: 'PLAYER_UPDATE',
-                teamId: teamId,
-                stage: 3
-            });
-        } catch(e) {}
     }
 }
 

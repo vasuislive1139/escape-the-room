@@ -95,18 +95,8 @@ function openQr(title, src, index) {
     const curLvl = parseInt(localStorage.getItem('escape_unlocked_level')) || 1;
     if (curLvl < 5) {
         localStorage.setItem('escape_unlocked_level', 5); // 5 = fully completed
-        
-        // Broadcast completion to Game Master
-        const teamId = localStorage.getItem('escape_team_id');
-        if (teamId) {
-            try {
-                const playerBroadcastChannel = new BroadcastChannel('escape_gm_channel');
-                playerBroadcastChannel.postMessage({
-                    type: 'PLAYER_UPDATE',
-                    teamId: teamId,
-                    stage: 5
-                });
-            } catch(e) {}
+        if (typeof window.completeStage === 'function') {
+            window.completeStage(5, 1000, 'StreamWave Vault Completed (Game Beaten!)');
         }
     }
   }

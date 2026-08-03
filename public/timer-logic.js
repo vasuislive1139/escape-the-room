@@ -75,16 +75,44 @@ function updateTimerDisplay() {
 function handleTimeExpired() {
     // Broadcast Timeout to Game Master
     const teamId = localStorage.getItem('escape_team_id') || 'UNKNOWN';
-    try {
-        const playerBroadcastChannel = new BroadcastChannel('escape_gm_channel');
-        playerBroadcastChannel.postMessage({
-            type: 'PLAYER_TIMEOUT',
-            teamId: teamId
+    if (window.socket) {
+        window.socket.emit('gm_command', {
+            id: 'gm_cmd_' + Date.now(),
+            target: teamId,
+            type: 'WARNING',
+            message: `Team ${teamId} ran out of time!`,
+            category: 'alert'
         });
-    } catch(e) {}
+    }
     
     // Redirect to home where the disqualification overlay will take over
     window.location.href = 'home.html';
+}
+
+// Helper to notify backend of stage completion
+window.completeStage = function(nextStage, scoreGained, eventData = '') {
+    const teamId = localStorage.getItem('escape_team_id');
+    if (!teamId) return;
+    
+    if (window.socket) {
+        window.socket.emit('team_completed_stage', {
+            teamId,
+            nextStage,
+            scoreGained,
+            eventData
+        });
+    }
+};
+
+// Global Socket init for puzzle pages
+if (typeof io !== 'undefined' && !window.socket) {
+    window.socket = io();
+    window.socket.on('team_update', (team) => {
+        const myTeam = (localStorage.getItem('escape_team_id') || '').toUpperCase();
+        if (team.id === myTeam && (team.status === 'frozen' || team.status === 'timeout')) {
+            window.location.href = 'home.html'; // Kick to home to see freeze overlay
+        }
+    });
 }
 
 function stopTimer() {

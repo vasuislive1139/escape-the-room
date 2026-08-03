@@ -294,7 +294,7 @@ function initFormControls() {
     });
 
     if (loginForm) {
-        loginForm.addEventListener('submit', (e) => {
+        loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const teamId = teamIdInput.value.trim().toUpperCase();
@@ -304,46 +304,44 @@ function initFormControls() {
                 showError("Please enter both your Team ID and Password.");
                 return;
             }
+            
+            const loginSubmitBtn = document.getElementById('loginSubmitBtn');
+            const originalBtnText = loginSubmitBtn ? loginSubmitBtn.innerHTML : '';
+            if (loginSubmitBtn) {
+                loginSubmitBtn.disabled = true;
+                loginSubmitBtn.innerHTML = '<span class="btn-text">AUTHENTICATING...</span><div class="btn-shine"></div>';
+            }
 
-            let isValid = false;
-            let startingStage = 1;
-            let teamStatus = 'active';
+            try {
+                // Remove hardcoded fallbacks and use the new backend API exclusively
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ teamId, password })
+                });
 
-            const rawDb = localStorage.getItem('escape_teams_db');
-            if (rawDb) {
-                try {
-                    const db = JSON.parse(rawDb);
-                    if (db[teamId] && db[teamId].password === password) {
-                        isValid = true;
-                        startingStage = db[teamId].stage || 1;
-                        teamStatus = db[teamId].status || 'active';
+                const data = await response.json();
+                
+                if (loginSubmitBtn) {
+                    loginSubmitBtn.disabled = false;
+                    loginSubmitBtn.innerHTML = originalBtnText;
+                }
+
+                if (response.ok && data.success) {
+                    if (data.team.status === 'frozen') {
+                        showError("❄️ Account Frozen: Your team progress is currently suspended by the Game Master.");
+                    } else {
+                        handleSuccessfulLogin(data.team.id, data.team.stage || 1);
                     }
-                } catch(err) {}
-            }
-
-            if (!isValid) {
-                // Only fallback to these if the database somehow failed to initialize,
-                // and ONLY allow these exact matches.
-                const validCredentials = {
-                    'TEAM-ALPHA': 'ESCAPE2026',
-                    'CYBER KNIGHTS': 'TATVAPASS1',
-                    'PHOENIX-007': 'UNLOCKME',
-                    'SHERLOCK HOMIES': 'BAKER221',
-                    'ADMIN': 'ADMIN123'
-                };
-                if (validCredentials[teamId] && validCredentials[teamId] === password) {
-                    isValid = true;
-                }
-            }
-
-            if (isValid) {
-                if (teamStatus === 'frozen') {
-                    showError("❄️ Account Frozen: Your team progress is currently suspended by the Game Master.");
                 } else {
-                    handleSuccessfulLogin(teamId, startingStage);
+                    showError(data.error || "Invalid credentials. Complete offline ground activities or ask event judges for your Team ID!");
                 }
-            } else {
-                showError("Invalid credentials. Complete offline ground activities or ask event judges for your Team ID!");
+            } catch (err) {
+                if (loginSubmitBtn) {
+                    loginSubmitBtn.disabled = false;
+                    loginSubmitBtn.innerHTML = originalBtnText;
+                }
+                showError("Connection error. Ensure the backend server is running.");
             }
         });
     }
@@ -410,21 +408,31 @@ function quickLoginAs(teamId, password) {
         passwordInput.value = password;
         if (typeof playClickSound === 'function') playClickSound();
 
-        let db = {};
-        try { db = JSON.parse(localStorage.getItem('escape_teams_db') || '{}'); } catch(e) {}
-        if (!db[teamId]) {
-            const stages = { 'TEAM-ALPHA': 1, 'CYBER KNIGHTS': 2, 'PHOENIX-007': 3, 'SHERLOCK HOMIES': 4 };
-            db[teamId] = { password: password, stage: stages[teamId] || 1, status: 'active', warnings: 0 };
-            localStorage.setItem('escape_teams_db', JSON.stringify(db));
-        }
-
-        setTimeout(() => {
-            if (loginSubmitBtn) {
-                loginSubmitBtn.click();
-            } else {
-                handleSuccessfulLogin(teamId, db[teamId].stage || 1);
-            }
-        }, 100);
+        const stages = { 'TEAM-ALPHA': 1, 'CYBER KNIGHTS': 2, 'PHOENIX-007': 3, 'SHERLOCK HOMIES': 4 };
+        
+        fetch('/api/teams', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                id: teamId.toUpperCase(),
+                password: password,
+                stage: stages[teamId] || 1,
+                status: 'active',
+                warnings: 0,
+                members: '',
+                score: 0,
+                entryTime: Date.now(),
+                slotId: ''
+            })
+        }).then(() => {
+            setTimeout(() => {
+                if (loginSubmitBtn) {
+                    loginSubmitBtn.click();
+                } else {
+                    handleSuccessfulLogin(teamId, stages[teamId] || 1);
+                }
+            }, 100);
+        });
     }
 }
 window.quickLoginAs = quickLoginAs;
@@ -564,72 +572,64 @@ function handleLockedClick(stageNum) {
 }
 
 /* ==========================================================================
-   5. GAME MASTER REAL-TIME INTERVENTION LISTENER & POLLING SYNCHRONIZER
+   5. GAME MASTER REAL-TIME INTERVENTION LISTENER & SOCKET.IO
    ========================================================================== */
 let lastProcessedCmdId = null;
 let lastSyncedFreezeState = null;
 let lastSyncedStage = null;
+let socket = null;
 
 function initGameMasterListener() {
-    if (playerBroadcastChannel) {
-        playerBroadcastChannel.onmessage = (event) => {
-            if (event.data) processGmCommand(event.data);
-        };
-    }
+    if (typeof io !== 'undefined') {
+        socket = io();
+        
+        socket.on('gm_command', (cmd) => {
+            processGmCommand(cmd);
+        });
+        
+        socket.on('team_update', (team) => {
+            const myTeam = (localStorage.getItem('escape_team_id') || '').toUpperCase();
+            if (team.id === myTeam) {
+                processTeamStateChange(team);
+            }
+        });
+        
+        socket.on('database_cleared', () => {
+            localStorage.removeItem('escape_team_id');
+            window.location.href = 'index.html';
+        });
 
-    window.addEventListener('storage', (e) => {
-        if (e.key === 'escape_gm_live_cmd' && e.newValue) {
-            try {
-                const cmd = JSON.parse(e.newValue);
-                processGmCommand(cmd);
-            } catch(err) {}
+        // Fetch initial state
+        const myTeam = (localStorage.getItem('escape_team_id') || '').toUpperCase();
+        if (myTeam) {
+            fetch('/api/teams')
+                .then(res => res.json())
+                .then(teams => {
+                    if (teams[myTeam]) {
+                        processTeamStateChange(teams[myTeam]);
+                    }
+                })
+                .catch(err => console.error(err));
         }
-        syncWithGameMasterDb();
-    });
-
-    // High-speed 150ms background polling synchronizer
-    // Guarantees 100% instant updates without refreshing the window!
-    setInterval(syncWithGameMasterDb, 150);
+    }
 }
 
-function syncWithGameMasterDb() {
-    // 1. Check for live broadcast or action commands in localStorage
-    const rawCmd = localStorage.getItem('escape_gm_live_cmd');
-    if (rawCmd) {
-        try {
-            const cmd = JSON.parse(rawCmd);
-            processGmCommand(cmd);
-        } catch(e) {}
-    }
-
-    // 2. Check if our team's database state changed (e.g. frozen, promoted, warned)
-    const myTeam = (localStorage.getItem('escape_team_id') || 'TEAM-ALPHA').trim().toUpperCase();
-    const rawDb = localStorage.getItem('escape_teams_db');
-    if (rawDb) {
-        try {
-            const db = JSON.parse(rawDb);
-            let teamData = db[myTeam];
-            if (!teamData) {
-                const foundKey = Object.keys(db).find(k => k.trim().toUpperCase() === myTeam);
-                if (foundKey) teamData = db[foundKey];
-            }
-            if (teamData) {
-                // Check Freeze or Timeout status change
-                const isNowFrozen = (teamData.status === 'frozen');
-                const isNowTimeout = (teamData.status === 'timeout');
+function processTeamStateChange(teamData) {
+    const isNowFrozen = (teamData.status === 'frozen');
+    const isNowTimeout = (teamData.status === 'timeout');
+    
+    const newStatus = isNowTimeout ? 'timeout' : (isNowFrozen ? 'frozen' : 'active');
+    
+    if (lastSyncedFreezeState !== newStatus) {
+        lastSyncedFreezeState = newStatus;
+        const overlay = document.getElementById('gmFreezeOverlay');
+        if (overlay) {
+            if (isNowFrozen || isNowTimeout) {
+                overlay.classList.remove('hidden');
+                if (typeof playErrorSound === 'function') playErrorSound();
                 
-                const newStatus = isNowTimeout ? 'timeout' : (isNowFrozen ? 'frozen' : 'active');
-                
-                if (lastSyncedFreezeState !== newStatus) {
-                    lastSyncedFreezeState = newStatus;
-                    const overlay = document.getElementById('gmFreezeOverlay');
-                    if (overlay) {
-                        if (isNowFrozen || isNowTimeout) {
-                            overlay.classList.remove('hidden');
-                            if (typeof playErrorSound === 'function') playErrorSound();
-                            
-                            const title = overlay.querySelector('h3');
-                            const text = overlay.querySelector('p');
+                const title = overlay.querySelector('h3');
+                const text = overlay.querySelector('p');
                             
                             if (isNowTimeout) {
                                 if (title) title.textContent = "DISQUALIFIED";
@@ -661,9 +661,6 @@ function syncWithGameMasterDb() {
                         }
                     }
                 }
-            }
-        } catch(e) {}
-    }
 }
 
 function processGmCommand(cmd) {

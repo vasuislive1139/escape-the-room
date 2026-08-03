@@ -430,51 +430,11 @@ function completeStage() {
     document.getElementById('completionOverlay').classList.remove('hidden');
     playSound('success');
     
-    // Save progression stage 2 to database
-    localStorage.setItem('escape_unlocked_level', '2');
+    // Save progression locally for UI
+    localStorage.setItem('escape_unlocked_level', '3');
     
-    // Update roster stage state
-    const rawDb = localStorage.getItem('escape_teams_db');
-    if (rawDb && activeTeamName) {
-        try {
-            const db = JSON.parse(rawDb);
-            if (db[activeTeamName]) {
-                db[activeTeamName].stage = 2;
-                localStorage.setItem('escape_teams_db', JSON.stringify(db));
-            }
-        } catch(e) {}
-    }
-
-    if (playerBroadcastChannel) {
-        playerBroadcastChannel.postMessage({
-            type: 'PLAYER_UPDATE',
-            teamId: activeTeamName,
-            stage: 2
-        });
-    }
-}
-
-// --- Game Master Sync ---
-function syncWithGameMasterDb() {
-    const curLevel = parseInt(localStorage.getItem('escape_unlocked_level') || '1', 10);
-    const isFrozen = localStorage.getItem('escape_account_frozen') === 'true';
-    const activeWarnings = parseInt(localStorage.getItem('escape_warnings') || '0', 10);
-    
-    if (isFrozen) {
-        document.getElementById('freezeOverlay').classList.remove('hidden');
-    } else {
-        document.getElementById('freezeOverlay').classList.add('hidden');
-    }
-    
-    const dot = document.getElementById('playerStatusDot');
-    if (dot) {
-        dot.style.background = isFrozen ? '#ff2a2a' : (activeWarnings > 0 ? '#ffca68' : '#68fedb');
-        dot.style.boxShadow = isFrozen ? '0 0 10px #ff2a2a' : (activeWarnings > 0 ? '0 0 10px #ffca68' : '0 0 10px #68fedb');
-    }
-    
-    if (!isFrozen && curLevel < 1) {
-        // Only bounce if they somehow lose access to Stage 1 (impossible, but for safety)
-        window.location.href = 'home.html';
+    if (typeof window.completeStage === 'function') {
+        window.completeStage(3, score, 'Scavenger Hunt Complete');
     }
 }
 

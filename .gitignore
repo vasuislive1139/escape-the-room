@@ -2,3 +2,4 @@
 *.log
 .gemini/
 node_modules/
+database.sqlite

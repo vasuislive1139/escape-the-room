@@ -32,10 +32,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initAudioEngine();
     initCipherForm();
     initCountdownTimer();
-    
-    // Start background Game Master monitoring loop (150ms)
-    // Automatically redirect back to home if level changes or resets
-    setInterval(syncWithGameMasterDb, 150);
 });
 
 /* ==========================================================================
@@ -389,35 +385,8 @@ function triggerGlobalSuccessFlow() {
     localStorage.setItem('escape_unlocked_level', '4');
     localStorage.removeItem('escape_cipher_substage'); // Reset sub-stages
 
-    // Update roster stage state
-    const rawDb = localStorage.getItem('escape_teams_db');
-    if (rawDb && activeTeamName) {
-        try {
-            const db = JSON.parse(rawDb);
-            if (db[activeTeamName]) {
-                db[activeTeamName].stage = 4;
-                localStorage.setItem('escape_teams_db', JSON.stringify(db));
-            }
-        } catch(e) {}
-    }
-
-    // Dispatch sync updates to Game Master dashboard
-    const payload = {
-        id: 'gm_cmd_' + Date.now() + '_' + Math.floor(Math.random()*1000),
-        target: activeTeamName,
-        type: 'PROMOTE',
-        message: `Team ${activeTeamName} cleared the 3-Stage Cipher Chase!`,
-        category: 'info',
-        timestamp: new Date().toLocaleTimeString()
-    };
-    localStorage.setItem('escape_gm_live_cmd', JSON.stringify(payload));
-
-    if (playerBroadcastChannel) {
-        playerBroadcastChannel.postMessage({
-            type: 'PLAYER_UPDATE',
-            teamId: activeTeamName,
-            stage: 4
-        });
+    if (typeof window.completeStage === 'function') {
+        window.completeStage(4, 500, 'Cipher Chase Complete');
     }
 
     // Redirect to home.html after 2.5s
@@ -426,41 +395,6 @@ function triggerGlobalSuccessFlow() {
     }, 2500);
 }
 
-/* ==========================================================================
-   5. REAL-TIME GAME MASTER INTERVENTION & REDIRECT SYNC
-   ========================================================================== */
-let lastSyncedFreezeState = null;
-
-function syncWithGameMasterDb() {
-    const myTeam = (localStorage.getItem('escape_team_id') || 'TEAM-ALPHA').trim().toUpperCase();
-    const rawDb = localStorage.getItem('escape_teams_db');
-    if (!rawDb) return;
-
-    try {
-        const db = JSON.parse(rawDb);
-        const teamData = db[myTeam];
-        if (teamData) {
-            // 1. Check if team status changed to frozen
-            const isNowFrozen = (teamData.status === 'frozen');
-            if (lastSyncedFreezeState !== isNowFrozen) {
-                lastSyncedFreezeState = isNowFrozen;
-                if (isNowFrozen) {
-                    // Redirect back to home immediately to show the freeze overlay screen!
-                    localStorage.removeItem('escape_cipher_substage');
-                    window.location.href = 'home.html';
-                }
-            }
-
-            // 2. Check if team loses access to Stage 3
-            // Only kick them out if they are demoted to < 3. If they are > 3, they are re-exploring.
-            if (teamData.stage && teamData.stage < 3) {
-                localStorage.setItem('escape_unlocked_level', teamData.stage.toString());
-                localStorage.removeItem('escape_cipher_substage');
-                window.location.href = 'home.html';
-            }
-        }
-    } catch(e) {}
-}
 
 /* ==========================================================================
    6. EMBERS canvas particle animations
