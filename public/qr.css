@@ -92,7 +92,21 @@
     background: rgba(114, 234, 212, 0.2);
     color: #72ead4;
     padding: 2px 6px;
-    font-size: 10px;
     border-radius: 4px;
     letter-spacing: 1px;
+}
+
+/* Hide other QRs until their parent is hovered */
+.section-qr, .poster-qr {
+    opacity: 0;
+    transition: 0.3s;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+.section-heading:hover .section-qr,
+.poster:hover .poster-qr {
+    opacity: 1;
 }
