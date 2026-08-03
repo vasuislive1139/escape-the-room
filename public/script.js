@@ -483,7 +483,14 @@ async function checkInitialFreezeStatus(teamId) {
     try {
         const res = await fetch('/api/teams');
         if (res.ok) {
-            const db = await res.json();
+            const data = await res.json();
+        
+        if (data.error) {
+            console.error('Database connection error:', data.error);
+            return;
+        }
+
+        const db = data;
             if (db[teamId]) {
                 const overlay = document.getElementById('gmFreezeOverlay');
                 if (db[teamId].status === 'frozen') {

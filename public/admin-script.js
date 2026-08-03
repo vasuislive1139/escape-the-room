@@ -22,9 +22,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             fetch('/api/settings'),
             fetch('/api/logs')
         ]);
-        window.GLOBAL_TEAMS_DB = await teamsRes.json();
-        window.GLOBAL_SETTINGS = await settingsRes.json();
-        window.GLOBAL_LOGS = await logsRes.json();
+        const teamsData = await teamsRes.json();
+        if (teamsData.error) {
+            showAdminToast("⚠️ Database Error", "Please configure MONGODB_URI in Vercel.");
+        } else {
+            window.GLOBAL_TEAMS_DB = teamsData;
+            window.GLOBAL_SETTINGS = await settingsRes.json();
+            window.GLOBAL_LOGS = await logsRes.json();
+        }
     } catch(e) { console.error('Failed to fetch initial state:', e); }
 
     // Polling for real-time updates
@@ -35,9 +40,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                 fetch('/api/settings'),
                 fetch('/api/logs')
             ]);
-            window.GLOBAL_TEAMS_DB = await teamsRes.json();
-            window.GLOBAL_SETTINGS = await settingsRes.json();
-            window.GLOBAL_LOGS = await logsRes.json();
+            const teamsData = await teamsRes.json();
+            const settingsData = await settingsRes.json();
+            const logsData = await logsRes.json();
+
+            if (teamsData.error) {
+                if (!window.dbErrorShown) {
+                    showAdminToast("⚠️ Database Error", "Could not connect to MongoDB. Check MONGODB_URI in Vercel.");
+                    window.dbErrorShown = true;
+                }
+                return;
+            }
+
+            window.GLOBAL_TEAMS_DB = teamsData;
+            window.GLOBAL_SETTINGS = settingsData;
+            window.GLOBAL_LOGS = logsData;
             
             if (typeof renderAnalyticsAndRoster === 'function') renderAnalyticsAndRoster();
             if (typeof renderLiveActivityFeed === 'function') renderLiveActivityFeed();
