@@ -402,9 +402,7 @@ function handleSuccessfulLogin(teamId, startingStage = 1) {
     }, 300);
 
     localStorage.setItem('escape_team_id', teamId);
-    if (!localStorage.getItem('escape_unlocked_level') || startingStage > 1) {
-        localStorage.setItem('escape_unlocked_level', startingStage.toString());
-    }
+    localStorage.setItem('escape_unlocked_level', startingStage.toString());
 
     setTimeout(() => {
         window.location.href = 'home.html';
@@ -451,27 +449,17 @@ function initHomeProgression() {
 
 async function checkInitialFreezeStatus(teamId) {
     try {
-        const res = await fetch('/api/teams');
+        const res = await fetch(`/api/teams/${teamId}`);
         if (res.ok) {
-            const data = await res.json();
-        
-        if (data.error) {
-            console.error('Database connection error:', data.error);
-            return;
-        }
-
-        const db = data;
-            if (db[teamId]) {
-                const overlay = document.getElementById('gmFreezeOverlay');
-                if (db[teamId].status === 'frozen') {
-                    if (overlay) overlay.classList.remove('hidden');
-                } else if (db[teamId].status === 'timeout') {
-                    if (overlay) {
-                        overlay.classList.remove('hidden');
-                        overlay.innerHTML = `<div style="text-align: center;"><div style="font-size: 5rem; margin-bottom: 20px;">⏱️</div><h2>DISQUALIFIED / TIME OUT</h2><p>Your team ran out of time for the stage.</p></div>`;
-                    }
-                }
+            const teamData = await res.json();
+            if (!teamData.error) {
+                // Delegate to our centralized state processor
+                processTeamStateChange(teamData);
             }
+        } else if (res.status === 404) {
+            // Team deleted, log out
+            localStorage.removeItem('escape_team_id');
+            window.location.href = 'index.html';
         }
     } catch(e) { console.error('Failed to check status', e); }
 }
@@ -601,6 +589,15 @@ async function pollTeamState(teamId) {
         
         if (settingsRes.ok) {
             const settings = await settingsRes.json();
+            
+            if (settings.gameOver === 'true' && localStorage.getItem('escape_ignore_game_over') !== 'true') {
+                if (typeof window.triggerGameOver === 'function') {
+                    try {
+                        const db = JSON.parse(settings.leaderboard || '{}');
+                        window.triggerGameOver(db);
+                    } catch(e) {}
+                }
+            }
             if (settings.globalMessage && settings.globalMessage !== window.lastGlobalMessage) {
                 window.lastGlobalMessage = settings.globalMessage;
                 // Format is timestamp:message
@@ -619,6 +616,33 @@ async function pollTeamState(teamId) {
                 localStorage.removeItem('escape_team_id');
                 window.location.href = 'index.html';
                 return;
+            }
+            
+            // Process Time Events to ensure localStorage is updated while on home page
+            if (teamData.timeEvents && teamData.timeEvents.length > 0) {
+                let processedEvents = JSON.parse(localStorage.getItem('escape_processed_time_events') || '[]');
+                let newlyAdded = false;
+                
+                teamData.timeEvents.forEach(event => {
+                    if (!processedEvents.includes(event.id)) {
+                        const saveKey = `escape_timer_${teamData.id}_stage_${event.stage}`;
+                        let savedTime = parseInt(localStorage.getItem(saveKey));
+                        
+                        // Time configs for reference (in seconds)
+                        const STAGE_TIMES = { 1: 8 * 60, 2: 10 * 60, 3: 8 * 60, 4: 12 * 60 };
+                        if (isNaN(savedTime)) savedTime = STAGE_TIMES[event.stage] || 600;
+                        
+                        savedTime += (event.minutes * 60);
+                        localStorage.setItem(saveKey, savedTime);
+                        
+                        processedEvents.push(event.id);
+                        newlyAdded = true;
+                    }
+                });
+                
+                if (newlyAdded) {
+                    localStorage.setItem('escape_processed_time_events', JSON.stringify(processedEvents));
+                }
             }
             
             processTeamStateChange(teamData);
@@ -1010,16 +1034,11 @@ window.resetTeamProgress = async function() {
     if (!teamId) return;
     
     try {
-        // We'll use the existing /api/teams endpoint to reset stats
-        await fetch('/api/teams', {
+        // We'll use the dedicated /api/teams/reset endpoint to reset stats completely
+        await fetch('/api/teams/reset', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                id: teamId,
-                stage: 1,
-                status: 'active',
-                score: 0
-            })
+            body: JSON.stringify({ id: teamId })
         });
         
         // Clean local storage
@@ -1030,6 +1049,7 @@ window.resetTeamProgress = async function() {
         localStorage.removeItem(`escape_timer_${teamId}_stage_4`);
         localStorage.removeItem('sh_time');
         localStorage.removeItem('escape_final_leaderboard');
+        localStorage.setItem('escape_ignore_game_over', 'true');
         
         window.location.href = 'index.html'; // Go back to start
     } catch(err) {

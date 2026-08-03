@@ -73,47 +73,120 @@ function updateTimerDisplay() {
 }
 
 function handleTimeExpired() {
-    // Broadcast Timeout to Game Master
-    const teamId = localStorage.getItem('escape_team_id') || 'UNKNOWN';
-    if (window.socket) {
-        window.socket.emit('gm_command', {
-            id: 'gm_cmd_' + Date.now(),
-            target: teamId,
-            type: 'WARNING',
-            message: `Team ${teamId} ran out of time!`,
-            category: 'alert'
-        });
-    }
-    
-    // Redirect to home where the disqualification overlay will take over
-    window.location.href = 'home.html';
-}
-
-// Helper to notify backend of stage completion
-window.completeStage = function(nextStage, scoreGained, eventData = '') {
     const teamId = localStorage.getItem('escape_team_id');
     if (!teamId) return;
+
+    // Update DB status to timeout
+    fetch('/api/teams', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            id: teamId,
+            status: 'timeout'
+        })
+    }).then(() => {
+        if (typeof showLocalOverlay === 'function') showLocalOverlay('timeout');
+    }).catch(() => {
+        if (typeof showLocalOverlay === 'function') showLocalOverlay('timeout');
+    });
+}
+
+// Stage Polling for Real-Time GM Commands
+setInterval(async () => {
+    const teamId = localStorage.getItem('escape_team_id');
+    if (!teamId) return;
+    
+    try {
+        const [teamRes, settingsRes] = await Promise.all([
+            fetch(`/api/teams/${teamId}`),
+            fetch('/api/settings')
+        ]);
+        
+        if (settingsRes.ok) {
+            const settings = await settingsRes.json();
+            if (settings.gameOver === 'true' && localStorage.getItem('escape_ignore_game_over') !== 'true') {
+                window.location.href = 'home.html'; // home.html will handle GAME OVER display
+            }
+        }
+        
+        if (teamRes.ok) {
+            const team = await teamRes.json();
+            
+            if (team.timeEvents && team.timeEvents.length > 0) {
+                let processedEvents = JSON.parse(localStorage.getItem('escape_processed_time_events') || '[]');
+                let newlyAdded = false;
+                
+                team.timeEvents.forEach(event => {
+                    if (!processedEvents.includes(event.id)) {
+                        const saveKey = `escape_timer_${team.id}_stage_${event.stage}`;
+                        let savedTime = parseInt(localStorage.getItem(saveKey));
+                        if (isNaN(savedTime)) savedTime = STAGE_TIMES[event.stage] || 600;
+                        savedTime += (event.minutes * 60);
+                        localStorage.setItem(saveKey, savedTime);
+                        
+                        if (currentStageId == event.stage && currentStageTimeLeft !== undefined) {
+                            currentStageTimeLeft += (event.minutes * 60);
+                            
+                            // Start timer again if it was 0 and now it's > 0
+                            if (currentStageTimeLeft > 0 && !activityTimerInterval) {
+                                startTimer();
+                            }
+                        }
+                        
+                        processedEvents.push(event.id);
+                        newlyAdded = true;
+                    }
+                });
+                
+                if (newlyAdded) {
+                    localStorage.setItem('escape_processed_time_events', JSON.stringify(processedEvents));
+                    if (typeof updateTimerDisplay === 'function') updateTimerDisplay();
+                }
+            }
+
+            if (team.status === 'frozen' || team.status === 'timeout') {
+                if (typeof showLocalOverlay === 'function') showLocalOverlay(team.status);
+            } else if (team.status === 'logged_out') {
+                window.location.href = 'index.html';
+            } else {
+                if (typeof hideLocalOverlay === 'function') hideLocalOverlay();
+            }
+        }
+    } catch(e) {}
+}, 3000);
+
+// Helper to notify backend of stage completion
+window.completeStage = async function(nextStage, scoreGained, eventData = '') {
+    const teamId = localStorage.getItem('escape_team_id');
+    if (!teamId) return null;
     
     let timeTaken = 0;
     if (typeof window.getTimeTaken === 'function') {
         timeTaken = window.getTimeTaken();
     }
     
-    // Fetch current stage from localStorage to increment score if needed
-    // or just pass stage to POST
-    return fetch('/api/teams', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-            id: teamId, 
-            stage: nextStage,
-            timeTaken: timeTaken,
-            currentStageId: currentStageId
-        }) 
-    }).then(res => res.json()).catch(err => {
+    try {
+        const res = await fetch(`/api/teams/${teamId}`);
+        const team = await res.json();
+        const currentScore = team.score || 0;
+        const newScore = currentScore + (scoreGained || 0);
+        
+        const updateRes = await fetch('/api/teams', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                id: teamId, 
+                stage: nextStage,
+                score: newScore,
+                timeTaken: timeTaken,
+                currentStageId: currentStageId
+            }) 
+        });
+        return await updateRes.json();
+    } catch(err) {
         console.error("Error saving stage:", err);
         return null;
-    });
+    }
 };
 
 // Global polling init for puzzle pages
@@ -125,8 +198,45 @@ if (!window.puzzlePollInterval) {
             const res = await fetch(`/api/teams/${teamId}`);
             if (res.ok) {
                 const team = await res.json();
-                if (team.status === 'frozen' || team.status === 'timeout' || team.status === 'logged_out') {
-                    window.location.href = 'home.html'; // Kick to home to see freeze overlay
+                
+                if (team.timeEvents && team.timeEvents.length > 0) {
+                    let processedEvents = JSON.parse(localStorage.getItem('escape_processed_time_events') || '[]');
+                    let newlyAdded = false;
+                    
+                    team.timeEvents.forEach(event => {
+                        if (!processedEvents.includes(event.id)) {
+                            const saveKey = `escape_timer_${team.id}_stage_${event.stage}`;
+                            let savedTime = parseInt(localStorage.getItem(saveKey));
+                            if (isNaN(savedTime)) savedTime = STAGE_TIMES[event.stage] || 600;
+                            savedTime += (event.minutes * 60);
+                            localStorage.setItem(saveKey, savedTime);
+                            
+                            if (currentStageId == event.stage && currentStageTimeLeft !== undefined) {
+                                currentStageTimeLeft += (event.minutes * 60);
+                                
+                                // Start timer again if it was 0 and now it's > 0
+                                if (currentStageTimeLeft > 0 && !activityTimerInterval) {
+                                    startTimer();
+                                }
+                            }
+                            
+                            processedEvents.push(event.id);
+                            newlyAdded = true;
+                        }
+                    });
+                    
+                    if (newlyAdded) {
+                        localStorage.setItem('escape_processed_time_events', JSON.stringify(processedEvents));
+                        if (typeof updateTimerDisplay === 'function') updateTimerDisplay();
+                    }
+                }
+
+                if (team.status === 'frozen' || team.status === 'timeout') {
+                    if (typeof showLocalOverlay === 'function') showLocalOverlay(team.status);
+                } else if (team.status === 'logged_out') {
+                    window.location.href = 'index.html';
+                } else {
+                    if (typeof hideLocalOverlay === 'function') hideLocalOverlay();
                 }
             }
         } catch(e) {}
@@ -140,6 +250,73 @@ function stopTimer() {
 window.getTimeTaken = function() {
     if (!currentStageId || !STAGE_TIMES[currentStageId]) return 0;
     return STAGE_TIMES[currentStageId] - currentStageTimeLeft;
+};
+
+// Overlay logic for freeze / timeout on the activity page itself
+window.showLocalOverlay = function(status) {
+    let overlay = document.getElementById('localStatusOverlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'localStatusOverlay';
+        overlay.style.position = 'fixed';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.width = '100vw';
+        overlay.style.height = '100vh';
+        overlay.style.backgroundColor = 'rgba(10, 10, 15, 0.95)';
+        overlay.style.backdropFilter = 'blur(10px)';
+        overlay.style.zIndex = '999999';
+        overlay.style.display = 'flex';
+        overlay.style.flexDirection = 'column';
+        overlay.style.justifyContent = 'center';
+        overlay.style.alignItems = 'center';
+        overlay.style.color = '#fff';
+        overlay.style.fontFamily = 'monospace';
+        overlay.style.textAlign = 'center';
+        overlay.style.padding = '20px';
+        
+        const title = document.createElement('h1');
+        title.id = 'localOverlayTitle';
+        title.style.fontSize = '3rem';
+        title.style.marginBottom = '20px';
+        title.style.textTransform = 'uppercase';
+        title.style.letterSpacing = '2px';
+        
+        const desc = document.createElement('p');
+        desc.id = 'localOverlayDesc';
+        desc.style.fontSize = '1.2rem';
+        desc.style.maxWidth = '600px';
+        desc.style.lineHeight = '1.6';
+        desc.style.color = '#a5b0bb';
+        
+        overlay.appendChild(title);
+        overlay.appendChild(desc);
+        document.body.appendChild(overlay);
+    }
+    
+    const title = document.getElementById('localOverlayTitle');
+    const desc = document.getElementById('localOverlayDesc');
+    
+    if (status === 'timeout') {
+        title.textContent = "OUT OF TIME";
+        title.style.color = '#ff4f55';
+        title.style.textShadow = '0 0 20px rgba(255, 79, 85, 0.5)';
+        desc.textContent = "Your time for this activity has expired. The screen is now locked. If you believe this is an error or need extra time, please ask the Game Master.";
+    } else if (status === 'frozen') {
+        title.textContent = "SYSTEM LOCKED";
+        title.style.color = '#50e3c2';
+        title.style.textShadow = '0 0 20px rgba(80, 227, 194, 0.5)';
+        desc.textContent = "Your session has been temporarily paused by the Game Master. Please wait for further instructions.";
+    }
+    
+    overlay.style.display = 'flex';
+};
+
+window.hideLocalOverlay = function() {
+    const overlay = document.getElementById('localStatusOverlay');
+    if (overlay) {
+        overlay.style.display = 'none';
+    }
 };
 
 // Pause timer when navigating away or closing tab

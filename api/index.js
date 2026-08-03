@@ -36,7 +36,8 @@ const TeamSchema = new mongoose.Schema({
     slotId: { type: String },
     stageTimes: { type: mongoose.Schema.Types.Mixed, default: {} },
     totalTime: { type: Number, default: 0 },
-    vaultFinishRank: { type: Number, default: 0 }
+    vaultFinishRank: { type: Number, default: 0 },
+    timeEvents: { type: Array, default: [] }
 });
 
 const SettingSchema = new mongoose.Schema({
@@ -189,6 +190,38 @@ app.post(['/api/teams', '/teams'], async (req, res) => {
     }
 });
 
+// Dedicated Reset Endpoint
+app.post(['/api/teams/reset', '/teams/reset'], async (req, res) => {
+    const { id } = req.body;
+    if (!id) return res.status(400).json({ error: "Missing team id" });
+    
+    try {
+        const team = await Team.findOne({ id: id });
+        if (!team) return res.status(404).json({ error: "Team not found" });
+
+        team.stage = 1;
+        team.status = 'active';
+        team.score = 0;
+        team.totalTime = 0;
+        team.stageTimes = {};
+        team.vaultFinishRank = 0;
+
+        await team.save();
+
+        await Log.create({
+            timestamp: Date.now(),
+            action: 'Team Reset',
+            category: 'game',
+            teamId: id,
+            details: 'Team progress has been reset to start'
+        });
+
+        res.json({ success: true, team });
+    } catch (err) {
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
 // Admin Bulk Replacement
 app.post(['/api/teams/bulk', '/teams/bulk'], async (req, res) => {
     const teamsObj = req.body;
@@ -262,6 +295,45 @@ app.post(['/api/teams/:id/action', '/teams/:id/action'], async (req, res) => {
             details: `Applied ${action} to team`
         });
         
+        res.json({ success: true, team });
+    } catch (err) {
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+// Admin Add Time Action
+app.post(['/api/teams/:id/add-time', '/teams/:id/add-time'], async (req, res) => {
+    const { stage, minutes } = req.body;
+    const teamId = req.params.id;
+    try {
+        const team = await Team.findOne({ id: teamId });
+        if (!team) return res.status(404).json({ error: "Team not found" });
+
+        const eventId = Math.random().toString(36).substr(2, 9);
+        const timeEvent = {
+            id: eventId,
+            stage: parseInt(stage) || team.stage,
+            minutes: parseInt(minutes) || 5,
+            timestamp: Date.now()
+        };
+
+        if (!team.timeEvents) team.timeEvents = [];
+        team.timeEvents.push(timeEvent);
+
+        if (team.status === 'timeout') {
+            team.status = 'active'; // Revive them
+        }
+
+        await team.save();
+
+        await Log.create({
+            timestamp: Date.now(),
+            action: `GM Action: ADD_TIME`,
+            category: 'system',
+            teamId: teamId,
+            details: `Added ${timeEvent.minutes} minutes to stage ${timeEvent.stage}`
+        });
+
         res.json({ success: true, team });
     } catch (err) {
         res.status(500).json({ error: "Internal server error" });

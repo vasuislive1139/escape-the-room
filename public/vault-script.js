@@ -168,12 +168,17 @@ function openQr(title, src, index) {
                     
                     // Show Victory Overlay
                     const overlay = document.getElementById('victoryOverlay');
-                    const rankText = document.getElementById('victoryRankText');
+                    const descText = document.getElementById('victoryDescText');
                     
-                    if (rank === 1) rankText.textContent = '1st';
-                    else if (rank === 2) rankText.textContent = '2nd';
-                    else if (rank === 3) rankText.textContent = '3rd';
-                    else rankText.textContent = rank + 'th';
+                    let rankStr = rank + 'th';
+                    if (rank === 1) rankStr = '1st';
+                    else if (rank === 2) rankStr = '2nd';
+                    else if (rank === 3) rankStr = '3rd';
+                    
+                    rankText.textContent = `${rankStr} WINNER!`;
+                    if (descText) {
+                        descText.textContent = `Congratulations! You are the ${rankStr} team to complete the entire Escape The Room activity.`;
+                    }
                     
                     qrModal.classList.remove('open');
                     overlay.classList.remove('hidden');
@@ -201,9 +206,14 @@ function openQr(title, src, index) {
                                 const dbRes = await fetch('/api/teams');
                                 if (dbRes.ok) {
                                     const db = await dbRes.json();
-                                    if (window.socket) {
-                                        window.socket.emit('gm_command', { type: 'GAME_OVER', leaderboard: db });
-                                    }
+                                    fetch('/api/settings', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({
+                                            gameOver: 'true',
+                                            leaderboard: JSON.stringify(db)
+                                        })
+                                    });
                                 }
                             } catch(e) { console.error(e); }
                         }, 15000);

@@ -157,11 +157,11 @@
   <div class="qr-modal" id="qrModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="qrTitle">
     <div class="qr-dialog"><button class="qr-close" id="closeQr" aria-label="Close QR code">×</button><p class="eyebrow">SCAN TRAIL</p><h2 id="qrTitle">Scan to watch</h2><img id="qrLarge" alt="QR code"><p id="qrHint">Open your phone camera and scan this code to continue.</p></div>
   </div>
-  <div id="victoryOverlay" class="victory-overlay hidden">
-    <div class="victory-content">
-      <div class="victory-rank" id="victoryRankText">1st</div>
-      <h2>WINNER!</h2>
-      <p>Congratulations on completing the StreamWave Vault.</p>
+  <div id="victoryOverlay" class="victory-overlay hidden" style="background: rgba(0,0,0,0.9); z-index: 10000; text-align: center; color: white;">
+    <div class="victory-content" style="padding: 40px; background: linear-gradient(135deg, #111, #222); border: 2px solid gold; border-radius: 12px; box-shadow: 0 0 50px rgba(255, 215, 0, 0.5);">
+      <div class="victory-rank" id="victoryRankText" style="font-size: 5rem; font-weight: 800; text-transform: uppercase; color: #ffd700; text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);">1st WINNER!</div>
+      <h2 style="font-size: 2.5rem; margin: 20px 0; color: #fff;">YOU COMPLETED THE GAME!</h2>
+      <p id="victoryDescText" style="font-size: 1.2rem; color: #ddd; max-width: 500px; margin: 0 auto;">Congratulations! You are the first team to complete the entire Escape The Room activity.</p>
     </div>
   </div>
 

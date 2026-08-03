@@ -947,6 +947,7 @@ function renderFullTeamsList() {
                 <button type="button" class="row-btn" onclick="quickAction('${name}', 'promote')" title="Promote Stage">🔼</button>
                 <button type="button" class="row-btn" onclick="quickAction('${name}', 'demote')" title="Demote Stage">🔽</button>
                 <button type="button" class="row-btn" onclick="quickAction('${name}', 'freeze')" title="Toggle Freeze">❄️</button>
+                <button type="button" class="row-btn" style="border-color:#ffd700; color:#ffd700;" onclick="handleAddTime('${name}')" title="Add Time">⏳</button>
                 <button type="button" class="row-btn danger" onclick="quickAction('${name}', 'delete')" title="Delete Credential">🗑️</button>
             </td>
         `;
@@ -1000,6 +1001,7 @@ function renderLeaderboard() {
                 ${team.status === 'timeout' ? `<button type="button" class="row-btn" style="border-color:#50e3c2; color:#50e3c2; padding: 2px 6px;" onclick="quickAction('${team.name}', 'revive')" title="Revive">💚</button>` : ''}
                 <button type="button" class="row-btn" style="padding: 2px 6px;" onclick="quickAction('${team.name}', 'warn')" title="Issue Warning">⚠️</button>
                 <button type="button" class="row-btn" style="padding: 2px 6px;" onclick="quickAction('${team.name}', 'freeze')" title="Toggle Freeze">❄️</button>
+                <button type="button" class="row-btn" style="border-color:#ffd700; color:#ffd700; padding: 2px 6px;" onclick="handleAddTime('${team.name}')" title="Add Time">⏳</button>
             </td>
         `;
         tbody.appendChild(tr);
@@ -1196,6 +1198,38 @@ function quickAction(teamName, actionType) {
             body: JSON.stringify({ action: actionMap[actionType] })
         });
         showAdminToast("Action Processed", `Applied ${actionType} to team ${teamName}`);
+    }
+}
+
+async function handleAddTime(teamName) {
+    const db = getTeamsDb();
+    const team = db[teamName];
+    if (!team) return;
+
+    const minutesStr = prompt(`How many minutes do you want to add for ${teamName}?`, "5");
+    if (!minutesStr) return;
+    const minutes = parseInt(minutesStr, 10);
+    if (isNaN(minutes) || minutes <= 0) return;
+
+    const stageStr = prompt(`Which stage do you want to add this time to (1-4)?`, team.stage);
+    if (!stageStr) return;
+    const stage = parseInt(stageStr, 10);
+    if (isNaN(stage) || stage < 1 || stage > 4) return;
+
+    try {
+        const response = await fetch(`/api/teams/${teamName}/add-time`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ stage, minutes })
+        });
+        if (response.ok) {
+            showAdminToast("Time Added", `Added ${minutes} minutes to ${teamName} (Stage ${stage})`);
+            addDetailedLog(`Added ${minutes}m to ${teamName} (Stage ${stage})`, 'game', 'Admin', 'Timer');
+        } else {
+            showAdminToast("Error", "Failed to add time");
+        }
+    } catch (e) {
+        showAdminToast("Error", "Network error");
     }
 }
 
