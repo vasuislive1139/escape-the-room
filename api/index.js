@@ -82,7 +82,7 @@ async function getSettingsMap() {
 // API ROUTES
 // -----------------------------------------
 
-app.post('/api/login', async (req, res) => {
+app.post(['/api/login', '/login'], async (req, res) => {
     const { teamId, password } = req.body;
     if (!teamId || !password) return res.status(400).json({ error: "Missing credentials" });
     
@@ -109,7 +109,7 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-app.get('/api/teams', async (req, res) => {
+app.get(['/api/teams', '/teams'], async (req, res) => {
     try {
         const teamsList = await Team.find({});
         const teamsObj = {};
@@ -123,7 +123,7 @@ app.get('/api/teams', async (req, res) => {
 });
 
 // Single team state fetch for polling
-app.get('/api/teams/:id', async (req, res) => {
+app.get(['/api/teams/:id', '/teams/:id'], async (req, res) => {
     try {
         const team = await Team.findOne({ id: req.params.id });
         if (!team) return res.status(404).json({ error: "Team not found" });
@@ -133,7 +133,7 @@ app.get('/api/teams/:id', async (req, res) => {
     }
 });
 
-app.post('/api/teams', async (req, res) => {
+app.post(['/api/teams', '/teams'], async (req, res) => {
     const { id, password, stage, status, warnings, members, score, entryTime, slotId } = req.body;
     if (!id) return res.status(400).json({ error: "Missing team id" });
     
@@ -172,7 +172,7 @@ app.post('/api/teams', async (req, res) => {
 });
 
 // Admin Bulk Replacement
-app.post('/api/teams/bulk', async (req, res) => {
+app.post(['/api/teams/bulk', '/teams/bulk'], async (req, res) => {
     const teamsObj = req.body;
     if (!teamsObj || typeof teamsObj !== 'object') {
         return res.status(400).json({ error: "Invalid payload" });
@@ -216,7 +216,7 @@ app.post('/api/teams/bulk', async (req, res) => {
 });
 
 // Admin Action (e.g., FREEZE, WARN, REVIVE)
-app.post('/api/teams/:id/action', async (req, res) => {
+app.post(['/api/teams/:id/action', '/teams/:id/action'], async (req, res) => {
     const { action } = req.body;
     const teamId = req.params.id;
     try {
@@ -250,7 +250,7 @@ app.post('/api/teams/:id/action', async (req, res) => {
     }
 });
 
-app.get('/api/settings', async (req, res) => {
+app.get(['/api/settings', '/settings'], async (req, res) => {
     try {
         const map = await getSettingsMap();
         res.json(map);
@@ -259,7 +259,7 @@ app.get('/api/settings', async (req, res) => {
     }
 });
 
-app.post('/api/settings', async (req, res) => {
+app.post(['/api/settings', '/settings'], async (req, res) => {
     const settings = req.body;
     try {
         for (const [key, value] of Object.entries(settings)) {
@@ -275,7 +275,7 @@ app.post('/api/settings', async (req, res) => {
     }
 });
 
-app.get('/api/logs', async (req, res) => {
+app.get(['/api/logs', '/logs'], async (req, res) => {
     try {
         const logs = await Log.find({}).sort({ timestamp: -1 }).limit(100);
         res.json(logs);
