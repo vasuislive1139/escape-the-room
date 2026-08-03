@@ -805,8 +805,7 @@ window.downloadCredentialsCSV = downloadCredentialsCSV;
 
 function clearAllTeams() {
     if (confirm("Are you sure you want to delete all registered team credentials from the database?")) {
-        localStorage.setItem('escape_teams_db', '{}');
-        renderAnalyticsAndRoster();
+        saveTeamsDb({});
         showAdminToast("🗑️ Database Cleared", "All team records removed.");
         addLogItem("Cleared all team records from database.", 'alert');
     }

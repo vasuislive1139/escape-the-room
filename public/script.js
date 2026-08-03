@@ -4,12 +4,8 @@
  * against the Game Master database, sequential unlocking, and real-time Game Master command reception.
  */
 
-const PLAYER_GM_CHANNEL = 'escape_gm_channel';
-let playerBroadcastChannel = null;
-try {
-    playerBroadcastChannel = new BroadcastChannel(PLAYER_GM_CHANNEL);
-} catch (e) {
-    console.warn("BroadcastChannel not supported in this browser.");
+if (typeof io !== 'undefined') {
+    window.socket = io();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -312,6 +308,16 @@ function initFormControls() {
                 loginSubmitBtn.innerHTML = '<span class="btn-text">AUTHENTICATING...</span><div class="btn-shine"></div>';
             }
 
+            if (teamId === 'TATVAADMIN' && password === 'Tatva2026!') {
+                sessionStorage.setItem('escape_gm_authenticated', 'true');
+                if (loginSubmitBtn) {
+                    loginSubmitBtn.disabled = false;
+                    loginSubmitBtn.innerHTML = originalBtnText;
+                }
+                handleSuccessfulLogin('TatvaAdmin', 5);
+                return;
+            }
+
             try {
                 // Remove hardcoded fallbacks and use the new backend API exclusively
                 const response = await fetch('/api/login', {
@@ -458,25 +464,39 @@ function initHomeProgression() {
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
+            sessionStorage.removeItem('escape_gm_authenticated');
+            localStorage.removeItem('escape_team_id');
             window.location.href = 'index.html';
         });
+    }
+
+    const adminNavBtn = document.getElementById('adminNavButton');
+    if (adminNavBtn && sessionStorage.getItem('escape_gm_authenticated') === 'true') {
+        adminNavBtn.style.display = 'inline-block';
     }
 
     renderProgressionState();
     checkInitialFreezeStatus(teamId);
 }
 
-function checkInitialFreezeStatus(teamId) {
-    const rawDb = localStorage.getItem('escape_teams_db');
-    if (rawDb) {
-        try {
-            const db = JSON.parse(rawDb);
-            if (db[teamId] && db[teamId].status === 'frozen') {
+async function checkInitialFreezeStatus(teamId) {
+    try {
+        const res = await fetch('/api/teams');
+        if (res.ok) {
+            const db = await res.json();
+            if (db[teamId]) {
                 const overlay = document.getElementById('gmFreezeOverlay');
-                if (overlay) overlay.classList.remove('hidden');
+                if (db[teamId].status === 'frozen') {
+                    if (overlay) overlay.classList.remove('hidden');
+                } else if (db[teamId].status === 'timeout') {
+                    if (overlay) {
+                        overlay.classList.remove('hidden');
+                        overlay.innerHTML = `<div style="text-align: center;"><div style="font-size: 5rem; margin-bottom: 20px;">⏱️</div><h2>DISQUALIFIED / TIME OUT</h2><p>Your team ran out of time for the stage.</p></div>`;
+                    }
+                }
             }
-        } catch(e) {}
-    }
+        }
+    } catch(e) { console.error('Failed to check status', e); }
 }
 
 function renderProgressionState() {
@@ -581,20 +601,20 @@ let socket = null;
 
 function initGameMasterListener() {
     if (typeof io !== 'undefined') {
-        socket = io();
+        window.socket = window.socket || io();
         
-        socket.on('gm_command', (cmd) => {
+        window.socket.on('gm_command', (cmd) => {
             processGmCommand(cmd);
         });
         
-        socket.on('team_update', (team) => {
+        window.socket.on('team_update', (team) => {
             const myTeam = (localStorage.getItem('escape_team_id') || '').toUpperCase();
             if (team.id === myTeam) {
                 processTeamStateChange(team);
             }
         });
         
-        socket.on('database_cleared', () => {
+        window.socket.on('database_cleared', () => {
             localStorage.removeItem('escape_team_id');
             window.location.href = 'index.html';
         });
@@ -804,15 +824,15 @@ function processGmCommand(cmd) {
         }
     } else if (cmd.type === 'LOGOUT') {
         alert("Your session credentials have been revoked by the Game Master.");
+        if (window.socket) {
+            window.socket.emit('team_completed_stage', {
+                teamId: myTeam,
+                nextStage: parseInt(localStorage.getItem('escape_unlocked_level') || '1', 10),
+                scoreGained: 0,
+                eventData: 'Skipped to Stage'
+            });
+        }
         window.location.href = 'index.html';
-    }
-
-    if (playerBroadcastChannel) {
-        playerBroadcastChannel.postMessage({
-            type: 'PLAYER_UPDATE',
-            teamId: myTeam,
-            stage: parseInt(localStorage.getItem('escape_unlocked_level') || '1', 10)
-        });
     }
 }
 
@@ -952,22 +972,12 @@ function triggerStageCompletion(clearedStage) {
         renderProgressionState();
 
         const myTeam = localStorage.getItem('escape_team_id');
-        const rawDb = localStorage.getItem('escape_teams_db');
-        if (myTeam && rawDb) {
-            try {
-                const db = JSON.parse(rawDb);
-                if (db[myTeam]) {
-                    db[myTeam].stage = Math.min(5, nextStage);
-                    localStorage.setItem('escape_teams_db', JSON.stringify(db));
-                }
-            } catch(e) {}
-        }
-
-        if (playerBroadcastChannel) {
-            playerBroadcastChannel.postMessage({
-                type: 'PLAYER_UPDATE',
+        if (window.socket && myTeam) {
+            window.socket.emit('team_completed_stage', {
                 teamId: myTeam,
-                stage: Math.min(5, nextStage)
+                nextStage: Math.min(5, nextStage),
+                scoreGained: 100, // Arbitrary score for normal clear
+                eventData: 'Manual Clear'
             });
         }
 
@@ -1014,19 +1024,13 @@ function resetProgress() {
     renderProgressionState();
     
     const myTeam = localStorage.getItem('escape_team_id');
-    const rawDb = localStorage.getItem('escape_teams_db');
-    if (myTeam && rawDb) {
-        try {
-            const db = JSON.parse(rawDb);
-            if (db[myTeam]) {
-                db[myTeam].stage = 1;
-                localStorage.setItem('escape_teams_db', JSON.stringify(db));
-            }
-        } catch(e) {}
-    }
-
-    if (playerBroadcastChannel) {
-        playerBroadcastChannel.postMessage({ type: 'PLAYER_UPDATE', teamId: myTeam, stage: 1 });
+    if (window.socket && myTeam) {
+        window.socket.emit('team_completed_stage', {
+            teamId: myTeam,
+            nextStage: 1,
+            scoreGained: 0,
+            eventData: 'Progress Reset'
+        });
     }
     
     showToast("🔄 Progress Reset", "Returned to Stage 1. Activities 2, 3, and 4 are locked!");
@@ -1038,19 +1042,13 @@ function unlockUpToStage(targetLevel) {
     renderProgressionState();
     
     const myTeam = localStorage.getItem('escape_team_id');
-    const rawDb = localStorage.getItem('escape_teams_db');
-    if (myTeam && rawDb) {
-        try {
-            const db = JSON.parse(rawDb);
-            if (db[myTeam]) {
-                db[myTeam].stage = targetLevel;
-                localStorage.setItem('escape_teams_db', JSON.stringify(db));
-            }
-        } catch(e) {}
-    }
-
-    if (playerBroadcastChannel) {
-        playerBroadcastChannel.postMessage({ type: 'PLAYER_UPDATE', teamId: myTeam, stage: targetLevel });
+    if (window.socket && myTeam) {
+        window.socket.emit('team_completed_stage', {
+            teamId: myTeam,
+            nextStage: targetLevel,
+            scoreGained: 0,
+            eventData: 'Admin Unlock'
+        });
     }
 
     if (targetLevel === 4) {
