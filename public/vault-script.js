@@ -120,7 +120,25 @@ const qrHint = document.getElementById('qrHint');
 function openQr(title, src, index) {
   qrTitle.textContent = title;
   qrLarge.src = src.replace('size=110x110', 'size=300x300');
-  qrHint.textContent = 'Scan this code with your phone camera to reveal the next clue.';
+  
+  if (index === 6) {
+      qrHint.textContent = "🏆 You found the final QR! Processing your victory...";
+  } else {
+      const nextLocId = qrSequence[index]; // next index in 0-indexed sequence
+      const nextLocName = LOCATION_NAMES[nextLocId];
+      qrHint.innerHTML = `🎉 <strong>Congratulations!</strong> You found QR ${index}.<br><br>📍 <strong>NEXT LOCATION:</strong> Go to the <em>${nextLocName}</em>.`;
+      
+      // Mini confetti celebration!
+      if (typeof confetti === 'function') {
+          confetti({
+              particleCount: 100,
+              spread: 70,
+              origin: { y: 0.6 },
+              zIndex: 10000
+          });
+      }
+  }
+  
   qrModal.classList.add('open');
   qrModal.setAttribute('aria-hidden', 'false');
 
@@ -128,7 +146,7 @@ function openQr(title, src, index) {
     unlockedIndex++;
     localStorage.setItem('streamwave_qr_progress', unlockedIndex);
     updateQrVisibility();
-    notify("Next clue unlocked!");
+    notify(`QR ${index} unlocked!`);
   } else if (index === 6) {
     let timeTakenStr = "";
     if (typeof window.getTimeTaken === 'function') {
