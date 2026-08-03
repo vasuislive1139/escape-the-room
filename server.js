@@ -21,8 +21,14 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+const fs = require('fs');
 // Initialize Database
 const dbPath = process.env.DB_PATH || path.join(__dirname, 'database.sqlite');
+try {
+    fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+} catch (err) {
+    console.error("Failed to create database directory:", err);
+}
 const db = new sqlite3.Database(dbPath, (err) => {
     if (err) {
         console.error("Error opening database " + err.message);
@@ -259,6 +265,6 @@ io.on('connection', (socket) => {
     });
 });
 
-server.listen(PORT, () => {
-    console.log(`🚀 Escape The Room backend running on http://localhost:${PORT}`);
+server.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Escape The Room backend running on port ${PORT}`);
 });
