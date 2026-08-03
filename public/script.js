@@ -1004,42 +1004,4 @@ function showNotification(msg) {
     showToast("🔔 Event Notification", msg);
 }
 
-function resetProgress() {
-    playClickSound();
-    localStorage.setItem('escape_unlocked_level', '1');
-    renderProgressionState();
-    
-    const myTeam = localStorage.getItem('escape_team_id');
-    if (window.socket && myTeam) {
-        window.socket.emit('team_completed_stage', {
-            teamId: myTeam,
-            nextStage: 1,
-            scoreGained: 0,
-            eventData: 'Progress Reset'
-        });
-    }
-    
-    showToast("🔄 Progress Reset", "Returned to Stage 1. Activities 2, 3, and 4 are locked!");
-}
 
-function unlockUpToStage(targetLevel) {
-    playUnlockSound();
-    localStorage.setItem('escape_unlocked_level', targetLevel.toString());
-    renderProgressionState();
-    
-    const myTeam = localStorage.getItem('escape_team_id');
-    if (window.socket && myTeam) {
-        window.socket.emit('team_completed_stage', {
-            teamId: myTeam,
-            nextStage: targetLevel,
-            scoreGained: 0,
-            eventData: 'Admin Unlock'
-        });
-    }
-
-    if (targetLevel === 4) {
-        showToast("🔓 All 4 Stages Unlocked", "Organizer Demo Mode: All tech activities are open!");
-    } else {
-        showToast("🔓 Stages Unlocked", `Activities up to Stage 0${targetLevel} are now accessible.`);
-    }
-}

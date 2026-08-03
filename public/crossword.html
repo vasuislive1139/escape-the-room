@@ -26,6 +26,19 @@
 
 <body>
 
+<!-- Start Playing Overlay -->
+<div id="startOverlay" class="modal-overlay" style="z-index: 10000; background: rgba(10, 15, 22, 0.95); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; right: 0; bottom: 0;">
+    <div class="modal-content" style="max-width: 500px; text-align: center; border: 1px solid #c5a059; box-shadow: 0 0 30px rgba(197, 160, 89, 0.2); background: rgba(15, 22, 30, 0.95); padding: 40px; border-radius: 8px;">
+        <h2 style="color: #c5a059; font-size: 2rem; margin-bottom: 20px; letter-spacing: 0.1em; text-transform: uppercase; font-family: 'Cinzel', serif;">CHAMBER LOCKED</h2>
+        <p style="color: #8fa3b0; margin-bottom: 30px; font-size: 1.1rem; line-height: 1.6; font-family: 'Orbitron', sans-serif;">
+            Take your time to read the instructions. The countdown timer will only begin once you initiate the sequence.
+        </p>
+        <button type="button" id="startPlayingBtn" class="primary-btn" style="width: 100%; font-size: 1.2rem; padding: 15px; border-radius: 4px; background: rgba(80, 227, 194, 0.1); color: #50e3c2; border: 1px solid #50e3c2; cursor: pointer; text-transform: uppercase; font-weight: 700; font-family: 'Orbitron', sans-serif; transition: all 0.3s ease;" onmouseover="this.style.background='rgba(80, 227, 194, 0.3)'" onmouseout="this.style.background='rgba(80, 227, 194, 0.1)'">
+            <span class="btn-text">INITIATE SEQUENCE</span>
+        </button>
+    </div>
+</div>
+
 
 
 <!-- ======================================
