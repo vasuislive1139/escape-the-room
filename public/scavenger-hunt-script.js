@@ -139,6 +139,7 @@ function initAuth() {
     // Resume from localStorage if available
     const savedScore = localStorage.getItem('sh_score');
     if (savedScore) score = parseInt(savedScore, 10);
+    else score = 500; // Base score
     
     const savedClue = localStorage.getItem('sh_clue_index');
     if (savedClue) currentClueIndex = parseInt(savedClue, 10);
@@ -328,7 +329,8 @@ function handleAnswerSubmit() {
         feedback.textContent = `CORRECT! +${currentClue.points} pts`;
         feedback.className = 'feedback-msg success';
         
-        score += currentClue.points;
+        // No points added for clue finding in unified scoring
+
         currentClueIndex++;
         
         saveState();
@@ -347,9 +349,8 @@ function handleAnswerSubmit() {
         playSound('error');
         feedback.textContent = "INCORRECT DIRECTIVE. -2 pts";
         feedback.className = 'feedback-msg error';
-        score = Math.max(0, score - 2);
-        saveState();
-        updateTrackerUI();
+        // No point penalty for wrong guesses in unified scoring
+        showStatus('invalid', 'INVALID DIRECTORY', `PATH NOT FOUND: /root/${input}`);
         
         // Shake input
         const inputEl = document.getElementById('answerInput');
@@ -363,10 +364,10 @@ function handleAnswerSubmit() {
 function handleHintRequest() {
     if (hintsLeft > 0) {
         hintsLeft--;
-        score = Math.max(0, score - 5);
+        score = Math.max(0, score - 50); // Penalty for hint
         
         const hintEl = document.getElementById('hintText');
-        hintEl.textContent = `HINT: ${CLUES[currentClueIndex].hint}`;
+        hintEl.textContent = CLUES[currentClueIndex].hint;
         hintEl.classList.remove('hidden');
         
         saveState();
@@ -407,11 +408,13 @@ function updateTrackerUI() {
 function completeStage() {
     if (typeof stopTimer === 'function') stopTimer();
     
-    // Bonus for time
+    // Unified Scoring
     const timeRemaining = (typeof currentStageTimeLeft !== 'undefined') ? currentStageTimeLeft : 0;
-    const timeBonus = Math.floor(timeRemaining / 60) * 2; 
-    const completionBonus = 20;
-    score += completionBonus + timeBonus;
+    const hintsUsed = 3 - hintsLeft;
+    const baseScore = 500;
+    const hintPenalty = hintsUsed * 50;
+    
+    score = baseScore + timeRemaining - hintPenalty;
     saveState();
     
     let timeTaken = 0;
@@ -423,6 +426,7 @@ function completeStage() {
     const s = (timeTaken % 60).toString().padStart(2, '0');
     
     document.getElementById('finalScore').textContent = score;
+    document.getElementById('shScoreMath').innerHTML = `${baseScore} Base + ${timeRemaining} Time Bonus - ${hintPenalty} Hint Penalty`;
     document.getElementById('finalTime').textContent = `${m}:${s} taken`;
     
     document.getElementById('workspaceSection').classList.add('hidden');

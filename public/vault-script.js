@@ -157,9 +157,19 @@ function openQr(title, src, index) {
     // ESCAPE THE ROOM INTEGRATION
     const curLvl = parseInt(localStorage.getItem('escape_unlocked_level')) || 1;
     if (curLvl < 5) {
+        // Unified Scoring Math
+        const timeRemaining = (typeof currentStageTimeLeft !== 'undefined') ? currentStageTimeLeft : 0;
+        const baseScore = 1000;
+        const finalScore = baseScore + timeRemaining;
+        
+        const vScoreEl = document.getElementById('vaultScore');
+        const vMathEl = document.getElementById('vaultScoreMath');
+        if (vScoreEl) vScoreEl.textContent = `${finalScore} PTS`;
+        if (vMathEl) vMathEl.innerHTML = `${baseScore} Base + ${timeRemaining} Time Bonus`;
+
         localStorage.setItem('escape_unlocked_level', 5); // 5 = fully completed
         if (typeof window.completeStage === 'function') {
-            window.completeStage(5, 1000, 'StreamWave Vault Completed (Game Beaten!)').then(async res => {
+            window.completeStage(5, finalScore, 'StreamWave Vault Completed (Game Beaten!)').then(async res => {
                 if (res && res.success && res.team) {
                     const rank = res.team.vaultFinishRank || 1; // Default to 1 if missing for some reason
                     

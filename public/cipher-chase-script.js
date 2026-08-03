@@ -464,6 +464,18 @@ function triggerGlobalSuccessFlow() {
         timeTakenEl.textContent = `Time Taken: ${m}:${s}`;
     }
     
+    // Unified Scoring System
+    const timeRemaining = (typeof currentStageTimeLeft !== 'undefined') ? currentStageTimeLeft : 0;
+    const hintsUsed = parseInt(localStorage.getItem('escape_cipher_hints_used') || '0', 10);
+    const baseScore = 500;
+    const hintPenalty = hintsUsed * 50;
+    const finalScore = baseScore + timeRemaining - hintPenalty;
+    
+    const scoreEl = document.getElementById('cipherScore');
+    const mathEl = document.getElementById('ccScoreMath');
+    if (scoreEl) scoreEl.textContent = `${finalScore} PTS`;
+    if (mathEl) mathEl.innerHTML = `${baseScore} Base + ${timeRemaining} Time Bonus - ${hintPenalty} Hint Penalty`;
+    
     if (modal) modal.classList.remove('hidden');
     setTimeout(() => {
         if (progressBar) progressBar.style.width = "100%";
@@ -478,7 +490,7 @@ function triggerGlobalSuccessFlow() {
     localStorage.removeItem('escape_cipher_substage'); // Reset sub-stages
 
     if (typeof window.completeStage === 'function') {
-        window.completeStage(4, 500, 'Cipher Chase Complete');
+        window.completeStage(4, finalScore, 'Cipher Chase Complete');
     }
 
     // Redirect to home.html after 2.5s

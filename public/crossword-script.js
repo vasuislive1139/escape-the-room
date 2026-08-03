@@ -237,21 +237,28 @@ function setupValidation(puzzleData, teamId) {
                     gameMsg.style.color = "#50e3c2";
                 }
                 
-                triggerStage2Completion(teamId);
-                
                 const successModal = document.getElementById('successModal');
                 if (successModal) {
                     document.getElementById('completeTeam').textContent = teamId;
-                    // Timer text
+                    if (typeof stopTimer === 'function') stopTimer();
+                    
                     let elapsed = 0;
-                    if (typeof window.getTimeTaken === 'function') {
-                        elapsed = window.getTimeTaken();
-                    }
+                    if (typeof window.getTimeTaken === 'function') elapsed = window.getTimeTaken();
                     const m = Math.floor(elapsed / 60);
                     const s = elapsed % 60;
                     document.getElementById('completeTime').textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
                     
+                    // Unified Scoring Math
+                    const timeRemaining = (typeof currentStageTimeLeft !== 'undefined') ? currentStageTimeLeft : 0;
+                    const baseScore = 500;
+                    const finalScore = baseScore + timeRemaining;
+                    
+                    document.getElementById('completeScore').textContent = finalScore;
+                    document.getElementById('completeScoreMath').innerHTML = `500 Base + ${timeRemaining} Time Bonus`;
+                    
                     successModal.style.display = 'flex';
+                    
+                    triggerStage2Completion(teamId, finalScore);
                 }
             } else {
                 if (typeof playErrorSound === 'function') playErrorSound();
@@ -271,14 +278,14 @@ function setupValidation(puzzleData, teamId) {
     }
 }
 
-function triggerStage2Completion(teamId) {
+function triggerStage2Completion(teamId, finalScore) {
     const currentLevel = parseInt(localStorage.getItem('escape_unlocked_level') || '1', 10);
     
     // Unlock stage 2 locally for instant UI update
     if (currentLevel < 2) {
         localStorage.setItem('escape_unlocked_level', '2');
         if (typeof window.completeStage === 'function') {
-            window.completeStage(2, 250, 'Crossword Complete');
+            window.completeStage(2, finalScore, 'Crossword Complete');
         }
     }
 }
