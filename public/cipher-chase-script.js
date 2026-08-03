@@ -50,7 +50,7 @@ function initAuthAndCipher() {
 
     // Load active sub-stage from localStorage (prevents resetting on refresh)
     currentSubStage = parseInt(localStorage.getItem('escape_cipher_substage') || '1', 10);
-    if (currentSubStage < 1 || currentSubStage > 3) currentSubStage = 1;
+    if (currentSubStage < 1 || currentSubStage > 5) currentSubStage = 1;
 
     // Generate unique cipher combinations
     currentTeamCiphers = getStage3CiphersForTeam(activeTeamName);
@@ -100,10 +100,16 @@ function getStage3CiphersForTeam(teamName) {
     const w3Index = randomInt(STAGE3_WORDS.length);
     const w4Index = randomInt(STAGE3_WORDS.length);
     const w5Index = randomInt(STAGE3_WORDS.length);
+    const w6Index = randomInt(STAGE3_WORDS.length);
+    const w7Index = randomInt(STAGE3_WORDS.length);
+    const w8Index = randomInt(STAGE3_WORDS.length);
+    const w9Index = randomInt(STAGE3_WORDS.length);
     
     const word1 = STAGE3_WORDS[w1Index]; // Caesar
     const phrase2 = STAGE3_WORDS[w2Index] + " " + STAGE3_WORDS[w3Index]; // Atbash (2 words)
     const phrase3 = STAGE3_WORDS[w4Index] + " " + STAGE3_WORDS[w5Index]; // ROT13 (2 words)
+    const phrase4 = STAGE3_WORDS[w6Index] + " " + STAGE3_WORDS[w7Index]; // A1Z26 (2 words)
+    const phrase5 = STAGE3_WORDS[w8Index] + " " + STAGE3_WORDS[w9Index]; // Binary (2 words)
     
     // Find a decoy word of the exact same length for Caesar
     const sameLengthWords = STAGE3_WORDS.filter(w => w.length === word1.length && w !== word1);
@@ -146,10 +152,36 @@ function getStage3CiphersForTeam(teamName) {
         }
     }
     
+    // Encrypt A1Z26 (Phrase 4)
+    let a1z26Ciphertext = "";
+    for (let i = 0; i < phrase4.length; i++) {
+        let code = phrase4.charCodeAt(i);
+        if (code >= 65 && code <= 90) {
+            a1z26Ciphertext += (code - 64) + "-";
+        } else if (code === 32) { // space
+            a1z26Ciphertext = a1z26Ciphertext.replace(/-$/, '') + "   "; 
+        }
+    }
+    a1z26Ciphertext = a1z26Ciphertext.replace(/-$/, '').replace(/-   /g, '   ');
+
+    // Encrypt Binary (Phrase 5)
+    let binaryCiphertext = "";
+    for (let i = 0; i < phrase5.length; i++) {
+        let code = phrase5.charCodeAt(i);
+        if (code >= 65 && code <= 90) {
+            binaryCiphertext += code.toString(2).padStart(8, '0') + " ";
+        } else if (code === 32) {
+            binaryCiphertext += "  ";
+        }
+    }
+    binaryCiphertext = binaryCiphertext.trim();
+    
     return {
         c1: { plaintext: word1, ciphertext: caesarCiphertext, shift: caesarShift, decoytext: word1Decoy, decoyshift: caesarDecoyShift },
         c2: { plaintext: phrase2, ciphertext: atbashCiphertext },
-        c3: { plaintext: phrase3, ciphertext: rot13Ciphertext }
+        c3: { plaintext: phrase3, ciphertext: rot13Ciphertext },
+        c4: { plaintext: phrase4, ciphertext: a1z26Ciphertext },
+        c5: { plaintext: phrase5, ciphertext: binaryCiphertext }
     };
 }
 
@@ -170,7 +202,7 @@ function renderSubStageUI() {
     if (feedbackBanner) feedbackBanner.classList.add('hidden');
 
     // 1. Update progress tracker dots
-    for (let i = 1; i <= 3; i++) {
+    for (let i = 1; i <= 5; i++) {
         const dot = document.getElementById(`dot-sub-${i}`);
         if (dot) {
             if (i < currentSubStage) {
@@ -188,7 +220,7 @@ function renderSubStageUI() {
 
     // 2. Set sub-stage header tagline
     const stepTag = document.getElementById('stageStepTag');
-    if (stepTag) stepTag.textContent = `SUB-STAGE 0${currentSubStage} OF 03`;
+    if (stepTag) stepTag.textContent = `SUB-STAGE 0${currentSubStage} OF 05`;
 
     // 3. Load active challenge data
     const sliderContainer = document.getElementById('sliderContainer');
@@ -247,9 +279,36 @@ function renderSubStageUI() {
         if (cipherLabel) cipherLabel.textContent = "🔒 ENCRYPTED KEY (ROT13):";
         
         if (ciphertextDisplay) ciphertextDisplay.textContent = currentTeamCiphers.c3.ciphertext;
+
+    } else if (currentSubStage === 4) {
+        // A1Z26 Sub-stage
+        if (sliderContainer) sliderContainer.style.display = 'none';
+        if (resultLabel) resultLabel.style.display = 'none';
+        if (decryptedOutput) decryptedOutput.style.display = 'none';
+        
+        if (instTitle) instTitle.textContent = "SUB-STAGE 04: NUMERICAL VAULT (A1Z26)";
+        if (instDesc) instDesc.textContent = "This vault is protected by a numerical substitution cipher. Convert the numbers to reveal the passcode phrase.";
+        if (cipherLabel) cipherLabel.textContent = "🔒 ENCRYPTED KEY (A1Z26):";
+        
+        if (ciphertextDisplay) ciphertextDisplay.textContent = currentTeamCiphers.c4.ciphertext;
+        
+    } else if (currentSubStage === 5) {
+        // Binary Sub-stage
+        if (sliderContainer) sliderContainer.style.display = 'none';
+        if (resultLabel) resultLabel.style.display = 'none';
+        if (decryptedOutput) decryptedOutput.style.display = 'none';
+        
+        if (instTitle) instTitle.textContent = "SUB-STAGE 05: BINARY TERMINAL";
+        if (instDesc) instDesc.textContent = "The system core is encrypted in raw binary. Translate the 8-bit sequences into ASCII characters to extract the master override phrase.";
+        if (cipherLabel) cipherLabel.textContent = "🔒 ENCRYPTED KEY (BINARY):";
+        
+        if (ciphertextDisplay) ciphertextDisplay.textContent = currentTeamCiphers.c5.ciphertext;
     }
 
-    if (answerInput) setTimeout(() => answerInput.focus(), 100);
+    if (answerInput) {
+        answerInput.placeholder = `Enter Sub-Stage 0${currentSubStage} decrypted phrase`;
+        setTimeout(() => answerInput.focus(), 100);
+    }
 }
 
 /* ==========================================================================
@@ -313,6 +372,8 @@ function initCipherForm() {
             if (currentSubStage === 1) correctAns = currentTeamCiphers.c1.plaintext;
             else if (currentSubStage === 2) correctAns = currentTeamCiphers.c2.plaintext;
             else if (currentSubStage === 3) correctAns = currentTeamCiphers.c3.plaintext;
+            else if (currentSubStage === 4) correctAns = currentTeamCiphers.c4.plaintext;
+            else if (currentSubStage === 5) correctAns = currentTeamCiphers.c5.plaintext;
 
             let isCorrect = (userAns === correctAns.toUpperCase());
 
@@ -320,14 +381,20 @@ function initCipherForm() {
                 if (feedbackBanner) feedbackBanner.classList.add('hidden');
                 
                 // Advanced progression flow
-                if (currentSubStage < 3) {
+                if (currentSubStage < 5) {
                     playUnlockSound();
                     
                     // Reveal the answer word in the green output box briefly
                     const decryptedOutput = document.getElementById('caesarDecryptedOutput');
                     if (decryptedOutput) {
-                        let word = (currentSubStage === 1) ? currentTeamCiphers.c1.plaintext : currentTeamCiphers.c2.plaintext;
+                        let word = "";
+                        if (currentSubStage === 1) word = currentTeamCiphers.c1.plaintext;
+                        else if (currentSubStage === 2) word = currentTeamCiphers.c2.plaintext;
+                        else if (currentSubStage === 3) word = currentTeamCiphers.c3.plaintext;
+                        else if (currentSubStage === 4) word = currentTeamCiphers.c4.plaintext;
+                        
                         decryptedOutput.textContent = word.toUpperCase();
+                        decryptedOutput.style.display = 'block';
                         decryptedOutput.style.color = '#50e3c2';
                         decryptedOutput.style.textShadow = '0 0 12px rgba(80, 227, 194, 0.8), 0 0 25px rgba(80, 227, 194, 0.4)';
                     }
@@ -346,14 +413,15 @@ function initCipherForm() {
                     // Wait a bit to show the decrypted word, then load next sub-stage UI
                     setTimeout(renderSubStageUI, 800);
                 } else {
-                    // Reveal Sub-Stage 3 answer
+                    // Reveal Sub-Stage 5 answer
                     const decryptedOutput = document.getElementById('caesarDecryptedOutput');
                     if (decryptedOutput) {
-                        decryptedOutput.textContent = currentTeamCiphers.c3.plaintext.toUpperCase();
+                        decryptedOutput.textContent = currentTeamCiphers.c5.plaintext.toUpperCase();
+                        decryptedOutput.style.display = 'block';
                         decryptedOutput.style.color = '#50e3c2';
                         decryptedOutput.style.textShadow = '0 0 12px rgba(80, 227, 194, 0.8), 0 0 25px rgba(80, 227, 194, 0.4)';
                     }
-                    // All 3 sub-stages completed successfully!
+                    // All 5 sub-stages completed successfully!
                     triggerGlobalSuccessFlow();
                 }
             } else {
@@ -722,6 +790,10 @@ function showChamberHint() {
         hint = "💡 Atbash mirrors the alphabet (A ↔ Z, B ↔ Y, C ↔ X). Examine the encrypted key (e.g. VMRTNZ) and solve it by hand using the mirrored alphabet.";
     } else if (currentSubStage === 3) {
         hint = "💡 ROT13 rotates each character by 13 positions forward or backward (A ↔ N, B ↔ O). Examine the encrypted key and apply the rotation to reveal the override key.";
+    } else if (currentSubStage === 4) {
+        hint = "💡 A1Z26 substitutes letters with their numerical position in the alphabet (A=1, B=2, C=3 ... Z=26). Convert the numbers back to letters.";
+    } else if (currentSubStage === 5) {
+        hint = "💡 This is 8-bit Binary. Each block of 8 numbers represents an ASCII character. Use a binary-to-text translation (e.g. 01000001 = A).";
     }
     
     hintTextEl.innerHTML = hint;
