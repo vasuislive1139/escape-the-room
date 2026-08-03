@@ -1033,7 +1033,6 @@ window.resetTeamProgress = async function() {
         
         window.location.href = 'index.html'; // Go back to start
     } catch(err) {
-    } catch(err) {
         console.error("Reset failed", err);
     }
 };
