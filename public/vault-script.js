@@ -180,3 +180,25 @@ document.addEventListener('keydown', event => {
     closeSearch();
   }
 });
+
+// Navbar smooth scrolling and active state
+document.querySelectorAll('.navlinks a').forEach(link => {
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.querySelectorAll('.navlinks a').forEach(a => a.classList.remove('active'));
+    link.classList.add('active');
+    const targetId = link.getAttribute('href').substring(1);
+    const targetEl = document.getElementById(targetId);
+    if (targetEl) {
+      targetEl.scrollIntoView({ behavior: 'smooth' });
+    }
+  });
+});
+
+// Dev win button handler
+const devWinBtn = document.getElementById('devWinBtn');
+if (devWinBtn) {
+  devWinBtn.addEventListener('click', () => {
+    openQr("QR 6: Winner!", "https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=" + encodeURIComponent("Congratulations! You're the winner!"), 6);
+  });
+}
