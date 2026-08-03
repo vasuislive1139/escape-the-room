@@ -161,7 +161,7 @@ app.post('/api/teams', async (req, res) => {
                 action: 'Stage Progression',
                 category: 'game',
                 teamId: id,
-                details: \`Advanced to stage \${stage}\`
+                details: `Advanced to stage ${stage}`
             });
         }
         
@@ -206,7 +206,7 @@ app.post('/api/teams/bulk', async (req, res) => {
             action: 'Bulk Teams Update',
             category: 'system',
             teamId: 'SYSTEM',
-            details: \`Synchronized \${inserts.length} teams\`
+            details: `Synchronized ${inserts.length} teams`
         });
         
         res.json({ success: true, count: inserts.length });
@@ -238,10 +238,10 @@ app.post('/api/teams/:id/action', async (req, res) => {
         
         await Log.create({
             timestamp: Date.now(),
-            action: \`GM Action: \${action}\`,
+            action: `GM Action: ${action}`,
             category: 'system',
             teamId: teamId,
-            details: \`Applied \${action} to team\`
+            details: `Applied ${action} to team`
         });
         
         res.json({ success: true, team });
