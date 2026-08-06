@@ -1412,7 +1412,8 @@ function handleCSVUpload(event) {
                 const teamId = cols[0];
                 if (teamId.toLowerCase() === 'team name' || teamId.toLowerCase() === 'teamid' || teamId.toLowerCase() === 'name') return;
                 
-                let pwd = cols.length > 1 && cols[1] ? cols[1] : Math.random().toString(36).substring(2, 8).toUpperCase();
+                // Generate a random 6-character alphanumeric password for every team imported
+                let pwd = Math.random().toString(36).substring(2, 8).toUpperCase();
                 
                 if (!db[teamId]) {
                     db[teamId] = {
