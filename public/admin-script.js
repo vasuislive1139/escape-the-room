@@ -1296,13 +1296,17 @@ function executeBulkAction() {
     }
     
     selectedTeams.forEach(teamName => {
-        // Skip confirm prompts for bulk delete since we already confirmed once
         if (action === 'delete') {
             const db = getTeamsDb();
             delete db[teamName];
             saveTeamsDb(db);
             transmitGmCommand(teamName, 'LOGOUT', 'Your credentials have been revoked.');
             addLogItem(`Deleted team [${teamName}] from database.`, 'alert');
+        } else if (action === 'regenerate_passwords') {
+            const db = getTeamsDb();
+            db[teamName].password = Math.random().toString(36).substring(2, 8).toUpperCase();
+            saveTeamsDb(db);
+            transmitGmCommand(teamName, 'LOGOUT', 'Your password has been reset by Game Master. Please login again with the new credentials.');
         } else {
             // Unfreeze maps to freeze in quickAction since it's a toggle, but we should make sure it actually unfreezes.
             if (action === 'unfreeze') {
@@ -1328,6 +1332,18 @@ function executeBulkAction() {
     
     // Force re-render to reflect changes
     renderFullTeamsList();
+    
+    if (action === 'regenerate_passwords' || action === 'delete') {
+        if (action === 'regenerate_passwords') {
+            showAdminToast("🔐 Passwords Reset", `Regenerated passwords for ${selectedTeams.length} selected teams.`);
+            addLogItem(`Regenerated passwords for ${selectedTeams.length} teams.`, 'system');
+        }
+        fetch('/api/teams/bulk', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(getTeamsDb())
+        });
+    }
     
     showAdminToast("✅ Bulk Action Complete", `Applied ${action} to ${selectedTeams.length} teams.`);
     actionSelect.value = '';

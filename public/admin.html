@@ -248,6 +248,7 @@
                                 <option value="unfreeze">🔥 Unfreeze Selected</option>
                                 <option value="warn">⚠️ Warn Selected</option>
                                 <option value="revive">💚 Revive Selected</option>
+                                <option value="regenerate_passwords">🔐 Regenerate Passwords</option>
                                 <option value="delete">🗑️ Delete Selected</option>
                             </select>
                             <button class="ornate-btn small-btn" onclick="executeBulkAction()" style="padding: 6px 12px; font-size: 0.85rem;">Apply</button>
@@ -414,8 +415,7 @@
                     
                     <div class="admin-card gm-live-control-panel">
                         <h3 style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-bottom: 15px; color: #ffe8b3;">Database Management</h3>
-                        <div class="preset-btn-group" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
-                            <button type="button" class="row-btn" style="border-color:#50e3c2; color:#50e3c2; padding: 15px;" onclick="regenerateAllPasswords()">🔐 Regenerate Passwords</button>
+                        <div class="preset-btn-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                             <button type="button" class="row-btn" style="border-color:#ff9800; color:#ff9800; padding: 15px;" onclick="resetAllTeamsProgress()">🔄 Reset ALL Progress</button>
                             <button type="button" class="row-btn danger" onclick="clearAllTeams()" style="padding: 15px;">🗑️ Delete All Teams</button>
                         </div>
