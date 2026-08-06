@@ -240,7 +240,10 @@
                 <!-- VIEW: REGISTERED TEAMS -->
                 <section id="view-teams-registered" class="admin-view">
                     <div class="view-header flex-between" style="flex-wrap: wrap; gap: 10px;">
-                        <h2>Team Management</h2>
+                        <div style="display: flex; gap: 15px; align-items: center;">
+                            <h2>Team Management</h2>
+                            <input type="text" id="teamSearchInput" class="bright-input" placeholder="🔍 Search teams..." style="padding: 6px 12px; width: 220px; font-size: 0.9rem;" oninput="renderFullTeamsList()">
+                        </div>
                         <div style="display: flex; gap: 10px; align-items: center;">
                             <select id="bulkActionSelect" class="ornate-select bright-input" style="padding: 6px; font-size: 0.85rem;">
                                 <option value="">-- Bulk Actions --</option>

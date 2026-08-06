@@ -898,7 +898,16 @@ function formatTimeFromSeconds(totalSec) {
 
 function renderFullTeamsList() {
     const db = getTeamsDb();
-    const teamNames = Object.keys(db);
+    let teamNames = Object.keys(db);
+    
+    const searchInput = document.getElementById('teamSearchInput');
+    if (searchInput && searchInput.value) {
+        const query = searchInput.value.toLowerCase();
+        teamNames = teamNames.filter(name => 
+            name.toLowerCase().includes(query) || 
+            (db[name].slotId && db[name].slotId.toLowerCase().includes(query))
+        );
+    }
     const tbody = document.getElementById('fullTeamsListBody');
     if (!tbody) return;
 
