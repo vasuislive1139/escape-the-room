@@ -131,7 +131,7 @@ app.get(['/api/teams', '/teams'], async (req, res) => {
 // Single team state fetch for polling
 app.get(['/api/teams/:id', '/teams/:id'], async (req, res) => {
     try {
-        const team = await Team.findOne({ id: req.params.id });
+        const team = await Team.findOne({ id: { $regex: new RegExp("^" + req.params.id + "$", "i") } });
         if (!team) return res.status(404).json({ error: "Team not found" });
         res.json(team);
     } catch (err) {
@@ -154,7 +154,7 @@ app.post(['/api/teams', '/teams'], async (req, res) => {
         if (entryTime !== undefined) updateData.entryTime = entryTime;
         if (slotId !== undefined) updateData.slotId = slotId;
 
-        const team = await Team.findOne({ id: id });
+        const team = await Team.findOne({ id: { $regex: new RegExp("^" + id + "$", "i") } });
         if (!team) {
             return res.status(404).json({ error: "Team not found" });
         }
@@ -206,7 +206,7 @@ app.post(['/api/teams/reset', '/teams/reset'], async (req, res) => {
     if (!id) return res.status(400).json({ error: "Missing team id" });
     
     try {
-        const team = await Team.findOne({ id: id });
+        const team = await Team.findOne({ id: { $regex: new RegExp("^" + id + "$", "i") } });
         if (!team) return res.status(404).json({ error: "Team not found" });
 
         team.stage = 1;
@@ -281,7 +281,7 @@ app.post(['/api/teams/:id/action', '/teams/:id/action'], async (req, res) => {
     const { action } = req.body;
     const teamId = req.params.id;
     try {
-        const team = await Team.findOne({ id: teamId });
+        const team = await Team.findOne({ id: { $regex: new RegExp("^" + teamId + "$", "i") } });
         if (!team) return res.status(404).json({ error: "Team not found" });
 
         if (action === 'FREEZE') {
@@ -316,7 +316,7 @@ app.post(['/api/teams/:id/add-time', '/teams/:id/add-time'], async (req, res) =>
     const { stage, minutes } = req.body;
     const teamId = req.params.id;
     try {
-        const team = await Team.findOne({ id: teamId });
+        const team = await Team.findOne({ id: { $regex: new RegExp("^" + teamId + "$", "i") } });
         if (!team) return res.status(404).json({ error: "Team not found" });
 
         const eventId = Math.random().toString(36).substr(2, 9);
@@ -355,7 +355,7 @@ app.post(['/api/teams/:id/reset', '/teams/:id/reset'], async (req, res) => {
     const { scope } = req.body;
     const teamId = req.params.id;
     try {
-        const team = await Team.findOne({ id: teamId });
+        const team = await Team.findOne({ id: { $regex: new RegExp("^" + teamId + "$", "i") } });
         if (!team) return res.status(404).json({ error: "Team not found" });
 
         const eventId = Math.random().toString(36).substr(2, 9);
