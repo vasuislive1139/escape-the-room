@@ -139,7 +139,7 @@ function initAuth() {
     // Resume from localStorage if available
     const savedScore = localStorage.getItem('sh_score');
     if (savedScore) score = parseInt(savedScore, 10);
-    else score = 500; // Base score
+    else score = 50; // Base score
     
     const savedClue = localStorage.getItem('sh_clue_index');
     if (savedClue) currentClueIndex = parseInt(savedClue, 10);
@@ -149,6 +149,8 @@ function initAuth() {
     
     const savedTime = localStorage.getItem('sh_time');
     if (savedTime) timeRemaining = parseInt(savedTime, 10);
+    
+    window.shUnlockedHints = JSON.parse(localStorage.getItem('sh_unlocked_hints') || '[]');
     
     updateTrackerUI();
     
@@ -298,7 +300,7 @@ function applySyntaxHighlighting(container, text) {
 // --- Clue & Game Logic ---
 function loadClue(index) {
     if (index >= CLUES.length) {
-        completeStage();
+        triggerScavengerHuntComplete();
         return;
     }
     const clue = CLUES[index];
@@ -310,8 +312,14 @@ function loadClue(index) {
     feedback.textContent = '';
     feedback.className = 'feedback-msg';
     
-    document.getElementById('hintText').classList.add('hidden');
-    document.getElementById('hintText').textContent = '';
+    const hintEl = document.getElementById('hintText');
+    if (window.shUnlockedHints && window.shUnlockedHints.includes(currentClueIndex)) {
+        hintEl.textContent = clue.hint;
+        hintEl.classList.remove('hidden');
+    } else {
+        hintEl.classList.add('hidden');
+        hintEl.textContent = '';
+    }
     
     updateTrackerUI();
 }
@@ -324,8 +332,11 @@ function handleAnswerSubmit() {
     
     const currentClue = CLUES[currentClueIndex];
     
-    if (input.toLowerCase() === currentClue.answer.toLowerCase()) {
-        playSound('success');
+    const normalizedInput = input.toLowerCase().trim().replace(/\s+/g, '');
+    const normalizedAnswer = currentClue.answer.toLowerCase().trim().replace(/\s+/g, '');
+    
+    if (normalizedInput === normalizedAnswer) {
+        try { playSound('success'); } catch(e) {}
         feedback.textContent = `CORRECT! +${currentClue.points} pts`;
         feedback.className = 'feedback-msg success';
         
@@ -346,11 +357,15 @@ function handleAnswerSubmit() {
         }, 1500);
         
     } else {
-        playSound('error');
+        try { playSound('error'); } catch(e) {}
         feedback.textContent = "INCORRECT DIRECTIVE. -2 pts";
         feedback.className = 'feedback-msg error';
-        // No point penalty for wrong guesses in unified scoring
-        showStatus('invalid', 'INVALID DIRECTORY', `PATH NOT FOUND: /root/${input}`);
+        
+        setTimeout(() => {
+            if (feedback.textContent === "INCORRECT DIRECTIVE. -2 pts") {
+                feedback.textContent = '';
+            }
+        }, 5000);
         
         // Shake input
         const inputEl = document.getElementById('answerInput');
@@ -362,9 +377,13 @@ function handleAnswerSubmit() {
 }
 
 function handleHintRequest() {
+    if (!window.shUnlockedHints) window.shUnlockedHints = [];
+    if (window.shUnlockedHints.includes(currentClueIndex)) return;
+    
     if (hintsLeft > 0) {
         hintsLeft--;
-        score = Math.max(0, score - 50); // Penalty for hint
+        score = Math.max(0, score - 5); // Penalty for hint reduced from 50 to 5
+        window.shUnlockedHints.push(currentClueIndex);
         
         const hintEl = document.getElementById('hintText');
         hintEl.textContent = CLUES[currentClueIndex].hint;
@@ -372,7 +391,7 @@ function handleHintRequest() {
         
         saveState();
         updateTrackerUI();
-        playSound('beep');
+        try { playSound('beep'); } catch(e) {}
     }
 }
 
@@ -380,7 +399,9 @@ function saveState() {
     localStorage.setItem('sh_score', score);
     localStorage.setItem('sh_clue_index', currentClueIndex);
     localStorage.setItem('sh_hints', hintsLeft);
-    localStorage.setItem('sh_stage', currentFileStage);
+    if (window.shUnlockedHints) {
+        localStorage.setItem('sh_unlocked_hints', JSON.stringify(window.shUnlockedHints));
+    }
     const tr = (typeof currentStageTimeLeft !== 'undefined') ? currentStageTimeLeft : 600;
     localStorage.setItem('sh_time', tr);
 }
@@ -405,16 +426,17 @@ function updateTrackerUI() {
 
 // Timer logic handled by global timer-logic.js
 // --- Completion ---
-function completeStage() {
+function triggerScavengerHuntComplete() {
     if (typeof stopTimer === 'function') stopTimer();
     
     // Unified Scoring
     const timeRemaining = (typeof currentStageTimeLeft !== 'undefined') ? currentStageTimeLeft : 0;
     const hintsUsed = 3 - hintsLeft;
-    const baseScore = 500;
-    const hintPenalty = hintsUsed * 50;
+    const baseScore = 50; // Scaled down from 500
+    const timeBonus = Math.floor(timeRemaining / 10); // Scaled down from 1 pt/sec
+    const hintPenalty = hintsUsed * 5; // Scaled down from 50
     
-    score = baseScore + timeRemaining - hintPenalty;
+    score = baseScore + timeBonus - hintPenalty;
     saveState();
     
     let timeTaken = 0;
@@ -426,12 +448,12 @@ function completeStage() {
     const s = (timeTaken % 60).toString().padStart(2, '0');
     
     document.getElementById('finalScore').textContent = score;
-    document.getElementById('shScoreMath').innerHTML = `${baseScore} Base + ${timeRemaining} Time Bonus - ${hintPenalty} Hint Penalty`;
+    document.getElementById('shScoreMath').innerHTML = `${baseScore} Base + ${timeBonus} Time Bonus - ${hintPenalty} Hint Penalty`;
     document.getElementById('finalTime').textContent = `${m}:${s} taken`;
     
     document.getElementById('workspaceSection').classList.add('hidden');
     document.getElementById('completionOverlay').classList.remove('hidden');
-    playSound('success');
+    try { playSound('success'); } catch(e) {}
     
     // Save progression locally for UI
     localStorage.setItem('escape_unlocked_level', '3');

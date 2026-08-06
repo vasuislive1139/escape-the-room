@@ -1,0 +1,101 @@
+.leaderboard-body {
+    background: #0d0a08;
+    color: #ffe8b3;
+    font-family: 'Outfit', sans-serif;
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow-x: hidden;
+}
+#embersCanvas {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+}
+.leaderboard-container {
+    position: relative;
+    z-index: 10;
+    width: 90%;
+    max-width: 800px;
+    background: rgba(13, 10, 8, 0.85);
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    border-radius: 12px;
+    padding: 40px;
+    box-shadow: 0 0 50px rgba(255, 215, 0, 0.05), inset 0 0 30px rgba(255, 215, 0, 0.02);
+    backdrop-filter: blur(10px);
+}
+.leaderboard-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+.leaderboard-header h1 {
+    font-family: 'Cinzel', serif;
+    font-size: 3.5rem;
+    margin: 0;
+    letter-spacing: 4px;
+}
+.leaderboard-header p {
+    font-family: 'Share Tech Mono', monospace;
+    color: #a5b0bb;
+    letter-spacing: 2px;
+    margin-top: 10px;
+}
+.lb-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 20px 30px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.lb-row:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+}
+.rank-1 {
+    background: linear-gradient(90deg, rgba(255,215,0,0.1), rgba(255,215,0,0.02));
+    border-color: rgba(255, 215, 0, 0.4);
+}
+.rank-2 {
+    background: linear-gradient(90deg, rgba(192,192,192,0.1), rgba(192,192,192,0.02));
+    border-color: rgba(192, 192, 192, 0.4);
+}
+.rank-3 {
+    background: linear-gradient(90deg, rgba(205,127,50,0.15), rgba(205,127,50,0.02));
+    border-color: rgba(205, 127, 50, 0.4);
+}
+.lb-rank {
+    font-family: 'Cinzel', serif;
+    font-size: 1.2rem;
+    font-weight: bold;
+    width: 140px;
+}
+.rank-1 .lb-rank { color: #ffd700; text-shadow: 0 0 10px rgba(255,215,0,0.5); }
+.rank-2 .lb-rank { color: #c0c0c0; text-shadow: 0 0 10px rgba(192,192,192,0.5); }
+.rank-3 .lb-rank { color: #cd7f32; text-shadow: 0 0 10px rgba(205,127,50,0.5); }
+.lb-team {
+    flex-grow: 1;
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+}
+.lb-stats {
+    text-align: right;
+    font-family: 'Share Tech Mono', monospace;
+}
+.lb-score {
+    font-size: 1.4rem;
+    color: #50e3c2;
+    text-shadow: 0 0 8px rgba(80, 227, 194, 0.4);
+}
+.lb-time {
+    font-size: 1rem;
+    color: #8b949e;
+    margin-top: 4px;
+}

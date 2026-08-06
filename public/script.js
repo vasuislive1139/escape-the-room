@@ -332,7 +332,8 @@ function initFormControls() {
                     loginSubmitBtn.disabled = false;
                     loginSubmitBtn.innerHTML = originalBtnText;
                 }
-                handleSuccessfulLogin('TatvaAdmin', 5);
+                // Redirect directly to the Admin Dashboard
+                window.location.href = 'admin.html';
                 return;
             }
 

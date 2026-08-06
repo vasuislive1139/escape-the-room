@@ -116,6 +116,13 @@ function renderCrossword(puzzleData) {
                 
                 cell.appendChild(input);
                 cellMap[`${r}-${c}`] = input;
+                
+                // Add event listener to save state and clear error styles on type
+                input.addEventListener('input', () => {
+                    input.style.backgroundColor = '';
+                    input.style.color = '#fff';
+                    saveCrosswordState();
+                });
             } else {
                 cell.className = 'empty-cell';
                 cell.style.background = 'transparent';
@@ -143,6 +150,36 @@ function renderCrossword(puzzleData) {
             downEl.appendChild(p);
         }
     });
+    
+    // Restore saved inputs if they exist
+    restoreCrosswordState();
+}
+
+function saveCrosswordState() {
+    const teamId = localStorage.getItem('escape_team_id') || 'DEBUG';
+    const cellMap = window.crosswordCellMap || {};
+    const state = {};
+    for (const key in cellMap) {
+        if (cellMap[key].value.trim()) {
+            state[key] = cellMap[key].value.toUpperCase();
+        }
+    }
+    localStorage.setItem('escape_crossword_state_' + teamId, JSON.stringify(state));
+}
+
+function restoreCrosswordState() {
+    const teamId = localStorage.getItem('escape_team_id') || 'DEBUG';
+    const saved = localStorage.getItem('escape_crossword_state_' + teamId);
+    if (!saved) return;
+    try {
+        const state = JSON.parse(saved);
+        const cellMap = window.crosswordCellMap || {};
+        for (const key in state) {
+            if (cellMap[key]) {
+                cellMap[key].value = state[key];
+            }
+        }
+    } catch(e) { console.error("Could not restore crossword state", e); }
 }
 
 function handleInputNavigation(e) {
@@ -193,8 +230,12 @@ function setupValidation(puzzleData, teamId) {
     if (clearBtn) {
         clearBtn.addEventListener('click', () => {
             const cellMap = window.crosswordCellMap;
-            Object.values(cellMap).forEach(inp => inp.value = '');
+            Object.values(cellMap).forEach(inp => {
+                inp.value = '';
+                inp.style.backgroundColor = '';
+            });
             if (gameMsg) gameMsg.textContent = '';
+            saveCrosswordState();
         });
     }
     
@@ -217,6 +258,18 @@ function setupValidation(puzzleData, teamId) {
                         
                         if (input.value.toUpperCase() !== char.toUpperCase()) {
                             allCorrect = false;
+                            if (input.value.trim().length > 0) {
+                                // Highlight incorrect cells
+                                input.style.backgroundColor = 'rgba(255, 42, 42, 0.4)';
+                                input.style.color = '#ffb3b3';
+                                // Shake animation
+                                input.style.transform = 'translateX(3px)';
+                                setTimeout(() => input.style.transform = 'translateX(-3px)', 50);
+                                setTimeout(() => input.style.transform = 'translateX(3px)', 100);
+                                setTimeout(() => input.style.transform = 'translateX(0)', 150);
+                            }
+                        } else {
+                            input.style.backgroundColor = 'rgba(80, 227, 194, 0.2)';
                         }
                     }
                 }
@@ -224,9 +277,19 @@ function setupValidation(puzzleData, teamId) {
             
             if (filledCells < totalCells) {
                 if (gameMsg) {
-                    gameMsg.textContent = "Please fill in all blocks before checking.";
-                    gameMsg.style.color = "#ffe8b3";
+                    gameMsg.textContent = "Please fill in all blocks before checking. Incorrect answers are highlighted in red.";
+                    gameMsg.style.color = "#ff4f55";
                 }
+                return;
+            }
+            
+            if (!allCorrect) {
+                if (gameMsg) {
+                    gameMsg.textContent = "Some answers are incorrect! Incorrect cells are highlighted in red.";
+                    gameMsg.style.color = "#ff4f55";
+                }
+                if (typeof playErrorSound === 'function') playErrorSound();
+                else if (typeof playSound === 'function') playSound('error');
                 return;
             }
             
@@ -250,11 +313,15 @@ function setupValidation(puzzleData, teamId) {
                     
                     // Unified Scoring Math
                     const timeRemaining = (typeof currentStageTimeLeft !== 'undefined') ? currentStageTimeLeft : 0;
-                    const baseScore = 500;
-                    const finalScore = baseScore + timeRemaining;
+                    const baseScore = 50; // Scaled down from 500
+                    const timeBonus = Math.floor(timeRemaining / 10); // Scaled down from 1 pt/sec
                     
-                    document.getElementById('completeScore').textContent = finalScore;
-                    document.getElementById('completeScoreMath').innerHTML = `500 Base + ${timeRemaining} Time Bonus`;
+                    let finalScore = baseScore + timeBonus;
+                    
+                    const cScoreEl = document.getElementById('completeScore');
+                    const cMathEl = document.getElementById('completeScoreMath');
+                    if (cScoreEl) cScoreEl.textContent = `${finalScore} PTS`;
+                    if (cMathEl) cMathEl.innerHTML = `${baseScore} Base + ${timeBonus} Time Bonus`;
                     
                     successModal.style.display = 'flex';
                     

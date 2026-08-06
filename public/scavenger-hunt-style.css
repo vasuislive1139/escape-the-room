@@ -19,10 +19,10 @@ body {
     background-color: var(--sh-bg);
     margin: 0;
     padding: 0;
-    overflow: hidden;
     font-family: var(--font-body);
     color: var(--sh-text-main);
     display: block; /* Override flex centering from style.css */
+    min-height: 100vh;
 }
 
 /* Background Effects */

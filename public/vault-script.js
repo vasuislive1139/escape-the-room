@@ -159,22 +159,24 @@ function openQr(title, src, index) {
     if (curLvl < 5) {
         // Unified Scoring Math
         const timeRemaining = (typeof currentStageTimeLeft !== 'undefined') ? currentStageTimeLeft : 0;
-        const baseScore = 1000;
-        const finalScore = baseScore + timeRemaining;
+        const baseScore = 100; // Scaled down from 1000
+        const timeBonus = Math.floor(timeRemaining / 10);
+        const finalScore = baseScore + timeBonus;
         
         const vScoreEl = document.getElementById('vaultScore');
         const vMathEl = document.getElementById('vaultScoreMath');
         if (vScoreEl) vScoreEl.textContent = `${finalScore} PTS`;
-        if (vMathEl) vMathEl.innerHTML = `${baseScore} Base + ${timeRemaining} Time Bonus`;
+        if (vMathEl) vMathEl.innerHTML = `${baseScore} Base + ${timeBonus} Time Bonus`;
 
         localStorage.setItem('escape_unlocked_level', 5); // 5 = fully completed
         if (typeof window.completeStage === 'function') {
             window.completeStage(5, finalScore, 'StreamWave Vault Completed (Game Beaten!)').then(async res => {
                 if (res && res.success && res.team) {
-                    const rank = res.team.vaultFinishRank || 1; // Default to 1 if missing for some reason
+                    const rank = res.team.vaultFinishRank || 1;
                     
                     // Show Victory Overlay
                     const overlay = document.getElementById('victoryOverlay');
+                    const rankText = document.getElementById('victoryRankText'); 
                     const descText = document.getElementById('victoryDescText');
                     
                     let rankStr = rank + 'th';
@@ -182,7 +184,7 @@ function openQr(title, src, index) {
                     else if (rank === 2) rankStr = '2nd';
                     else if (rank === 3) rankStr = '3rd';
                     
-                    rankText.textContent = `${rankStr} WINNER!`;
+                    if (rankText) rankText.textContent = `${rankStr} WINNER!`;
                     if (descText) {
                         descText.textContent = `Congratulations! You are the ${rankStr} team to complete the entire Escape The Room activity.`;
                     }
@@ -192,7 +194,7 @@ function openQr(title, src, index) {
                     
                     // Fire Confetti!
                     if (typeof confetti === 'function') {
-                        const duration = 15 * 1000;
+                        const duration = 8 * 1000;
                         const animationEnd = Date.now() + duration;
                         const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 10000 };
                         
@@ -206,8 +208,18 @@ function openQr(title, src, index) {
                         }, 250);
                     }
                     
-                    // If rank is 3, start 15s countdown then trigger GAME_OVER for everyone!
-                    if (rank === 3) {
+                    // Redirect Logic
+                    setTimeout(() => {
+                        if (rank <= 5) {
+                            window.location.href = 'leaderboard.html';
+                        } else {
+                            localStorage.clear();
+                            window.location.href = 'index.html';
+                        }
+                    }, 8000);
+                    
+                    // Trigger Global Game Over when the 5th team finishes
+                    if (rank === 5) {
                         setTimeout(async () => {
                             try {
                                 const dbRes = await fetch('/api/teams');
@@ -223,7 +235,7 @@ function openQr(title, src, index) {
                                     });
                                 }
                             } catch(e) { console.error(e); }
-                        }, 15000);
+                        }, 10000);
                     }
                 }
             });

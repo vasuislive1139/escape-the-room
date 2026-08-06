@@ -946,7 +946,8 @@ function renderFullTeamsList() {
                 <button type="button" class="row-btn" onclick="openEditTeamModal('${name}')" title="Edit Team">✏️</button>
                 <button type="button" class="row-btn" onclick="quickAction('${name}', 'promote')" title="Promote Stage">🔼</button>
                 <button type="button" class="row-btn" onclick="quickAction('${name}', 'demote')" title="Demote Stage">🔽</button>
-                <button type="button" class="row-btn" onclick="quickAction('${name}', 'freeze')" title="Toggle Freeze">❄️</button>
+                <button type="button" class="row-btn" onclick="quickAction('${name}', 'freeze')" title="Freeze">❄️</button>
+                <button type="button" class="row-btn" style="border-color:#ff4f55; color:#ff4f55;" onclick="quickAction('${name}', 'unfreeze')" title="Unfreeze">🔥</button>
                 <button type="button" class="row-btn" style="border-color:#ffd700; color:#ffd700;" onclick="handleAddTime('${name}')" title="Add Time">⏳</button>
                 <button type="button" class="row-btn" style="border-color:#ff9800; color:#ff9800;" onclick="handleResetProgress('${name}')" title="Reset Progress">🔄</button>
                 <button type="button" class="row-btn danger" onclick="quickAction('${name}', 'delete')" title="Delete Credential">🗑️</button>
@@ -1001,7 +1002,8 @@ function renderLeaderboard() {
             <td style="text-align: right; white-space: nowrap;">
                 ${team.status === 'timeout' ? `<button type="button" class="row-btn" style="border-color:#50e3c2; color:#50e3c2; padding: 2px 6px;" onclick="quickAction('${team.name}', 'revive')" title="Revive">💚</button>` : ''}
                 <button type="button" class="row-btn" style="padding: 2px 6px;" onclick="quickAction('${team.name}', 'warn')" title="Issue Warning">⚠️</button>
-                <button type="button" class="row-btn" style="padding: 2px 6px;" onclick="quickAction('${team.name}', 'freeze')" title="Toggle Freeze">❄️</button>
+                <button type="button" class="row-btn" style="padding: 2px 6px;" onclick="quickAction('${team.name}', 'freeze')" title="Freeze">❄️</button>
+                <button type="button" class="row-btn" style="border-color:#ff4f55; color:#ff4f55; padding: 2px 6px;" onclick="quickAction('${team.name}', 'unfreeze')" title="Unfreeze">🔥</button>
                 <button type="button" class="row-btn" style="border-color:#ffd700; color:#ffd700; padding: 2px 6px;" onclick="handleAddTime('${team.name}')" title="Add Time">⏳</button>
                 <button type="button" class="row-btn" style="border-color:#ff9800; color:#ff9800; padding: 2px 6px;" onclick="handleResetProgress('${team.name}')" title="Reset Progress">🔄</button>
             </td>
@@ -1383,3 +1385,58 @@ function showAdminToast(title, msg) {
         toast.classList.add('hidden');
     }, 3500);
 }
+
+function handleCSVUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const text = e.target.result;
+        const rows = text.split(/\r?\n/);
+        
+        let db = getTeamsDb();
+        let addedCount = 0;
+        
+        rows.forEach(row => {
+            if (!row.trim()) return;
+            const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+            if (cols.length >= 1 && cols[0]) {
+                const teamId = cols[0];
+                if (teamId.toLowerCase() === 'team name' || teamId.toLowerCase() === 'teamid' || teamId.toLowerCase() === 'name') return;
+                
+                let pwd = cols.length > 1 && cols[1] ? cols[1] : Math.random().toString(36).substring(2, 8).toUpperCase();
+                
+                if (!db[teamId]) {
+                    db[teamId] = {
+                        name: teamId,
+                        password: pwd,
+                        members: '',
+                        slotId: '',
+                        status: 'active',
+                        stage: 1,
+                        score: 0,
+                        totalTime: 0,
+                        warnings: 0,
+                        stageTimes: {}
+                    };
+                    addedCount++;
+                }
+            }
+        });
+        
+        saveTeamsDb(db);
+        event.target.value = '';
+        showAdminToast("CSV Imported", `Added ${addedCount} new teams.`);
+        renderFullTeamsList();
+        renderLeaderboard();
+        
+        fetch('/api/teams/bulk', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(db)
+        });
+    };
+    reader.readAsText(file);
+}
+window.handleCSVUpload = handleCSVUpload;

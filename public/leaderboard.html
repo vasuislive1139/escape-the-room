@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escape The Room — Top 5 Winners</title>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Fira+Code:wght@400;500;700&family=Outfit:wght@300;400;600;700;900&family=Cinzel:wght@500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="leaderboard-style.css">
+</head>
+<body class="leaderboard-body">
+    <!-- Embers Background -->
+    <canvas id="embersCanvas"></canvas>
+
+    <div class="leaderboard-container">
+        <div class="leaderboard-header">
+            <h1 class="glitch-text glow-gold" data-text="VICTORY NEXUS">VICTORY NEXUS</h1>
+            <p>THE TOP 5 TEAMS TO ESCAPE THE VAULT</p>
+        </div>
+
+        <div class="leaderboard-board" id="leaderboardBoard">
+            <div style="text-align:center; padding: 50px; color: #a5b0bb;">
+                Loading live results...
+            </div>
+        </div>
+
+        <div style="margin-top: 40px; text-align: center;">
+            <button class="ornate-btn" onclick="logout()">EXIT TO HOME</button>
+        </div>
+    </div>
+
+    <script>
+        // Init embers canvas
+        const canvas = document.getElementById('embersCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        const particles = [];
+        for (let i = 0; i < 50; i++) particles.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, size: Math.random() * 2 + 1, speedX: Math.random() * 2 - 1, speedY: Math.random() * -2 - 1, life: Math.random() * 100 });
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'rgba(255, 215, 0, 0.5)';
+            particles.forEach(p => {
+                p.x += p.speedX; p.y += p.speedY; p.life--;
+                if (p.life <= 0) { p.x = Math.random() * canvas.width; p.y = canvas.height + 10; p.life = Math.random() * 100 + 50; }
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
+            });
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        // Fetch Leaderboard Data
+        async function loadLeaderboard() {
+            try {
+                const res = await fetch('/api/teams');
+                const data = await res.json();
+                
+                let teamsArray = [];
+                if (Array.isArray(data)) {
+                    teamsArray = data;
+                } else if (typeof data === 'object') {
+                    teamsArray = Object.values(data);
+                }
+
+                // Filter to only teams that completed Vault (rank > 0 or stage === 5)
+                const winners = teamsArray.filter(t => t.vaultFinishRank && t.vaultFinishRank > 0);
+                
+                // Sort by rank ascending
+                winners.sort((a, b) => a.vaultFinishRank - b.vaultFinishRank);
+                
+                // Slice top 5
+                const top5 = winners.slice(0, 5);
+                
+                const board = document.getElementById('leaderboardBoard');
+                if (top5.length === 0) {
+                    board.innerHTML = '<div style="text-align:center; padding: 50px; color: #a5b0bb;">No teams have escaped yet...</div>';
+                    return;
+                }
+
+                board.innerHTML = top5.map((t, idx) => {
+                    let medal = '';
+                    if (t.vaultFinishRank === 1) medal = '🥇 1ST PLACE';
+                    else if (t.vaultFinishRank === 2) medal = '🥈 2ND PLACE';
+                    else if (t.vaultFinishRank === 3) medal = '🥉 3RD PLACE';
+                    else medal = `${t.vaultFinishRank}TH PLACE`;
+                    
+                    const m = Math.floor(t.totalTime / 60).toString().padStart(2, '0');
+                    const s = (t.totalTime % 60).toString().padStart(2, '0');
+
+                    return `
+                    <div class="lb-row rank-${t.vaultFinishRank}">
+                        <div class="lb-rank">${medal}</div>
+                        <div class="lb-team">${t.id}</div>
+                        <div class="lb-stats">
+                            <div class="lb-score">${t.score} PTS</div>
+                            <div class="lb-time">${m}:${s} Time</div>
+                        </div>
+                    </div>`;
+                }).join('');
+
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        setInterval(loadLeaderboard, 5000);
+        loadLeaderboard();
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

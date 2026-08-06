@@ -6,6 +6,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+const path = require('path');
+app.use(express.static(path.join(__dirname, '../public')));
+
 // MongoDB Connection caching for serverless environments
 let cachedDb = null;
 
@@ -59,8 +62,8 @@ const Team = mongoose.models.Team || mongoose.model('Team', TeamSchema);
 const Setting = mongoose.models.Setting || mongoose.model('Setting', SettingSchema);
 const Log = mongoose.models.Log || mongoose.model('Log', LogSchema);
 
-// Middleware to ensure DB connection on every request
-app.use(async (req, res, next) => {
+// Middleware to ensure DB connection on every API request
+app.use('/api', async (req, res, next) => {
     try {
         await connectToDatabase();
         next();
