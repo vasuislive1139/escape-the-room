@@ -92,7 +92,8 @@ app.post(['/api/login', '/login'], async (req, res) => {
     if (!teamId || !password) return res.status(400).json({ error: "Missing credentials" });
     
     try {
-        const team = await Team.findOne({ id: teamId });
+        // Case-insensitive login match
+        const team = await Team.findOne({ id: { $regex: new RegExp("^" + teamId + "$", "i") } });
         if (!team) {
             return res.status(401).json({ error: "Team not found", success: false });
         }
