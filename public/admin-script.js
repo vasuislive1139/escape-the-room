@@ -1472,3 +1472,28 @@ function resetAllTeamsProgress() {
     });
 }
 window.resetAllTeamsProgress = resetAllTeamsProgress;
+
+function regenerateAllPasswords() {
+    if (!confirm("⚠️ WARNING: This will overwrite ALL team passwords with new random 6-character alphanumeric ones. Proceed?")) return;
+    
+    const db = getTeamsDb();
+    let count = 0;
+    Object.keys(db).forEach(name => {
+        db[name].password = Math.random().toString(36).substring(2, 8).toUpperCase();
+        count++;
+    });
+    
+    saveTeamsDb(db);
+    transmitGmCommand('ALL', 'LOGOUT', 'Your password has been reset by Game Master. Please login again with the new credentials.');
+    showAdminToast("🔐 Passwords Reset", `Regenerated passwords for ${count} teams.`);
+    addLogItem("Regenerated all team passwords.", 'system');
+    
+    fetch('/api/teams/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(db)
+    });
+    
+    renderFullTeamsList();
+}
+window.regenerateAllPasswords = regenerateAllPasswords;
