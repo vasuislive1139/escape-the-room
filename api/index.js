@@ -163,7 +163,12 @@ app.post(['/api/teams', '/teams'], async (req, res) => {
             if (!team.stageTimes) team.stageTimes = {};
             team.stageTimes[currentStageId] = timeTaken;
             team.markModified('stageTimes');
-            team.totalTime = (team.totalTime || 0) + timeTaken;
+            
+            let calcTotal = 0;
+            for (let st in team.stageTimes) {
+                calcTotal += team.stageTimes[st];
+            }
+            team.totalTime = calcTotal;
         }
 
         // Apply other updates

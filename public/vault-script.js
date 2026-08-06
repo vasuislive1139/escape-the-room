@@ -159,8 +159,8 @@ function openQr(title, src, index) {
     if (curLvl < 5) {
         // Unified Scoring Math
         const timeRemaining = (typeof currentStageTimeLeft !== 'undefined') ? currentStageTimeLeft : 0;
-        const baseScore = 100; // Scaled down from 1000
-        const timeBonus = Math.floor(timeRemaining / 10);
+        const baseScore = 50; 
+        const timeBonus = Math.floor(timeRemaining / 20);
         const finalScore = baseScore + timeBonus;
         
         const vScoreEl = document.getElementById('vaultScore');

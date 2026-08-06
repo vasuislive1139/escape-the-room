@@ -432,9 +432,9 @@ function triggerScavengerHuntComplete() {
     // Unified Scoring
     const timeRemaining = (typeof currentStageTimeLeft !== 'undefined') ? currentStageTimeLeft : 0;
     const hintsUsed = 3 - hintsLeft;
-    const baseScore = 50; // Scaled down from 500
-    const timeBonus = Math.floor(timeRemaining / 10); // Scaled down from 1 pt/sec
-    const hintPenalty = hintsUsed * 5; // Scaled down from 50
+    const baseScore = 25; 
+    const timeBonus = Math.floor(timeRemaining / 20); 
+    const hintPenalty = hintsUsed * 2; 
     
     score = baseScore + timeBonus - hintPenalty;
     saveState();

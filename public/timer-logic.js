@@ -232,6 +232,20 @@ if (!window.puzzlePollInterval) {
     window.puzzlePollInterval = setInterval(async () => {
         const teamId = localStorage.getItem('escape_team_id');
         if (!teamId) return;
+        
+        if (typeof window.getTimeTaken === 'function' && typeof currentStageId !== 'undefined') {
+            const tTaken = window.getTimeTaken();
+            fetch('/api/teams', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    id: teamId, 
+                    timeTaken: tTaken,
+                    currentStageId: currentStageId
+                }) 
+            }).catch(e => {}); // ignore minor connection errors on heartbeat
+        }
+
         try {
             const res = await fetch(`/api/teams/${teamId}`);
             if (res.ok) {

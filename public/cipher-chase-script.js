@@ -91,8 +91,10 @@ function handleHint() {
         hintsUsed++;
         localStorage.setItem('escape_cipher_hints_used', hintsUsed);
         
-        let score = parseInt(localStorage.getItem('escape_cipher_score') || '150', 10);
-        score = Math.max(0, score - 5); // 5 point penalty for hints
+        let score = parseInt(localStorage.getItem('escape_cipher_score') || '50', 10);
+        
+        // Deduct points for hint (max 3 hints)
+        score -= 2;
         localStorage.setItem('escape_cipher_score', score);
         
         updateHintButtonUI(hintsUsed);
@@ -412,12 +414,12 @@ function initCipherForm() {
                     }
                     
                     // Update persistent score on progression
-                    let score = parseInt(localStorage.getItem('escape_cipher_score') || '150', 10);
-                    if (currentSubStage === 1) score += 10;
-                    else if (currentSubStage === 2) score += 10;
-                    else if (currentSubStage === 3) score += 10;
-                    else if (currentSubStage === 4) score += 10;
-                    else if (currentSubStage === 5) score += 10;
+                    let score = parseInt(localStorage.getItem('escape_cipher_score') || '50', 10);
+                    if (currentSubStage === 1) score += 5;
+                    else if (currentSubStage === 2) score += 5;
+                    else if (currentSubStage === 3) score += 5;
+                    else if (currentSubStage === 4) score += 5;
+                    else if (currentSubStage === 5) score += 5;
                     localStorage.setItem('escape_cipher_score', score);
 
                     // Increment and save sub-stage state
@@ -475,9 +477,9 @@ function triggerGlobalSuccessFlow() {
     const s = (timeTaken % 60).toString().padStart(2, '0');
     
     // Scoring logic
-    const baseScore = parseInt(localStorage.getItem('escape_cipher_score') || '150', 10);
+    const baseScore = parseInt(localStorage.getItem('escape_cipher_score') || '50', 10);
     const timeRemaining = (typeof currentStageTimeLeft !== 'undefined') ? currentStageTimeLeft : 0;
-    const timeBonus = Math.floor(timeRemaining / 10); 
+    const timeBonus = Math.floor(timeRemaining / 20); 
     let finalScore = baseScore + timeBonus;
     if (finalScore < 0) finalScore = 0;
 

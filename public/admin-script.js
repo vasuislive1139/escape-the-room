@@ -904,9 +904,12 @@ function renderFullTeamsList() {
     if (!tbody) return;
 
     if (teamNames.length === 0) {
-        tbody.innerHTML = `<tr class="empty-row"><td colspan="9">No teams registered yet. Use form to create credentials!</td></tr>`;
+        tbody.innerHTML = `<tr class="empty-row"><td colspan="8">No teams registered yet. Use form to create credentials!</td></tr>`;
         return;
     }
+
+    const checkedTeams = new Set();
+    document.querySelectorAll('.team-checkbox:checked').forEach(cb => checkedTeams.add(cb.value));
 
     tbody.innerHTML = '';
     teamNames.forEach(name => {
@@ -931,13 +934,18 @@ function renderFullTeamsList() {
             if (parts.length > 0) timeBreakdown = `<br><small style="color:#888;">${parts.join(' | ')}</small>`;
         }
         
+        let stageHtml = `Stage ${stageNum}`;
+        if (stageNum >= 5) {
+            stageHtml = `<span style="color: gold; font-weight: bold; text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);">ESCAPED</span>`;
+        }
+
         const tr = document.createElement('tr');
+        const isChecked = checkedTeams.has(name) ? 'checked' : '';
         tr.innerHTML = `
-            <td style="text-align: center;"><input type="checkbox" class="team-checkbox" value="${name}"></td>
+            <td style="text-align: center;"><input type="checkbox" class="team-checkbox" value="${name}" ${isChecked}></td>
             <td><strong style="color:#ffffff;">${name}</strong><br><small class="mono" style="color:#888;">${t.password}</small></td>
-            <td>${t.members || 'Not assigned'}</td>
             <td>${t.slotId || 'None'}</td>
-            <td>Stage ${stageNum}</td>
+            <td>${stageHtml}</td>
             <td class="text-gold">${t.score || 0}</td>
             <td class="mono" style="color:#50e3c2;">${totalTimeStr}${timeBreakdown}</td>
             <td>${statusStr}</td>
@@ -1440,3 +1448,27 @@ function handleCSVUpload(event) {
     reader.readAsText(file);
 }
 window.handleCSVUpload = handleCSVUpload;
+function resetAllTeamsProgress() {
+    if (!confirm("⚠️ WARNING: This will reset all progress (Stage, Score, Time) for ALL teams. Are you sure?")) return;
+    
+    const db = getTeamsDb();
+    Object.keys(db).forEach(name => {
+        db[name].stage = 1;
+        db[name].score = 0;
+        db[name].totalTime = 0;
+        db[name].stageTimes = {};
+        db[name].status = 'active';
+    });
+    
+    saveTeamsDb(db);
+    transmitGmCommand('ALL', 'LOGOUT', 'System has been reset by Game Master. Please log in again.');
+    showAdminToast("🔄 Global Reset", "All team progress has been reset.");
+    addLogItem("Global progress reset performed for ALL teams.", 'alert');
+    
+    fetch('/api/teams/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(db)
+    });
+}
+window.resetAllTeamsProgress = resetAllTeamsProgress;

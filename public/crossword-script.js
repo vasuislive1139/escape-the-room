@@ -312,11 +312,14 @@ function setupValidation(puzzleData, teamId) {
                     document.getElementById('completeTime').textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
                     
                     // Unified Scoring Math
+                    const hintsUsed = (typeof window.getHintsUsed === 'function') ? window.getHintsUsed() : 0;
+                    const baseScore = 25;
                     const timeRemaining = (typeof currentStageTimeLeft !== 'undefined') ? currentStageTimeLeft : 0;
-                    const baseScore = 50; // Scaled down from 500
-                    const timeBonus = Math.floor(timeRemaining / 10); // Scaled down from 1 pt/sec
+                    const hintsPenalty = (hintsUsed * 2);
+                    const timeBonus = Math.floor(timeRemaining / 20);
                     
-                    let finalScore = baseScore + timeBonus;
+                    let finalScore = baseScore + timeBonus - hintsPenalty;
+                    if (finalScore < 0) finalScore = 0;
                     
                     const cScoreEl = document.getElementById('completeScore');
                     const cMathEl = document.getElementById('completeScoreMath');
