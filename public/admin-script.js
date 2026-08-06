@@ -757,11 +757,10 @@ function downloadCredentialsCSV() {
         return;
     }
     
-    let csvContent = "TEAM NAME,PASSWORD,S3 CAESAR CIPHER,S3 CAESAR CORRECT ANSWER,S3 CAESAR DECOY ANSWER,S3 ATBASH CIPHER,S3 ATBASH ANSWER,S3 ROT13 CIPHER,S3 ROT13 ANSWER,INITIAL STAGE,STATUS\r\n";
+    let csvContent = "TEAM NAME,PASSWORD\r\n";
     keys.forEach(name => {
         const t = db[name];
-        const ciphers = getStage3CiphersForTeam(name);
-        csvContent += `${name},${t.password},${ciphers.c1.ciphertext},${ciphers.c1.plaintext},${ciphers.c1.decoytext},${ciphers.c2.ciphertext},${ciphers.c2.plaintext},${ciphers.c3.ciphertext},${ciphers.c3.plaintext},Stage ${t.stage},${t.status}\r\n`;
+        csvContent += `${name},${t.password}\r\n`;
     });
     
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
